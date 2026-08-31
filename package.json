@@ -10,24 +10,22 @@
     "test": "node tests/run.mjs",
     "verify": "npm run build && npm test",
     "ingest": "node --experimental-strip-types src/jobs/cli.ts",
-    "seed": "node --experimental-strip-types tests/seed.ts",
-    "eval:matcher": "node --experimental-strip-types tests/matcher.eval.ts",
-    "fixtures:record": "node --experimental-strip-types tests/record-fixture.ts",
+    "seed": "node --experimental-strip-types tests/seed.mjs",
+    "eval:matcher": "node --experimental-strip-types tests/matcher.mjs",
+    "fixtures:record": "node --experimental-strip-types tests/record-fixture.mjs",
     "shots": "node tests/screenshots.mjs"
   },
   "dependencies": {
-    "better-sqlite3": "^11.7.0",
     "next": "^15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "typescript": "^5.7.0"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.5"
   }
 }
