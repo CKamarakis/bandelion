@@ -33,7 +33,9 @@ let failed = [];
 
 for (const suite of suites) {
   console.log(`\n─── ${suite} ${'─'.repeat(Math.max(0, 60 - suite.length))}`);
-  const r = spawnSync(process.execPath, [join(dir, suite)], {
+  // --experimental-strip-types so suites can import the .ts source directly.
+  // No build step for tests: the thing under test is the source, not a bundle.
+  const r = spawnSync(process.execPath, ['--experimental-strip-types', join(dir, suite)], {
     stdio: 'inherit',
     encoding: 'utf8',
   });

@@ -1,0 +1,110 @@
+{
+  "note": "Real-shaped Berlin listing strings. Written before the matcher, so it cannot be tuned to pass its own test. Cases marked expectNull must NOT match: a false match puts a stranger's gig in your feed, which is worse than missing one.",
+
+  "roster": [
+    "Motörhead",
+    "The Notwist",
+    "Einstürzende Neubauten",
+    "Sigur Rós",
+    "Godspeed You! Black Emperor",
+    "Sleaford Mods",
+    "Fugazi",
+    "Bonaparte",
+    "Die Ärzte",
+    "Tocotronic",
+    "Blumfeld",
+    "Girl",
+    "Water",
+    "Low",
+    "Ministry",
+    "The Blaze",
+    "Nils Frahm",
+    "Apparat",
+    "Moderat",
+    "Modeselektor"
+  ],
+
+  "cases": [
+    { "input": "Motörhead", "expect": "Motörhead", "why": "exact" },
+    { "input": "Motorhead", "expect": "Motörhead", "why": "umlaut stripped by source" },
+    { "input": "Motoerhead", "expect": "Motörhead", "why": "German transliteration" },
+    { "input": "MOTÖRHEAD", "expect": "Motörhead", "why": "caps" },
+
+    { "input": "Notwist", "expect": "The Notwist", "why": "leading article dropped by source" },
+    { "input": "The Notwist", "expect": "The Notwist", "why": "exact" },
+
+    { "input": "Einstuerzende Neubauten", "expect": "Einstürzende Neubauten", "why": "ue transliteration" },
+    { "input": "Einstürzende Neubauten (Live)", "expect": "Einstürzende Neubauten", "why": "parenthetical noise" },
+
+    { "input": "Sigur Ros", "expect": "Sigur Rós", "why": "accent stripped" },
+    { "input": "Godspeed You Black Emperor", "expect": "Godspeed You! Black Emperor", "why": "punctuation dropped" },
+
+    { "input": "Sleaford Mods live", "expect": "Sleaford Mods", "why": "trailing noise word" },
+    { "input": "Sleaford Mods - live in concert", "expect": "Sleaford Mods", "why": "trailing noise phrase" },
+    { "input": "Fugazi Tour", "expect": "Fugazi", "why": "trailing tour" },
+
+    { "input": "Die Ärzte", "expect": "Die Ärzte", "why": "leading Die is part of the name, and the roster has it" },
+    { "input": "Die Aerzte", "expect": "Die Ärzte", "why": "transliterated with article" },
+
+    { "input": "Nils Frahm", "expect": "Nils Frahm", "why": "exact" },
+    { "input": "NILS FRAHM  ", "expect": "Nils Frahm", "why": "whitespace and caps" },
+
+    { "input": "Moderat", "expect": "Moderat", "why": "must not collapse to Modeselektor or Apparat" },
+    { "input": "Modeselektor", "expect": "Modeselektor", "why": "distinct from Moderat" },
+    { "input": "Apparat", "expect": "Apparat", "why": "distinct from Moderat" },
+
+    { "input": "Bonaparte", "expect": "Bonaparte", "why": "exact" },
+
+    { "input": "Girl", "expect": "Girl", "why": "generic name, exact match only" },
+    { "input": "Water", "expect": "Water", "why": "generic name, exact match only" },
+    { "input": "Low", "expect": "Low", "why": "very short name, exact match only" },
+
+    { "input": "Boygenius", "expectNull": true, "why": "not on the roster" },
+    { "input": "Girls", "expectNull": true, "why": "plural of a roster name is a different band" },
+    { "input": "Waterparks", "expectNull": true, "why": "contains a roster name as a prefix" },
+    { "input": "Lowlife", "expectNull": true, "why": "contains a short roster name" },
+    { "input": "Ministry of Sound", "expectNull": true, "why": "venue-ish name containing a roster artist" },
+    { "input": "The Blaze Tribute Band", "expectNull": true, "why": "tribute act is not the artist" },
+    { "input": "Guests", "expectNull": true, "why": "placeholder, not a band" },
+    { "input": "TBA", "expectNull": true, "why": "placeholder" },
+    { "input": "Support", "expectNull": true, "why": "placeholder" }
+  ],
+
+  "lineups": [
+    {
+      "input": "Motörhead + Girlschool",
+      "expect": ["Motörhead", "Girlschool"],
+      "why": "plus separator"
+    },
+    {
+      "input": "Sleaford Mods w/ Billy Nomates",
+      "expect": ["Sleaford Mods", "Billy Nomates"],
+      "why": "w/ separator"
+    },
+    {
+      "input": "Tocotronic, Blumfeld & Die Sterne",
+      "expect": ["Tocotronic", "Blumfeld", "Die Sterne"],
+      "why": "comma and ampersand"
+    },
+    {
+      "input": "Nils Frahm + Guests",
+      "expect": ["Nils Frahm"],
+      "why": "Guests is a placeholder and must be dropped"
+    },
+    {
+      "input": "Apparat supported by Douglas Dare",
+      "expect": ["Apparat", "Douglas Dare"],
+      "why": "supported by separator"
+    },
+    {
+      "input": "Moderat",
+      "expect": ["Moderat"],
+      "why": "single act stays a single act"
+    },
+    {
+      "input": "Einstürzende Neubauten / Blixa Bargeld",
+      "expect": ["Einstürzende Neubauten", "Blixa Bargeld"],
+      "why": "slash separator"
+    }
+  ]
+}

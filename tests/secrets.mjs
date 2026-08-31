@@ -103,7 +103,11 @@ if (existsSync(join(root, '.env.example'))) {
     .split('\n')
     .filter((l) => /^[A-Z_]+=.+/.test(l.trim()))
     // Non-secret defaults are the point of the file.
-    .filter((l) => !/^(BANDELION_|RELEASE_WINDOW_|ENABLE_|DATABASE_PATH)/.test(l.trim()));
+    .filter((l) => !/^(BANDELION_|RELEASE_WINDOW_|ENABLE_|DATABASE_PATH)/.test(l.trim()))
+    // example.com is the reserved placeholder domain (RFC 2606). An address
+    // there is a template, and the real-email scan below still catches a
+    // genuine one.
+    .filter((l) => !/@example\.(com|org|net)\s*$/.test(l.trim()));
   check(
     filled.length === 0,
     '.env.example has no filled-in credential values',
