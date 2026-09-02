@@ -17,6 +17,11 @@
   --magenta: #f700a8;
   --violet: #9c00f7;
 
+  /* Spotify's brand green, used only on the connect button. It is a background
+     colour in their own guidelines, not a text colour: white on it measures
+     1.92:1. Black on it is 10.94:1, which is what Spotify actually ships. */
+  --spotify-green: #1ed760;
+
   /* Rules are ink at partial strength only where a hairline would dominate;
      the grid is meant to be seen. */
   --rule: var(--ink);
@@ -119,6 +124,38 @@ a {
 .block-yellow .btn:hover {
   background: var(--white);
   color: var(--ink);
+}
+
+/*
+ * The Spotify connect button.
+ *
+ * Black on green, which is Spotify's own treatment: white on their green is
+ * 1.92:1 and unusable. Keeps the hard 2px ink border, because green on the
+ * dandelion panel is only 1.28:1 and the button would otherwise dissolve into
+ * the flyer stock. The border is also what carries the shape, per the rule that
+ * colour never signals alone.
+ */
+.btn-spotify {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--spotify-green);
+  color: #000000;
+  border-color: var(--ink);
+}
+
+/* Darkening on hover keeps black legible; a lighter tint would not. */
+.block-yellow .btn-spotify:hover,
+.btn-spotify:hover {
+  background: #1abc54;
+  color: #000000;
+}
+
+.btn-spotify svg {
+  /* currentColor so the mark follows the label rather than being a second
+     decision that can drift out of contrast. */
+  fill: currentColor;
+  flex-shrink: 0;
 }
 
 .btn-secondary {

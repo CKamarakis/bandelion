@@ -451,3 +451,56 @@ returns current status rather than starting a race.
 stale cursor. The next run resumes correctly, but the status is briefly wrong.
 Fixing that needs a heartbeat or a startup reconciliation, and neither is worth
 building before the feed exists.
+
+---
+
+## 027 · The Spotify button is black on their green, not white
+
+**Decided:** `--spotify-green: #1ed760` as a background only, with a black label
+and the standard 2px ink border.
+
+**Why:** measured. White on Spotify's green is **1.92:1**, which fails every
+threshold; black on it is **10.94:1**. Spotify's own brand guidance treats the
+green as a background colour for exactly this reason, so this matches their
+button rather than diverging from it.
+
+The border is not decoration: green on the dandelion panel is **1.28:1**, so
+without a hard edge the button dissolves into the flyer stock. That is also the
+"colour never carries meaning alone" rule doing its job.
+
+`tests/contrast.mjs` asserts all three numbers and that the label is never set
+in the brand green.
+
+---
+
+## 028 · OAuth opens in a popup, with a redirect fallback
+
+**Decided:** the connect button opens `/api/auth/login?popup=1` in a sized
+window. The callback detects a popup via a cookie and returns a page that
+`postMessage`s the outcome to the opener and closes, instead of redirecting.
+
+**Why:** asked for, and it keeps the app's state rather than navigating the tab
+away and back.
+
+Not the same mechanism as Google's: `google.accounts.oauth2` ships an SDK that
+manages the window. Spotify has none, so this is a hand-rolled `window.open`
+plus `postMessage`, which brings the failure modes the code has to handle:
+
+- **Blockers only allow a popup opened synchronously in a click handler**, so
+  `window.open` is the first statement, before any await. A blocked popup falls
+  back to the redirect flow rather than telling the user to change a setting.
+- **A popup closed by hand posts nothing**, so a poll notices `window.closed`
+  and releases the button instead of leaving it on "Connecting" forever.
+- **No opener** (someone opens the callback URL directly) makes the page
+  navigate normally rather than stranding on a blank window.
+
+**The origin bug, caught by a test:** `postMessage` targeted
+`new URL(req.url).origin`, which under Next's dev server reads `localhost` while
+the browser is on `127.0.0.1`. Those are different origins, so the message would
+have been dropped silently and the sign-in would have hung. It now derives the
+origin from `SPOTIFY_REDIRECT_URI`, which is the one address Spotify guarantees
+the browser is on. The page also refuses to start a flow when its own origin
+does not match, naming the address to use.
+
+`postMessage` targets that exact origin, never `'*'`, and the listener checks
+`event.origin`. Verified in a real browser as well as in the suite.

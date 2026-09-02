@@ -41,7 +41,7 @@ function declaredVars(source) {
 
 const vars = declaredVars(css);
 
-for (const name of ['white', 'ink', 'dandelion', 'magenta', 'violet']) {
+for (const name of ['white', 'ink', 'dandelion', 'magenta', 'violet', 'spotify-green']) {
   check(Boolean(vars[name]), `globals.css declares --${name}`);
 }
 
@@ -125,6 +125,42 @@ check(
 check(
   /\.block-yellow\s+\.btn:hover/.test(declarations),
   'globals.css overrides the button hover inside a yellow block',
+);
+
+// --- The Spotify connect button ---------------------------------------------
+//
+// A brand colour is where "just use their green" quietly ships unreadable text.
+// Spotify's own guidance treats #1ED760 as a background, and these numbers are
+// why: white on it is under 2:1.
+
+const blackOnSpotify = ratio('#000000', vars['spotify-green']);
+check(
+  blackOnSpotify >= 7,
+  `Spotify button: black on their green is AAA (${fmt(blackOnSpotify)})`,
+);
+
+const whiteOnSpotify = ratio('#ffffff', vars['spotify-green']);
+check(
+  whiteOnSpotify < 3,
+  `white on Spotify green fails, which is why the button sets black (${fmt(whiteOnSpotify)})`,
+);
+
+// The button sits on the dandelion panel. Green on yellow is 1.28:1, so the
+// border is doing the work of separating it from the ground.
+const spotifyOnYellow = ratio(vars['spotify-green'], vars.dandelion);
+check(
+  spotifyOnYellow < 3,
+  `Spotify green on dandelion is low (${fmt(spotifyOnYellow)}), so the button needs its border`,
+);
+check(
+  /\.btn-spotify\s*\{[^}]*border-color:\s*var\(--ink\)/.test(declarations),
+  'the Spotify button keeps a hard ink border, so it does not dissolve into the panel',
+);
+
+// The label must never be set in the green itself.
+check(
+  !/\.btn-spotify\s*\{[^}]*color:\s*var\(--spotify-green\)/.test(declarations),
+  'the Spotify button never sets its label in the brand green',
 );
 
 // --- The bug class this file exists for -------------------------------------

@@ -13,9 +13,19 @@ import { isExpired, refreshAccessToken } from './spotify.ts';
 
 export const LOCAL_USER_ID = 1;
 
-/** Cookie names. Short-lived: both are cleared as soon as the callback runs. */
+/** Cookie names. Short-lived: all are cleared as soon as the callback runs. */
 export const STATE_COOKIE = 'bandelion_oauth_state';
 export const VERIFIER_COOKIE = 'bandelion_oauth_verifier';
+
+/**
+ * Set when the flow was started from a popup, so the callback closes the window
+ * instead of redirecting inside it.
+ *
+ * A cookie rather than a query parameter because Spotify returns only `state`,
+ * and packing a flag into `state` would mean parsing attacker-influenced input
+ * to decide how to render a page.
+ */
+export const POPUP_COOKIE = 'bandelion_oauth_popup';
 
 export function db(): DB {
   return getDatabase(loadConfig().databasePath);

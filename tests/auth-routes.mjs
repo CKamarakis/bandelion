@@ -22,7 +22,12 @@ import { NextRequest } from 'next/server.js';
 
 import { openDatabase, saveTokens, loadTokens } from '../src/db/index.ts';
 import { encryptToken, decryptToken, loadKey } from '../src/auth/crypto.ts';
-import { STATE_COOKIE, VERIFIER_COOKIE, oauthCookieOptions } from '../src/auth/session.ts';
+import {
+  STATE_COOKIE,
+  VERIFIER_COOKIE,
+  POPUP_COOKIE,
+  oauthCookieOptions,
+} from '../src/auth/session.ts';
 
 const fixtures = JSON.parse(
   readFileSync(join(import.meta.dirname, 'fixtures', 'spotify-following.json'), 'utf8'),
@@ -77,7 +82,7 @@ const setCookies = (res) => {
 
 // --- /api/auth/login --------------------------------------------------------
 
-const loginRes = await login();
+const loginRes = await login(req("http://127.0.0.1:3000/api/auth/login"));
 check(loginRes.status === 307 || loginRes.status === 302, 'login redirects');
 
 const authUrl = new URL(loginRes.headers.get('location'));
@@ -109,11 +114,116 @@ check(
 
 // Two sign-in attempts must not share a state, or one tab could complete the
 // other's flow.
-const secondLogin = await login();
+const secondLogin = await login(req("http://127.0.0.1:3000/api/auth/login"));
 check(
   setCookies(secondLogin)[STATE_COOKIE].value !== loginCookies[STATE_COOKIE].value,
   'each login attempt gets a fresh state',
 );
+
+// --- The popup flow ---------------------------------------------------------
+//
+// Started from a popup, the callback must close the window rather than redirect
+// inside it. The flag rides in a cookie because Spotify returns only `state`,
+// and deciding how to render a page from attacker-influenced input is a bad
+// trade for one boolean.
+
+{
+  const plain = setCookies(await login(req('http://127.0.0.1:3000/api/auth/login')));
+  check(plain[POPUP_COOKIE] === undefined, 'a normal login sets no popup cookie');
+
+  const popupLogin = await login(req('http://127.0.0.1:3000/api/auth/login?popup=1'));
+  const popupCookies = setCookies(popupLogin);
+  check(popupCookies[POPUP_COOKIE]?.value === '1', 'login?popup=1 marks the flow as a popup');
+  check(popupCookies[POPUP_COOKIE].httpOnly === true, 'the popup cookie is httpOnly');
+  check(
+    new URL(popupLogin.headers.get('location')).host === 'accounts.spotify.com',
+    'the popup flow still redirects to Spotify',
+  );
+
+  const popupState = popupCookies[STATE_COOKIE].value;
+  const popupVerifier = popupCookies[VERIFIER_COOKIE].value;
+
+  // A failure in a popup: an HTML page, not a redirect the popup would follow
+  // while the opener sat waiting.
+  const popupFail = await callback(
+    req(`${REDIRECT}?error=access_denied`, {
+      [STATE_COOKIE]: popupState,
+      [VERIFIER_COOKIE]: popupVerifier,
+      [POPUP_COOKIE]: '1',
+    }),
+  );
+
+  check(popupFail.status === 200, 'a popup failure returns a page, not a redirect');
+  check(
+    popupFail.headers.get('content-type')?.includes('text/html'),
+    'the popup result is HTML',
+  );
+  check(
+    popupFail.headers.get('cache-control') === 'no-store',
+    'the popup result is never cached: it carries an auth outcome',
+  );
+
+  const failBody = await popupFail.text();
+  check(failBody.includes('postMessage'), 'the popup page reports back to its opener');
+  check(failBody.includes('window.close'), 'the popup page closes itself');
+  check(failBody.includes('"ok":false'), 'a cancelled sign-in is reported as not ok');
+  check(failBody.includes('cancelled'), 'the reason is passed to the opener');
+
+  // A wildcard target would broadcast the outcome to anything holding a handle
+  // on this window.
+  check(!failBody.includes("postMessage(result, '*')"), 'postMessage does not use a wildcard origin');
+  check(
+    failBody.includes('"http://127.0.0.1:3000"'),
+    'postMessage targets this instance\'s own origin',
+    failBody.match(/postMessage\([^)]*\)/)?.[0],
+  );
+
+  // No opener means the popup must not strand on a blank page.
+  check(
+    failBody.includes('location.replace'),
+    'the popup page falls back to navigating when there is no opener',
+  );
+
+  const popupCleared = setCookies(popupFail);
+  check(popupCleared[STATE_COOKIE]?.value === '', 'a popup failure clears the state cookie');
+  check(popupCleared[POPUP_COOKIE]?.value === '', 'a popup failure clears the popup cookie');
+
+  // The success path, so a popup sign-in actually stores a grant.
+  const realFetchPopup = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify(fixtures.tokenResponse), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+
+  const popupOk = await callback(
+    req(`${REDIRECT}?code=real&state=${popupState}`, {
+      [STATE_COOKIE]: popupState,
+      [VERIFIER_COOKIE]: popupVerifier,
+      [POPUP_COOKIE]: '1',
+    }),
+  );
+  globalThis.fetch = realFetchPopup;
+
+  const okBody = await popupOk.text();
+  check(popupOk.status === 200, 'a popup success returns a page');
+  check(okBody.includes('"ok":true'), 'a popup success is reported as ok');
+  check(
+    loadTokens(db, 1, 'spotify') !== null,
+    'a popup sign-in stores the grant just like the redirect flow',
+  );
+
+  // The token must never reach the page that gets rendered into a window.
+  check(
+    !okBody.includes(fixtures.tokenResponse.access_token) &&
+      !okBody.includes(fixtures.tokenResponse.refresh_token),
+    'no token appears in the popup result page',
+  );
+
+  // Reset for the suite below, which expects no stored grant.
+  const { deleteTokens } = await import('../src/db/index.ts');
+  deleteTokens(db, 1, 'spotify');
+}
 
 // --- /api/auth/callback/spotify: rejection paths ----------------------------
 //

@@ -55,6 +55,10 @@ function userStrings(src) {
     if (!/[a-z]{2,}/.test(s)) continue;
     if (/^[\d\s.,%px:;-]+$/.test(s)) continue; // CSS values
     if (/^(https?:|\/|var\(|--)/.test(s)) continue;
+    // SVG path data: an inline icon is a long string of coordinates that reads
+    // as a 37-word label. Anchored on the command letters so it cannot excuse
+    // real prose that happens to contain a number.
+    if (/^[Mm][\d\s.,-]/.test(s) && /[CcSsQqTtAaLlHhVvZz]/.test(s)) continue;
     if (/^[\w-]+(\s+[\w-]+)*$/.test(s) && /^(ui-|sans|serif|monospace)/.test(s)) continue;
     found.push(s);
   }

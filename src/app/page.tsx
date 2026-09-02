@@ -13,6 +13,7 @@ import { LOCAL_USER_ID, db } from '../auth/session.ts';
 import { SPOTIFY_SCOPES } from '../auth/spotify.ts';
 import { rosterStatus } from '../jobs/roster.ts';
 import { RosterImport } from './RosterImport.tsx';
+import { ConnectSpotify } from './ConnectSpotify.tsx';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,7 +30,8 @@ const TAGLINE = 'Releases and gigs from the artists you follow.';
 const CONNECT_HEADING = 'Connect Spotify to start';
 const CONNECT_BODY =
   'Bandelion reads the artists you follow, then checks for new releases and gigs in your city.';
-const CONNECT_CTA = 'Connect Spotify';
+// The connect button's own label lives in ConnectSpotify.tsx, with the states
+// it swaps between.
 const SCOPE_NOTE = 'Read-only access. Bandelion never changes anything on your Spotify account.';
 
 const CONNECTED_HEADING = 'Spotify connected';
@@ -137,9 +139,7 @@ export default async function Home({
           <>
             <h2>{CONNECT_HEADING}</h2>
             <p style={S.body}>{CONNECT_BODY}</p>
-            <a className="btn" href="/api/auth/login">
-              {CONNECT_CTA}
-            </a>
+            <ConnectSpotify expectedOrigin={new URL(cfg.spotify.redirectUri).origin} />
             <p style={S.note}>{SCOPE_NOTE}</p>
           </>
         )}

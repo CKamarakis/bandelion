@@ -18,21 +18,91 @@ import {
   LOCAL_USER_ID,
   STATE_COOKIE,
   VERIFIER_COOKIE,
+  POPUP_COOKIE,
   db,
 } from '../../../../../auth/session.ts';
 
 export const dynamic = 'force-dynamic';
 
-/** Send the user back to a page that explains what happened, not to raw JSON. */
-function fail(req: NextRequest, reason: string) {
-  const url = new URL('/', req.url);
-  url.searchParams.set('auth_error', reason);
-  const res = NextResponse.redirect(url);
-  // The transient cookies are spent either way; leaving them makes the next
-  // attempt fail against a stale state.
+/** The three transient cookies are spent once the callback has run. */
+function clearOauthCookies(res: NextResponse) {
+  // Leaving these makes the next attempt fail against a stale state, which
+  // presents as the sign-in link expiring twice in a row.
   res.cookies.delete(STATE_COOKIE);
   res.cookies.delete(VERIFIER_COOKIE);
+  res.cookies.delete(POPUP_COOKIE);
   return res;
+}
+
+/**
+ * The page a popup lands on: report the outcome to the opener and close.
+ *
+ * Written as a self-contained document rather than a React route because it
+ * exists for a few milliseconds and must work before any bundle loads.
+ *
+ * `targetOrigin` is this instance's own origin, never '*': a wildcard would
+ * broadcast the result to whatever else has a handle on this window.
+ *
+ * If there is no opener (someone opened the callback URL directly, or the
+ * browser severed the reference) it falls back to navigating, so the flow can
+ * never dead-end on a blank page.
+ */
+function popupResult(req: NextRequest, payload: { ok: boolean; reason?: string }) {
+  /*
+   * The origin comes from the configured redirect URI, not from req.url.
+   *
+   * Behind Next's dev server req.url can read `localhost` while the browser is
+   * on `127.0.0.1`. Those are different origins, so postMessage would be
+   * dropped silently and the popup would hang with the opener still waiting.
+   * The redirect URI is the one address the browser is guaranteed to be on:
+   * Spotify only redirects here if it matched byte for byte.
+   */
+  const origin = new URL(loadConfig().spotify.redirectUri).origin;
+  const target = new URL('/', req.url);
+  if (payload.ok) target.searchParams.set('connected', 'spotify');
+  else if (payload.reason) target.searchParams.set('auth_error', payload.reason);
+
+  const body = `<!doctype html>
+<meta charset="utf-8">
+<title>Spotify</title>
+<body style="font:14px ui-monospace,monospace;background:#fff;color:#333129;padding:24px">
+Finishing sign-in.
+<script>
+(function () {
+  var result = ${JSON.stringify({ type: 'bandelion:oauth', ...payload })};
+  try {
+    if (window.opener && !window.opener.closed) {
+      window.opener.postMessage(result, ${JSON.stringify(origin)});
+      window.close();
+      return;
+    }
+  } catch (e) {}
+  // No opener to tell: behave like the redirect flow instead of stranding here.
+  window.location.replace(${JSON.stringify(target.pathname + target.search)});
+})();
+</script>
+</body>`;
+
+  return clearOauthCookies(
+    new NextResponse(body, {
+      status: 200,
+      headers: {
+        'content-type': 'text/html; charset=utf-8',
+        // This page carries an auth outcome; it must never be cached.
+        'cache-control': 'no-store',
+      },
+    }),
+  );
+}
+
+/** Send the user back to a page that explains what happened, not to raw JSON. */
+function fail(req: NextRequest, reason: string) {
+  if (req.cookies.get(POPUP_COOKIE)?.value === '1') {
+    return popupResult(req, { ok: false, reason });
+  }
+  const url = new URL('/', req.url);
+  url.searchParams.set('auth_error', reason);
+  return clearOauthCookies(NextResponse.redirect(url));
 }
 
 export async function GET(req: NextRequest) {
@@ -80,10 +150,11 @@ export async function GET(req: NextRequest) {
     return fail(req, 'exchange_failed');
   }
 
+  if (req.cookies.get(POPUP_COOKIE)?.value === '1') {
+    return popupResult(req, { ok: true });
+  }
+
   const done = new URL('/', req.url);
   done.searchParams.set('connected', 'spotify');
-  const res = NextResponse.redirect(done);
-  res.cookies.delete(STATE_COOKIE);
-  res.cookies.delete(VERIFIER_COOKIE);
-  return res;
+  return clearOauthCookies(NextResponse.redirect(done));
 }
