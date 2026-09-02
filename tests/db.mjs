@@ -125,9 +125,6 @@ saveJob(db, 'mbid', { status: 'complete' });
 job = loadJob(db, 'mbid');
 check(job.done === 340, 'completing does not reset progress');
 
-console.log(failed ? `\n${failed} check(s) failed` : '\nall database checks passed');
-process.exit(failed ? 1 : 0);
-
 // --- Schema resolution outside plain Node -----------------------------------
 //
 // Found by running the app, not by a suite: `import.meta.dirname` is undefined
@@ -159,3 +156,126 @@ process.exit(failed ? 1 : 0);
   }
   probe.close();
 }
+
+// --- Same name, different artists -------------------------------------------
+//
+// Found in a real import: 625 followed artists produced 623 rows. WITCH (the
+// Zambian zamrock band) and Witch (the American doom band) collapsed into one,
+// and so did the two Pentagrams. Same for any source that hands us an explicit
+// id saying these are separate acts.
+//
+// The name-matching in upsertArtist is deliberate and stays: "The Notwist" and
+// "Notwist" arriving from two different sources must not create two rows. But a
+// source-native id is stronger evidence than a name, and when one says "this is
+// a different artist" it has to win. Otherwise the merge is silent, which is
+// worse than an error: the roster is simply short and nothing says so.
+{
+  const db = openDatabase(':memory:');
+
+  const zamrock = upsertArtist(db, {
+    name: 'WITCH',
+    nameNormalized: normalizeName('WITCH'),
+    externalId: { source: 'spotify', id: '0LMkPoi2xIgpOPUSJMftqM' },
+  });
+  const doom = upsertArtist(db, {
+    name: 'Witch',
+    nameNormalized: normalizeName('Witch'),
+    externalId: { source: 'spotify', id: '6uNOBEATMcW8SSunnKy9a3' },
+  });
+
+  check(zamrock !== doom, 'two Spotify artists sharing a name stay separate rows');
+
+  const count = db.prepare("SELECT COUNT(*) AS n FROM artists WHERE name_normalized = 'witch'").get();
+  check(count.n === 2, 'both artists are stored', `got ${count.n}`);
+
+  // The same id arriving again must still be the same artist, or every re-run
+  // would duplicate the whole roster.
+  const again = upsertArtist(db, {
+    name: 'WITCH',
+    nameNormalized: normalizeName('WITCH'),
+    externalId: { source: 'spotify', id: '0LMkPoi2xIgpOPUSJMftqM' },
+  });
+  check(again === zamrock, 'the same external id resolves to the same artist');
+
+  // Without an id, name matching still applies: this is the cross-source case
+  // the matching exists for, and it must keep working.
+  const byName = upsertArtist(db, { name: 'Slowdive', nameNormalized: normalizeName('Slowdive') });
+  const byNameAgain = upsertArtist(db, { name: 'slowdive', nameNormalized: normalizeName('slowdive') });
+  check(byName === byNameAgain, 'without an external id, names still merge across sources');
+
+  // An id-less arrival must not be flung at an arbitrary one of two same-named
+  // artists. Attaching to the first is a coin flip; the matcher's review queue
+  // is where an ambiguous name belongs.
+  const ambiguous = upsertArtist(db, { name: 'Witch', nameNormalized: normalizeName('Witch') });
+  check(
+    ambiguous === zamrock || ambiguous === doom,
+    'an ambiguous name resolves to one of the candidates rather than creating a third row',
+  );
+
+  db.close();
+}
+
+// --- .env loading for entry points Next does not start -----------------------
+//
+// `npm run ingest` failed with "TOKEN_ENCRYPTION_KEY is not set" while the web
+// UI worked on the same machine: Next reads .env, plain Node does not.
+{
+  const { loadDotEnv } = await import('../src/config-env.ts');
+  const { writeFileSync, mkdtempSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+
+  const dir = mkdtempSync(join(tmpdir(), 'bandelion-env-'));
+  const envFile = join(dir, '.env');
+  writeFileSync(
+    envFile,
+    [
+      '# a comment',
+      '',
+      'BANDELION_TEST_PLAIN=value',
+      'BANDELION_TEST_QUOTED="quoted value"',
+      "BANDELION_TEST_SINGLE='single'",
+      'BANDELION_TEST_EQUALS=key=with=equals',
+      'BANDELION_TEST_EXISTING=from-file',
+      'malformed line with no equals',
+    ].join('\n'),
+  );
+
+  process.env.BANDELION_TEST_EXISTING = 'from-environment';
+  loadDotEnv(envFile);
+
+  check(process.env.BANDELION_TEST_PLAIN === 'value', '.env values are loaded');
+  check(process.env.BANDELION_TEST_QUOTED === 'quoted value', 'double quotes are stripped');
+  check(process.env.BANDELION_TEST_SINGLE === 'single', 'single quotes are stripped');
+  check(
+    process.env.BANDELION_TEST_EQUALS === 'key=with=equals',
+    'only the first = separates key from value',
+  );
+  // A real environment variable must beat the file, or a deployment cannot
+  // override anything without editing a file inside the container.
+  check(
+    process.env.BANDELION_TEST_EXISTING === 'from-environment',
+    'an existing environment variable is not overwritten by .env',
+  );
+  check(process.env['malformed line with no equals'] === undefined, 'malformed lines are skipped');
+  check(process.env['# a comment'] === undefined, 'comments are skipped');
+
+  // A missing file is normal: the app runs on real environment variables in
+  // Docker, with no .env at all.
+  let threw = false;
+  try {
+    loadDotEnv(join(dir, 'does-not-exist'));
+  } catch {
+    threw = true;
+  }
+  check(!threw, 'a missing .env is not an error');
+
+  for (const k of Object.keys(process.env)) {
+    if (k.startsWith('BANDELION_TEST_')) delete process.env[k];
+  }
+}
+
+// The exit must stay the LAST statement in this file. It sat halfway up once
+// and silently skipped every check appended after it, which is how a whole
+// block of assertions ran zero times while the suite reported green.
+console.log(failed ? `\n${failed} check(s) failed` : '\nall database checks passed');
+process.exit(failed ? 1 : 0);

@@ -25,7 +25,6 @@ import {
 } from '../adapters/spotify.ts';
 import {
   upsertArtist,
-  linkExternalId,
   followArtist,
   loadJob,
   saveJob,
@@ -64,12 +63,18 @@ function writePage(db: DB, userId: number, artists: RosterEntry[]): number {
   run.run();
   try {
     for (const artist of artists) {
+      // Passing the Spotify id into the upsert, rather than linking it after,
+      // is what keeps two different acts with the same name apart. Without it
+      // a 625-artist roster imported as 623: WITCH and Witch are not the same
+      // band, and neither are the two Pentagrams.
       const artistId = upsertArtist(db, {
         name: artist.name,
         nameNormalized: normalizeName(artist.name),
         imageUrl: artist.imageUrl,
+        externalId: artist.externalId
+          ? { source: 'spotify', id: artist.externalId }
+          : undefined,
       });
-      if (artist.externalId) linkExternalId(db, artistId, 'spotify', artist.externalId);
       followArtist(db, userId, artistId, 'spotify');
     }
     db.prepare('COMMIT').run();

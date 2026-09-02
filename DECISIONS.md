@@ -504,3 +504,67 @@ does not match, naming the address to use.
 
 `postMessage` targets that exact origin, never `'*'`, and the listener checks
 `event.origin`. Verified in a real browser as well as in the suite.
+
+---
+
+## 029 · A source's own id beats a name match
+
+**Decided:** `upsertArtist` takes an optional `externalId`. When present it
+resolves by that id first, and a same-named artist that already carries a
+different id from the same source does not absorb it.
+
+**Why:** the first real import read 625 followed artists and wrote 623 rows,
+with no error anywhere. WITCH (Zambian zamrock) and Witch (American doom) share
+a normalised name, as do the two Pentagrams, so the name-based upsert merged
+each pair.
+
+Silent, which is the point. There was no failure to report: adapter health was
+`ok`, the job was `complete`, and the only symptom was a count that did not add
+up. Two followed bands would simply never have appeared in the feed.
+
+Name matching stays, because it is right for what it was built for: "The
+Notwist" from MusicBrainz and "Notwist" from Eventim are one act. But an id is a
+stronger claim than a string similarity, in both directions — same id means same
+artist, and a different id under the same name means different artists.
+
+**Consequence:** an id-less arrival with an ambiguous name still attaches to one
+of the candidates. That is the matcher's review-queue problem, not the upsert's,
+and the queue exists for it.
+
+**Repaired in place:** the duplicate ids were detached and the roster
+re-imported, giving 625 artists and 625 ids.
+
+---
+
+## 030 · Entry points Next does not start must load .env themselves
+
+**Decided:** `src/config-env.ts`, called first thing in `src/jobs/cli.ts`.
+
+**Why:** `npm run ingest` died with "TOKEN_ENCRYPTION_KEY is not set" while the
+web UI worked on the same machine, because Next loads `.env` and plain Node does
+not. The CLI is a documented path, so it has to work standalone.
+
+Hand-written rather than a dependency: the file is a handful of KEY=value lines
+and a self-hosted app should not pull a package to read one. Real environment
+variables win over the file, so a Docker deployment can override without editing
+anything inside the image.
+
+**The trap:** static imports are hoisted and run before any statement in the
+file, so `import ...; loadDotEnv();` looks correct and silently is not — the
+imported modules have already read an empty environment. The CLI's other imports
+are dynamic and come after the call.
+
+---
+
+## 031 · A test's exit call belongs at the end of the file
+
+**Decided:** `process.exit` is the last statement in each suite, and says so in
+a comment.
+
+**Why:** `tests/db.mjs` had it halfway up, so two blocks of checks appended after
+it never ran while the suite reported green. One of those was the schema
+resolution guard added for decision 021 — it had never executed once.
+
+Exactly the failure mode PLAYBOOK warns about under "tests that mirror the
+implementation": a suite that appears to assert something and does not. Caught
+only because appending a third block made the pattern visible.

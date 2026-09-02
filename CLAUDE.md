@@ -50,6 +50,7 @@ src/adapters/spotify.ts the roster source: followed artists, paged and resumable
 src/auth/           OAuth: PKCE, token exchange, encryption at rest
 src/auth/crypto.ts  AES-256-GCM for tokens; the DB never holds plaintext
 src/config.ts       every per-instance value, read from env
+src/config-env.ts   .env loading for entry points Next does not start
 src/db/             schema, migrations, queries
 src/jobs/           checkpointed ingest jobs
 src/jobs/roster.ts  the Spotify roster import: resumable, never deletes

@@ -8,10 +8,20 @@
  * Safe to interrupt: every job checkpoints, so Ctrl-C costs at most one page.
  */
 
-import { loadConfig } from '../config.ts';
-import { getDatabase } from '../db/index.ts';
-import { getAccessToken, LOCAL_USER_ID, NotConnectedError } from '../auth/session.ts';
-import { importRoster, rosterStatus } from './roster.ts';
+import { loadDotEnv } from '../config-env.ts';
+
+/*
+ * .env has to be in the environment before any module that reads it is
+ * evaluated. Static imports are hoisted and run before any statement in this
+ * file, so the rest are dynamic and come after this call. Written as a plain
+ * import with a call underneath, it looks correct and silently is not.
+ */
+loadDotEnv();
+
+const { loadConfig } = await import('../config.ts');
+const { getDatabase } = await import('../db/index.ts');
+const { getAccessToken, LOCAL_USER_ID, NotConnectedError } = await import('../auth/session.ts');
+const { importRoster, rosterStatus } = await import('./roster.ts');
 
 const cfg = loadConfig();
 const db = getDatabase(cfg.databasePath);

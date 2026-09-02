@@ -77,25 +77,106 @@ export interface ArtistRow {
  */
 export function upsertArtist(
   db: DB,
-  artist: { name: string; nameNormalized: string; mbid?: string | null; imageUrl?: string | null },
+  artist: {
+    name: string;
+    nameNormalized: string;
+    mbid?: string | null;
+    imageUrl?: string | null;
+    /**
+     * The source's own id for this artist, when it has one.
+     *
+     * Supplying it is what keeps two different acts with the same name apart.
+     * Found the hard way: a real roster of 625 followed artists produced 623
+     * rows, because WITCH (Zambian zamrock) and Witch (American doom) share a
+     * normalised name, as do the two Pentagrams. Name matching silently merged
+     * them, which is worse than an error: the roster was simply short.
+     */
+    externalId?: { source: string; id: string };
+  },
 ): number {
+  /*
+   * An id from the source beats a name match.
+   *
+   * Name matching is still right for the cross-source case it exists for
+   * ("The Notwist" from MusicBrainz and "Notwist" from Eventim are one act).
+   * But when a source hands us an id it is making a stronger claim than a
+   * string similarity can, in both directions: same id means same artist, and
+   * a different id for the same name means genuinely different artists.
+   */
+  if (artist.externalId) {
+    const byExternal = db
+      .prepare(
+        `SELECT artist_id AS id FROM artist_external_ids
+          WHERE source = ? AND external_id = ?`,
+      )
+      .get(artist.externalId.source, artist.externalId.id) as { id: number } | undefined;
+
+    if (byExternal) {
+      backfill(db, byExternal.id, artist);
+      return byExternal.id;
+    }
+
+    // No row for this id yet. If a same-named artist exists but already carries
+    // a DIFFERENT id from this source, they are two acts sharing a name, so
+    // this one needs its own row.
+    const sameName = db
+      .prepare(
+        `SELECT a.id,
+                (SELECT COUNT(*) FROM artist_external_ids e
+                  WHERE e.artist_id = a.id AND e.source = ?) AS ids
+           FROM artists a
+          WHERE a.name_normalized = ?
+          ORDER BY ids ASC`,
+      )
+      .all(artist.externalId.source, artist.nameNormalized) as { id: number; ids: number }[];
+
+    // Prefer a same-named artist that has no id from this source: that is the
+    // one this id belongs to. If every candidate already has one, this is a new
+    // artist that happens to share the name.
+    const unclaimed = sameName.find((row) => row.ids === 0);
+    if (unclaimed) {
+      backfill(db, unclaimed.id, artist);
+      linkExternalId(db, unclaimed.id, artist.externalId.source, artist.externalId.id);
+      return unclaimed.id;
+    }
+
+    const created = insertArtist(db, artist);
+    linkExternalId(db, created, artist.externalId.source, artist.externalId.id);
+    return created;
+  }
+
   const existing = db
     .prepare('SELECT id FROM artists WHERE name_normalized = ?')
     .get(artist.nameNormalized) as { id: number } | undefined;
 
   if (existing) {
-    // Backfill fields a later source knew and an earlier one did not.
-    if (artist.mbid || artist.imageUrl) {
-      db.prepare(
-        `UPDATE artists
-            SET mbid = COALESCE(mbid, ?),
-                image_url = COALESCE(image_url, ?)
-          WHERE id = ?`,
-      ).run(artist.mbid ?? null, artist.imageUrl ?? null, existing.id);
-    }
+    backfill(db, existing.id, artist);
     return existing.id;
   }
 
+  return insertArtist(db, artist);
+}
+
+/** Fill in fields a later source knew and an earlier one did not. */
+function backfill(
+  db: DB,
+  artistId: number,
+  artist: { mbid?: string | null; imageUrl?: string | null },
+): void {
+  if (!artist.mbid && !artist.imageUrl) return;
+  // COALESCE so a poorer source cannot erase a value a richer one supplied.
+  db.prepare(
+    `UPDATE artists
+        SET mbid = COALESCE(mbid, ?),
+            image_url = COALESCE(image_url, ?)
+      WHERE id = ?`,
+  ).run(artist.mbid ?? null, artist.imageUrl ?? null, artistId);
+}
+
+function insertArtist(
+  db: DB,
+  artist: { name: string; nameNormalized: string; mbid?: string | null; imageUrl?: string | null },
+): number {
   const r = db
     .prepare(
       `INSERT INTO artists (mbid, name, name_normalized, image_url)

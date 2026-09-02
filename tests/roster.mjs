@@ -456,6 +456,58 @@ const THREE_PAGES = {
   db.close();
 }
 
+// --- Two artists with the same name ------------------------------------------
+//
+// From the first real import: 625 followed artists produced 623 rows, with no
+// error anywhere. WITCH (Zambian zamrock) and Witch (American doom) share a
+// normalised name, as do the two Pentagrams, and the name-based upsert merged
+// each pair. Silent, so the only symptom was a count that did not add up.
+
+{
+  const db = fresh();
+  const collisions = {
+    first: {
+      items: [
+        artist('0LMkPoi2xIgpOPUSJMftqM', 'WITCH'),
+        artist('6uNOBEATMcW8SSunnKy9a3', 'Witch'),
+        artist('0xybuiDEYo3YuT3fLPaIyE', 'Pentagram'),
+        artist('1Xz8iP9Dvl5uI88iraOhs7', 'Pentagram'),
+      ],
+      next: null,
+      total: 4,
+    },
+  };
+
+  const result = await importRoster({
+    db,
+    userId: 1,
+    getAccessToken: token,
+    fetchImpl: stubSpotify(collisions).impl,
+  });
+
+  check(result.imported === 4, 'four followed artists import as four', `got ${result.imported}`);
+  check(
+    getRoster(db, 1).length === 4,
+    'same-named artists stay separate rows',
+    `got ${getRoster(db, 1).length}`,
+  );
+
+  // The count that revealed the bug: external ids exceeded artists.
+  const ids = db.prepare('SELECT COUNT(*) AS n FROM artist_external_ids').get().n;
+  const rows = db.prepare('SELECT COUNT(*) AS n FROM artists').get().n;
+  check(ids === rows, 'every Spotify id has its own artist row', `${ids} ids, ${rows} artists`);
+
+  // And re-importing must not now duplicate them the other way.
+  await importRoster({ db, userId: 1, getAccessToken: token, fetchImpl: stubSpotify(collisions).impl });
+  check(
+    getRoster(db, 1).length === 4,
+    're-importing same-named artists creates no duplicates',
+    `got ${getRoster(db, 1).length}`,
+  );
+
+  db.close();
+}
+
 // --- A genuinely empty roster stays distinguishable from a failure ----------
 
 {
