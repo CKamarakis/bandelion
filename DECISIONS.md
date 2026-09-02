@@ -344,3 +344,55 @@ constraint 2 working.
 **Consequence:** `tests/db.mjs` now asserts the fallback path resolves and that
 the schema creates its tables. It guards the file moving; it does not simulate
 the bundler, so running the app remains the real check.
+
+---
+
+## 022 · Route handlers are tested in process, not through a server
+
+**Decided:** `tests/auth-routes.mjs` imports the real handlers from
+`src/app/api/auth/` and calls them with a `NextRequest`. No server, no browser.
+
+**Why:** the security-critical decisions live in the routes, not in the protocol
+helpers — which callback gets rejected, what reaches the database, what a
+failure tells the user. Testing them through a running server would make the
+suite slow, order-dependent and prone to failing because a port was busy.
+Testing a reimplementation of them would assert the reimplementation.
+
+`next/server` is a bare specifier Next's bundler resolves and plain Node does
+not, so `tests/next-resolve.mjs` registers a narrow resolve hook that rewrites
+it to `next/server.js`. The hook is the right place: rewriting the import in the
+route to suit the runner would mean the suite no longer tests what ships.
+
+**The Windows trap:** `--import` takes a URL, not a path. A bare Windows path is
+parsed as the scheme `c:` and every suite dies with
+`ERR_UNSUPPORTED_ESM_URL_SCHEME`. Use `pathToFileURL(...).href`.
+
+---
+
+## 023 · The OAuth suites are verified by mutation, not by being green
+
+**Decided:** fourteen deliberate breakages of real security properties were
+introduced one at a time and the suites required to fail on each. All fourteen
+were caught.
+
+**Why:** "a green suite proves the checks ran, not that they looked at the right
+thing." The properties confirmed to be genuinely tested:
+
+- both CSRF bypasses: `statesMatch` always true, and the route skipping the
+  check entirely
+- tokens written in plaintext
+- PKCE downgraded by sending the verifier as the challenge
+- a refresh nulling the stored refresh token
+- scope creep to a write scope
+- the client secret moved into the request body
+- upstream error detail echoed into the redirect URL
+- a cancelled sign-in treated as success
+- disconnect destroying the roster
+- an expired token treated as valid
+- all three adapter honesty promises: throwing instead of degrading, a partial
+  roster reported as complete, an unknown shape read as an empty roster
+
+**Consequence:** worth rerunning when these files change substantially. The
+harness lives in the scratchpad rather than the repo, because a mutation runner
+that rewrites source files is not something to leave where it can run by
+accident.
