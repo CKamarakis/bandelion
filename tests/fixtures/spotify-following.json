@@ -1,0 +1,96 @@
+{
+  "_comment": "Shape of GET /v1/me/following?type=artist as of 2026-09. Two pages, to exercise cursor following. Artist ids and images are real-format but not real accounts; names are chosen to also exercise the matcher's normalisation cases (ampersand, accent, article prefix).",
+  "page1": {
+    "artists": {
+      "href": "https://api.spotify.com/v1/me/following?type=artist&limit=2",
+      "limit": 2,
+      "next": "https://api.spotify.com/v1/me/following?type=artist&after=3xR6ZBAsGoLnPYqPZmVJcH&limit=2",
+      "cursors": { "after": "3xR6ZBAsGoLnPYqPZmVJcH" },
+      "total": 3,
+      "items": [
+        {
+          "id": "0OdUWJ0sBjDrqHygGUXeCF",
+          "name": "Band of Horses",
+          "type": "artist",
+          "uri": "spotify:artist:0OdUWJ0sBjDrqHygGUXeCF",
+          "href": "https://api.spotify.com/v1/artists/0OdUWJ0sBjDrqHygGUXeCF",
+          "external_urls": { "spotify": "https://open.spotify.com/artist/0OdUWJ0sBjDrqHygGUXeCF" },
+          "followers": { "href": null, "total": 892341 },
+          "genres": ["indie rock", "indie folk"],
+          "images": [
+            { "url": "https://i.scdn.co/image/ab6761610000e5eb1", "height": 640, "width": 640 },
+            { "url": "https://i.scdn.co/image/ab676161000051741", "height": 320, "width": 320 }
+          ],
+          "popularity": 62
+        },
+        {
+          "id": "3xR6ZBAsGoLnPYqPZmVJcH",
+          "name": "Sigur Rós",
+          "type": "artist",
+          "uri": "spotify:artist:3xR6ZBAsGoLnPYqPZmVJcH",
+          "href": "https://api.spotify.com/v1/artists/3xR6ZBAsGoLnPYqPZmVJcH",
+          "external_urls": { "spotify": "https://open.spotify.com/artist/3xR6ZBAsGoLnPYqPZmVJcH" },
+          "followers": { "href": null, "total": 1743920 },
+          "genres": ["post-rock", "icelandic indie"],
+          "images": [
+            { "url": "https://i.scdn.co/image/ab6761610000e5eb2", "height": 640, "width": 640 }
+          ],
+          "popularity": 58
+        }
+      ]
+    }
+  },
+  "page2": {
+    "artists": {
+      "href": "https://api.spotify.com/v1/me/following?type=artist&after=3xR6ZBAsGoLnPYqPZmVJcH&limit=2",
+      "limit": 2,
+      "next": null,
+      "cursors": { "after": null },
+      "total": 3,
+      "items": [
+        {
+          "id": "7bu3H8JO7d0UbMoVzbo70s",
+          "name": "The The",
+          "type": "artist",
+          "uri": "spotify:artist:7bu3H8JO7d0UbMoVzbo70s",
+          "href": "https://api.spotify.com/v1/artists/7bu3H8JO7d0UbMoVzbo70s",
+          "external_urls": { "spotify": "https://open.spotify.com/artist/7bu3H8JO7d0UbMoVzbo70s" },
+          "followers": { "href": null, "total": 214508 },
+          "genres": ["post-punk", "new wave"],
+          "images": [],
+          "popularity": 47
+        }
+      ]
+    }
+  },
+  "error403": {
+    "error": {
+      "status": 403,
+      "message": "User not registered in the Developer Dashboard"
+    }
+  },
+  "error429": {
+    "error": {
+      "status": 429,
+      "message": "API rate limit exceeded"
+    }
+  },
+  "tokenResponse": {
+    "access_token": "BQC4YnQhRr1example_access_token_value_here",
+    "token_type": "Bearer",
+    "expires_in": 3600,
+    "refresh_token": "AQBv8example_refresh_token_value_here",
+    "scope": "user-follow-read user-top-read"
+  },
+  "tokenRefreshResponse": {
+    "_comment": "No refresh_token field: Spotify omits it on refresh and expects you to keep the existing one.",
+    "access_token": "BQC9NewAccessTokenAfterRefresh",
+    "token_type": "Bearer",
+    "expires_in": 3600,
+    "scope": "user-follow-read user-top-read"
+  },
+  "tokenErrorResponse": {
+    "error": "invalid_grant",
+    "error_description": "Invalid authorization code"
+  }
+}

@@ -25,10 +25,13 @@ why no test may call a live API.
 npm install
 npm run dev            # Next.js dev server
 npm run build
+npm start              # serve the production build
 npm test               # whole suite
 npm run verify         # build + test — run before committing
 npm run ingest         # trigger ingest manually, don't wait for the scheduler
+npm run seed           # build a seeded database, so screens work without OAuth
 npm run eval:matcher   # artist-name matcher eval set, prints a score
+npm run fixtures:record # capture a live upstream response into tests/fixtures/
 npm run shots          # screenshots via real browser
 docker compose up      # the actual artifact
 ```
@@ -38,18 +41,24 @@ docker compose up      # the actual artifact
 > Keep this current. `tests/docs.mjs` fails the build if this section names a
 > file that does not exist.
 
-Written as phases land. Until then, the shape:
+Written as phases land. What exists today:
 
 ```
 src/adapters/       one file per source, all implementing SourceAdapter
 src/adapters/types.ts   the contract every adapter implements
+src/adapters/spotify.ts the roster source: followed artists, paged and resumable
+src/auth/           OAuth: PKCE, token exchange, encryption at rest
+src/auth/crypto.ts  AES-256-GCM for tokens; the DB never holds plaintext
+src/config.ts       every per-instance value, read from env
 src/db/             schema, migrations, queries
-src/jobs/           checkpointed ingest jobs
 src/matcher/        artist-name matching, tiered and deterministic
 src/app/            Next.js routes and UI
 tests/              standalone .mjs suites, auto-enrolled by run.mjs
 tests/fixtures/     recorded upstream responses — never call live APIs in tests
 ```
+
+Not built yet: the checkpointed ingest jobs (planned for src/jobs/), the feed
+itself, and every source adapter other than Spotify.
 
 ---
 
@@ -170,6 +179,10 @@ exists so that when one breaks, it is a degraded row rather than an outage.
 - **Use Write/Edit, never shell heredocs**, for anything containing backticks,
   template literals, apostrophes or regex. Heredocs have silently corrupted
   source files before, and PowerShell on Windows makes it worse.
+- **No TypeScript that needs code generation.** The suites run `src/` directly
+  under `node --experimental-strip-types`, which erases types without emitting
+  code. Constructor parameter properties, enums, namespaces and decorators are
+  all a hard error. Declare the field and assign it in the body.
 
 ## Design
 

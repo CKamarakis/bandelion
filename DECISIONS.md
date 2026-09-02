@@ -194,3 +194,153 @@ the update CASE.
 The second is the nastier one: no crash, no error, just wrong numbers on the
 onboarding screen. Passing the sentinel separately keeps "not in the patch"
 distinguishable from "in the patch, and it is zero".
+
+---
+
+## 014 · Write/Edit tools over shell heredocs for source files
+
+**Decided:** code and any content with backticks, `${}`, apostrophes or regex is
+written with file-writing tools. Heredocs are used only for prose appends like
+this one.
+
+**Why:** a mid-session instruction asked for Bash heredocs wherever possible.
+That conflicts with the rule inherited from the previous project, where heredocs
+silently corrupted source — a template literal shipped as
+`return also.length ?  : base;`. PowerShell on Windows makes it worse.
+
+Flagged rather than followed silently, because corrupting a file to satisfy a
+tool preference is a bad trade. Reading and searching still go through Bash.
+
+**Changes if:** Chris says he actually wants heredocs.
+
+---
+
+## 015 · Docker files are written but unverified
+
+**Decided:** write `Dockerfile` and `docker-compose.yml` now; verify later.
+
+**Why:** Docker is not installed on this machine (`docker: command not found`),
+so the compose file cannot be run. Writing it now is still right — the artifact
+sentence says `docker compose up`, and retrofitting containerisation is
+annoying.
+
+**Consequence:** the Docker path is **untested** until Docker is available. It
+must not be described as working. `npm run dev` is the verified path today.
+
+---
+
+## 016 · The repo is public from the first commit
+
+**Decided:** public GitHub repo, `CKamarakis/bandelion`, pushed as work
+proceeds rather than at the end.
+
+**Why:** Bandelion is designed to be self-hosted by other people, so the source
+has to be readable by them. Pushing continuously also means the secret scan runs
+against the thing that is actually published, not a local copy.
+
+**Consequence:** `tests/secrets.mjs` is not a nicety. Every commit is
+immediately public and cannot be un-published by deleting it later.
+
+---
+
+## 017 · Loopback IP in the redirect URI, and the URI is config
+
+**Decided:** `SPOTIFY_REDIRECT_URI` is an env value, defaulting to
+`http://127.0.0.1:3000/api/auth/callback/spotify`.
+
+**Why:** Spotify rejects `localhost` in a redirect URI and requires the loopback
+IP literal; `http` is allowed only for loopback. `.env.example` documented
+`localhost:3000`, which would have failed at the first sign-in attempt.
+
+It is config rather than a constant because it differs per instance: a VPS
+deployment registers an https URL on its own domain. Hardcoding it would break
+the same rule the city already follows.
+
+**Consequence:** the value is pre-filled in `.env.example` and allowlisted in
+the secret scan, which flagged it as a filled-in credential. A redirect URI is
+not one: it travels in the authorize URL in plaintext by design.
+
+---
+
+## 018 · Node strip-types forbids TypeScript that needs code generation
+
+**Decided:** no parameter properties, no enums, no namespaces, no decorators in
+`src/`. Plain field declarations and assignment instead.
+
+**Why:** the suites run the TypeScript source directly under
+`node --experimental-strip-types`, which erases types without emitting code. A
+constructor parameter property (`constructor(readonly status?: number)`) is a
+hard `ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX`, found the first time a suite imported
+`SpotifyAuthError`.
+
+This is the price of "the thing under test is the source, not a bundle", and it
+is worth paying: no build step between writing a suite and running it.
+
+**Changes if:** the suites start running against compiled output.
+
+---
+
+## 019 · OAuth tokens are encrypted at rest
+
+**Decided:** AES-256-GCM via `TOKEN_ENCRYPTION_KEY`, in `src/auth/crypto.ts`.
+The database layer stores ciphertext and never sees the key.
+
+**Why:** the SQLite file is designed to be easy to copy — that is the backup
+story. A Spotify refresh token is long-lived, so it should not sit in plaintext
+in a file that gets copied into backups, volume snapshots and debug dumps.
+
+GCM rather than CBC so a corrupted or tampered row fails loudly instead of
+decrypting to garbage that then gets sent upstream as a token. The stored format
+is version-prefixed (`v1.`) so the algorithm can change without guessing at old
+rows.
+
+**Consequence:** losing `TOKEN_ENCRYPTION_KEY` means reconnecting Spotify, not
+losing data. `tests/auth.mjs` asserts no plaintext token appears in the database
+file, which is the assertion the whole scheme exists for.
+
+---
+
+## 020 · The screenshot harness drives Chrome over DevTools, not `--screenshot`
+
+**Decided:** `tests/screenshots.mjs` uses `Emulation.setDeviceMetricsOverride`
+and `Page.captureScreenshot` over the DevTools Protocol.
+
+**Why:** Chrome's `--screenshot` with `--window-size` does **not** set the
+layout viewport. The page lays out at the default desktop width and the PNG is
+merely cropped, which looks exactly like a horizontal-overflow bug. A full
+debugging round went into a mobile "overflow" that did not exist; measuring the
+page reported `overflowing: false` at 390px while the PNG showed text running
+off the edge.
+
+**The second trap, found by verifying the checker:** when content is wider than
+the emulated viewport, Chrome *widens the viewport to fit it*, so
+`window.innerWidth` reports the content width and every relative check says
+"no overflow". Planting a 900px min-width at 390px reported `innerWidth: 900`
+and passed clean. The harness now compares content against the **requested**
+width, which is the only fixed reference, and walks elements for the furthest
+right edge because `documentElement.scrollWidth` is clamped too.
+
+**Consequence:** overflow is now a build failure with the offending element
+named, rather than something a reviewer has to spot in a PNG. Verified by
+planting real overflow and confirming exit 1.
+
+---
+
+## 021 · `import.meta.dirname` is undefined once Next bundles a module
+
+**Decided:** `openDatabase` resolves `schema.sql` from `import.meta.dirname`
+when it exists and falls back to `process.cwd()`.
+
+**Why:** every suite passed while every page request threw
+`ERR_INVALID_ARG_TYPE`. The suites import `src/db/index.ts` directly under Node,
+where `import.meta.dirname` is defined; the bundled app has no such value, so
+the join threw on every request.
+
+Exactly the bug class CLAUDE.md's constraint 5 describes: invisible to static
+checks and to a green suite, visible the moment the app actually runs. The page
+degraded to a rendered screen with a logged error rather than a crash, which is
+constraint 2 working.
+
+**Consequence:** `tests/db.mjs` now asserts the fallback path resolves and that
+the schema creates its tables. It guards the file moving; it does not simulate
+the bundler, so running the app remains the real check.

@@ -1,0 +1,138 @@
+/*
+ * Bandelion base styles.
+ *
+ * The palette lives here as custom properties so tests/contrast.mjs can parse
+ * the values that actually ship rather than a copy restated in a test file.
+ * Three contrast bugs shipped on the previous project because the test knew a
+ * different hex than the stylesheet did.
+ *
+ * Design: Factory Records / DIY show flyer. Hard edges, visible grid, the data
+ * as the ornament. Zero border-radius anywhere, no shadows, no gradients.
+ */
+
+:root {
+  --white: #ffffff;
+  --ink: #333129;
+  --dandelion: #f7d000;
+  --magenta: #f700a8;
+  --violet: #9c00f7;
+
+  /* Rules are ink at partial strength only where a hairline would dominate;
+     the grid is meant to be seen. */
+  --rule: var(--ink);
+  --rule-width: 2px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  /* Rule: zero border-radius, everywhere, including images and avatars. */
+  border-radius: 0;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--white);
+  color: var(--ink);
+}
+
+body {
+  font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Menlo, Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Type carries the hierarchy: weight, scale and case, not colour. */
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+h1 {
+  font-size: clamp(2.5rem, 9vw, 5.5rem);
+  line-height: 0.88;
+  letter-spacing: -0.045em;
+}
+
+h2 {
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+}
+
+a {
+  color: var(--ink);
+}
+
+/* The catalogue number, set as a specimen label. The data is the ornament. */
+.cat {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* A hard offset block instead of a shadow, when depth is needed. */
+.block {
+  border: var(--rule-width) solid var(--rule);
+  background: var(--white);
+}
+
+.block-yellow {
+  background: var(--dandelion);
+  color: var(--ink);
+}
+
+/* Buttons are flat blocks with a hard offset on press, never a blur. */
+.btn {
+  display: inline-block;
+  padding: 14px 22px;
+  border: var(--rule-width) solid var(--ink);
+  background: var(--ink);
+  color: var(--white);
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: var(--magenta);
+  border-color: var(--ink);
+  color: var(--white);
+}
+
+/*
+ * On a dandelion panel the magenta hover measures 2.53:1 against the ground,
+ * which tests/contrast.mjs rejects. Inverting to ink-on-yellow keeps the state
+ * change obvious at ~9:1. Caught by measuring, not by looking.
+ */
+.block-yellow .btn:hover {
+  background: var(--white);
+  color: var(--ink);
+}
+
+.btn-secondary {
+  background: var(--white);
+  color: var(--ink);
+}
+
+.btn-secondary:hover {
+  background: var(--dandelion);
+  color: var(--ink);
+}
+
+/* Focus must be visible and must not rely on colour alone. */
+:focus-visible {
+  outline: 3px solid var(--violet);
+  outline-offset: 2px;
+}

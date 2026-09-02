@@ -21,6 +21,19 @@ export type DB = DatabaseSync;
 
 let instance: DB | null = null;
 
+/**
+ * Locate schema.sql.
+ *
+ * `import.meta.dirname` is undefined once Next bundles this module, so a plain
+ * join against it throws only inside the app and never in the suites, which run
+ * the source directly under Node. Resolving from cwd is the fallback that
+ * works in both: the server always starts at the project root.
+ */
+function schemaPath(): string {
+  const here = import.meta.dirname;
+  return here ? join(here, 'schema.sql') : join(process.cwd(), 'src', 'db', 'schema.sql');
+}
+
 export function openDatabase(path: string): DB {
   if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
 
@@ -29,8 +42,7 @@ export function openDatabase(path: string): DB {
   db.exec('PRAGMA journal_mode = WAL');
   db.exec('PRAGMA foreign_keys = ON');
 
-  const schemaPath = join(import.meta.dirname, 'schema.sql');
-  db.exec(readFileSync(schemaPath, 'utf8'));
+  db.exec(readFileSync(schemaPath(), 'utf8'));
 
   return db;
 }
@@ -252,4 +264,62 @@ export function saveJob(
     patch.done ?? null,
     patch.status ?? null,
   );
+}
+
+// --- OAuth tokens -----------------------------------------------------------
+
+/**
+ * Tokens are encrypted by the caller, not here.
+ *
+ * This layer stays a dumb store: it never sees the key. That keeps the crypto
+ * in one testable place (src/auth/crypto.ts) instead of spread across the data
+ * layer, and it means a query-log dump cannot contain a usable token.
+ */
+export interface StoredTokens {
+  accessToken: string;
+  refreshToken: string | null;
+  expiresAt: string | null;
+  scope: string | null;
+}
+
+export function saveTokens(
+  db: DB,
+  userId: number,
+  provider: string,
+  tokens: StoredTokens,
+): void {
+  // Spotify omits refresh_token on a refresh response: it expects you to keep
+  // using the one you have. COALESCE means a refresh never nulls it out, which
+  // would silently force a full re-auth on the next expiry.
+  db.prepare(
+    `INSERT INTO auth_tokens (user_id, provider, access_token, refresh_token, expires_at, scope)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON CONFLICT(user_id, provider) DO UPDATE SET
+       access_token = excluded.access_token,
+       refresh_token = COALESCE(excluded.refresh_token, auth_tokens.refresh_token),
+       expires_at = excluded.expires_at,
+       scope = COALESCE(excluded.scope, auth_tokens.scope)`,
+  ).run(
+    userId,
+    provider,
+    tokens.accessToken,
+    tokens.refreshToken,
+    tokens.expiresAt,
+    tokens.scope,
+  );
+}
+
+export function loadTokens(db: DB, userId: number, provider: string): StoredTokens | null {
+  const row = db
+    .prepare(
+      `SELECT access_token AS accessToken, refresh_token AS refreshToken,
+              expires_at AS expiresAt, scope
+         FROM auth_tokens WHERE user_id = ? AND provider = ?`,
+    )
+    .get(userId, provider) as StoredTokens | undefined;
+  return row ?? null;
+}
+
+export function deleteTokens(db: DB, userId: number, provider: string): void {
+  db.prepare('DELETE FROM auth_tokens WHERE user_id = ? AND provider = ?').run(userId, provider);
 }

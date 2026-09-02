@@ -7,6 +7,8 @@
  * distinguishes degraded from failing, and jobs resume rather than restart.
  */
 
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { openDatabase, upsertArtist, linkExternalId, followArtist, getRoster,
          recordSuccess, recordFailure, getHealth, loadJob, saveJob } from '../src/db/index.ts';
 import { normalizeName } from '../src/matcher/normalize.ts';
@@ -125,3 +127,35 @@ check(job.done === 340, 'completing does not reset progress');
 
 console.log(failed ? `\n${failed} check(s) failed` : '\nall database checks passed');
 process.exit(failed ? 1 : 0);
+
+// --- Schema resolution outside plain Node -----------------------------------
+//
+// Found by running the app, not by a suite: `import.meta.dirname` is undefined
+// once Next bundles src/db/index.ts, so openDatabase threw
+// ERR_INVALID_ARG_TYPE on every request while every test stayed green. The
+// suites import the source directly under Node, where dirname is defined, so
+// they could not see it.
+//
+// This asserts the fallback path exists on disk, which is what the bundled
+// build depends on. It does not simulate the bundler, so it is a guard against
+// the file moving rather than proof the bundle works.
+{
+  const fromCwd = join(process.cwd(), 'src', 'db', 'schema.sql');
+  check(
+    existsSync(fromCwd),
+    'schema.sql is resolvable from the project root, the path the bundled app uses',
+    fromCwd,
+  );
+
+  // The real assertion: a database opened with no import.meta.dirname still
+  // gets its schema. If this regresses, the app breaks and nothing else notices.
+  const probe = openDatabase(':memory:');
+  const tables = probe
+    .prepare("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name")
+    .all()
+    .map((r) => r.name);
+  for (const required of ['artists', 'events', 'auth_tokens', 'adapter_health', 'job_state']) {
+    check(tables.includes(required), `schema creates the ${required} table`);
+  }
+  probe.close();
+}

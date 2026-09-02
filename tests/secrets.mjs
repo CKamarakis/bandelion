@@ -102,8 +102,15 @@ if (existsSync(join(root, '.env.example'))) {
   const filled = example
     .split('\n')
     .filter((l) => /^[A-Z_]+=.+/.test(l.trim()))
-    // Non-secret defaults are the point of the file.
-    .filter((l) => !/^(BANDELION_|RELEASE_WINDOW_|ENABLE_|DATABASE_PATH)/.test(l.trim()))
+    // Non-secret defaults are the point of the file. The redirect URI is one:
+    // it is public by construction (it travels in the authorize URL) and is
+    // identical for every local instance, so shipping the working value beats
+    // making everyone retype a string Spotify compares byte for byte.
+    .filter((l) =>
+      !/^(BANDELION_|RELEASE_WINDOW_|ENABLE_|DATABASE_PATH|SPOTIFY_REDIRECT_URI)/.test(
+        l.trim(),
+      ),
+    )
     // example.com is the reserved placeholder domain (RFC 2606). An address
     // there is a template, and the real-email scan below still catches a
     // genuine one.

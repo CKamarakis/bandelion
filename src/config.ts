@@ -14,7 +14,7 @@ export interface Config {
   releaseWindowMonthsForward: number;
   databasePath: string;
   musicbrainzContact: string | null;
-  spotify: { clientId?: string; clientSecret?: string };
+  spotify: { clientId?: string; clientSecret?: string; redirectUri: string };
   ticketmaster: { apiKey?: string };
   enable: { eventim: boolean; residentAdvisor: boolean; promoterCrawlers: boolean };
 }
@@ -39,6 +39,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     spotify: {
       clientId: env.SPOTIFY_CLIENT_ID?.trim() || undefined,
       clientSecret: env.SPOTIFY_CLIENT_SECRET?.trim() || undefined,
+      // Whatever is registered on the Spotify app; Spotify compares it as an
+      // exact string, so a stray trailing slash is an auth failure.
+      redirectUri:
+        env.SPOTIFY_REDIRECT_URI?.trim() ||
+        'http://127.0.0.1:3000/api/auth/callback/spotify',
     },
     ticketmaster: { apiKey: env.TICKETMASTER_API_KEY?.trim() || undefined },
     enable: {
