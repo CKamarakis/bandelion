@@ -11,6 +11,8 @@ import { loadConfig } from '../config.ts';
 import { loadTokens } from '../db/index.ts';
 import { LOCAL_USER_ID, db } from '../auth/session.ts';
 import { SPOTIFY_SCOPES } from '../auth/spotify.ts';
+import { rosterStatus } from '../jobs/roster.ts';
+import { RosterImport } from './RosterImport.tsx';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +33,7 @@ const CONNECT_CTA = 'Connect Spotify';
 const SCOPE_NOTE = 'Read-only access. Bandelion never changes anything on your Spotify account.';
 
 const CONNECTED_HEADING = 'Spotify connected';
-const CONNECTED_BODY = 'Next: import the artists you follow, then run the first ingest.';
+const CONNECTED_BODY = 'Import reads the artists you follow. It resumes if you stop it.';
 const DISCONNECT_CTA = 'Disconnect';
 
 const NOT_CONFIGURED_HEADING = 'Add your Spotify credentials';
@@ -62,8 +64,19 @@ export default async function Home({
   const configured = Boolean(cfg.spotify.clientId && cfg.spotify.clientSecret);
 
   let connected = false;
+  // A zeroed status is the honest default: it claims nothing, and the panel
+  // renders even when the database cannot be read.
+  let roster: ReturnType<typeof rosterStatus> = {
+    status: 'idle',
+    imported: 0,
+    total: null,
+    lastError: null,
+    complete: false,
+  };
   try {
-    connected = loadTokens(db(), LOCAL_USER_ID, 'spotify') !== null;
+    const database = db();
+    connected = loadTokens(database, LOCAL_USER_ID, 'spotify') !== null;
+    roster = rosterStatus(database, LOCAL_USER_ID);
   } catch (err) {
     // The page must render even with no database yet. Constraint 2's spirit:
     // one broken dependency degrades a section, it does not blank the screen.
@@ -109,6 +122,7 @@ export default async function Home({
           <>
             <h2>{CONNECTED_HEADING}</h2>
             <p style={S.body}>{CONNECTED_BODY}</p>
+            <RosterImport initial={roster} />
             <dl style={S.meta}>
               <dt style={S.metaKey}>Scope</dt>
               <dd style={S.metaVal}>{SPOTIFY_SCOPES.join(' · ')}</dd>
@@ -175,7 +189,15 @@ const S: Record<string, React.CSSProperties> = {
   panel: { padding: '30px 26px 34px' },
   body: { margin: '14px 0 24px', maxWidth: '52ch' },
   note: { margin: '20px 0 0', fontSize: '0.8rem', maxWidth: '52ch' },
-  meta: { display: 'flex', flexWrap: 'wrap', gap: '10px', margin: '0 0 22px', fontSize: '0.8rem' },
+  // Top margin because this row follows the import button: without it the
+  // metadata reads as a caption on the button rather than its own line.
+  meta: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '10px',
+    margin: '26px 0 22px',
+    fontSize: '0.8rem',
+  },
   metaKey: { margin: 0, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em' },
   metaVal: { margin: 0, overflowWrap: 'anywhere' },
 };

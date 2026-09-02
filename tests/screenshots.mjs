@@ -37,6 +37,13 @@ const VIEWPORTS = [
   { name: 'desktop', width: 1280, height: 1000, mobile: false },
 ];
 
+/**
+ * Which screens to capture.
+ *
+ * The connected state depends on database contents rather than a URL, so
+ * whichever state the database is in is what gets shot. Seed it first for the
+ * state you want to look at.
+ */
 const ROUTES = [
   { name: 'connect', path: '/' },
   { name: 'connect-error', path: '/?auth_error=state_mismatch' },

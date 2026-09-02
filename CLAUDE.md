@@ -51,14 +51,17 @@ src/auth/           OAuth: PKCE, token exchange, encryption at rest
 src/auth/crypto.ts  AES-256-GCM for tokens; the DB never holds plaintext
 src/config.ts       every per-instance value, read from env
 src/db/             schema, migrations, queries
+src/jobs/           checkpointed ingest jobs
+src/jobs/roster.ts  the Spotify roster import: resumable, never deletes
+src/jobs/cli.ts     `npm run ingest`
 src/matcher/        artist-name matching, tiered and deterministic
 src/app/            Next.js routes and UI
 tests/              standalone .mjs suites, auto-enrolled by run.mjs
 tests/fixtures/     recorded upstream responses — never call live APIs in tests
 ```
 
-Not built yet: the checkpointed ingest jobs (planned for src/jobs/), the feed
-itself, and every source adapter other than Spotify.
+Not built yet: the feed itself, release fetching, and every source adapter
+other than Spotify.
 
 ---
 

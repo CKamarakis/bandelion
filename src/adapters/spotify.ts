@@ -54,8 +54,85 @@ interface SpotifyArtist {
   popularity?: number;
 }
 
+/** The first page's URL. Exported so a job can start a run without knowing it. */
+export const FIRST_ROSTER_PAGE = `${API}/me/following?type=artist&limit=${PAGE_LIMIT}`;
+
+export interface RosterPage {
+  artists: RosterEntry[];
+  /** The next page's URL, or null at the end of the roster. */
+  next: string | null;
+  /** Spotify's count of followed artists. Absent on some responses. */
+  total: number | null;
+  complete: boolean;
+  error?: string;
+}
+
+/**
+ * One page of followed artists.
+ *
+ * The unit a checkpointed job needs: fetch a page, write it, record the cursor,
+ * repeat. Killing the container between pages costs one page, not the run.
+ *
+ * Never throws, for the same reason nothing else here does.
+ */
+export async function fetchRosterPage(opts: {
+  accessToken: string;
+  /** Omit to start at the beginning. */
+  url?: string;
+  fetchImpl?: typeof fetch;
+  signal?: AbortSignal;
+}): Promise<RosterPage> {
+  const doFetch = opts.fetchImpl ?? fetch;
+  const empty = { artists: [], next: null, total: null };
+
+  try {
+    const res = await doFetch(opts.url ?? FIRST_ROSTER_PAGE, {
+      headers: { Authorization: `Bearer ${opts.accessToken}` },
+      signal: opts.signal,
+    });
+
+    if (!res.ok) {
+      return { ...empty, complete: false, error: await describeApiError(res) };
+    }
+
+    const json = (await res.json()) as {
+      artists?: { items?: SpotifyArtist[]; next?: string | null; total?: number };
+    };
+    const page = json.artists;
+
+    if (!page?.items) {
+      // Shape changed. Report it rather than silently reading zero artists —
+      // a confidently empty roster is the defining bug class here.
+      return {
+        ...empty,
+        complete: false,
+        error: 'unexpected response shape from /me/following (no artists.items)',
+      };
+    }
+
+    const artists: RosterEntry[] = [];
+    for (const item of page.items) {
+      if (!item?.id || !item?.name) continue;
+      artists.push(toRosterEntry(item));
+    }
+
+    return {
+      artists,
+      next: page.next ?? null,
+      total: typeof page.total === 'number' ? page.total : null,
+      complete: true,
+    };
+  } catch (err) {
+    return { ...empty, complete: false, error: errorMessage(err) };
+  }
+}
+
 /**
  * Every followed artist, following the cursor to the end.
+ *
+ * Built on `fetchRosterPage` so there is one implementation of the paging and
+ * error handling. Convenient for a one-shot read; the ingest job walks the
+ * pages itself so it can checkpoint between them.
  *
  * Never throws: a partial roster with `complete: false` is strictly better than
  * an exception, because the caller can still ingest what arrived and retry the
@@ -68,58 +145,30 @@ export async function fetchFollowedArtists(opts: {
   /** Guard against a cursor that never terminates. 200 pages = 10k artists. */
   maxPages?: number;
 }): Promise<RosterResult> {
-  const doFetch = opts.fetchImpl ?? fetch;
   const artists: RosterEntry[] = [];
   const maxPages = opts.maxPages ?? 200;
 
-  let url: string | null = `${API}/me/following?type=artist&limit=${PAGE_LIMIT}`;
+  let url: string | undefined = undefined;
   let pages = 0;
 
-  try {
-    while (url && pages < maxPages) {
-      const res = await doFetch(url, {
-        headers: { Authorization: `Bearer ${opts.accessToken}` },
-        signal: opts.signal,
-      });
+  while (pages < maxPages) {
+    const page = await fetchRosterPage({
+      accessToken: opts.accessToken,
+      url,
+      fetchImpl: opts.fetchImpl,
+      signal: opts.signal,
+    });
 
-      if (!res.ok) {
-        return {
-          artists,
-          complete: false,
-          error: await describeApiError(res),
-        };
-      }
+    artists.push(...page.artists);
 
-      const json = (await res.json()) as {
-        artists?: { items?: SpotifyArtist[]; next?: string | null };
-      };
-      const page = json.artists;
-      if (!page?.items) {
-        // Shape changed. Report it rather than silently reading zero artists —
-        // a confidently empty roster is the defining bug class here.
-        return {
-          artists,
-          complete: false,
-          error: 'unexpected response shape from /me/following (no artists.items)',
-        };
-      }
+    if (!page.complete) return { artists, complete: false, error: page.error };
 
-      for (const item of page.items) {
-        if (!item?.id || !item?.name) continue;
-        artists.push(toRosterEntry(item));
-      }
-
-      url = page.next ?? null;
-      pages++;
-    }
-
-    if (url) {
-      return { artists, complete: false, error: `stopped after ${maxPages} pages` };
-    }
-    return { artists, complete: true };
-  } catch (err) {
-    return { artists, complete: false, error: errorMessage(err) };
+    pages++;
+    if (!page.next) return { artists, complete: true };
+    url = page.next;
   }
+
+  return { artists, complete: false, error: `stopped after ${maxPages} pages` };
 }
 
 function toRosterEntry(item: SpotifyArtist): RosterEntry {

@@ -396,3 +396,58 @@ thing." The properties confirmed to be genuinely tested:
 harness lives in the scratchpad rather than the repo, because a mutation runner
 that rewrites source files is not something to leave where it can run by
 accident.
+
+---
+
+## 024 · The roster import checkpoints after the write, never before
+
+**Decided:** `src/jobs/roster.ts` fetches a page, commits it in a transaction,
+and only then records the cursor. A failed page leaves the cursor where it was.
+
+**Why:** if the cursor advances before the page is committed, a crash in between
+loses that page permanently. The next run resumes past it, the job reports
+healthy, and the roster is simply short by fifty artists with nothing to
+indicate it. That is the worst failure mode this job has, because it is silent.
+
+The same reasoning drives the failure path: on an error the cursor stays on the
+page that failed, so a retry re-reads it rather than skipping it.
+
+**Verified by mutation:** moving the checkpoint before the write initially
+*passed* the suite, because every test completed its write. The suite now kills
+the process between checkpoint and write, using a SQLite trigger that aborts the
+INSERT, and confirms the resumed run recovers every artist. 12/12 mutants caught
+after that fix.
+
+---
+
+## 025 · The import never deletes artists
+
+**Decided:** `importRoster` upserts and follows. Nothing removes a row.
+
+**Why:** an unfollow is not observable from a partial page. Deleting anything
+not seen in the current run would drop artists every time an import was
+interrupted, which is often, since the whole design assumes interruption.
+
+Removing unfollowed artists needs a complete run and a separate reconciliation
+pass that can tell "not in the roster" from "not read yet". Until that exists,
+the roster only grows.
+
+**Consequence:** unfollowing on Spotify does not remove an artist from
+Bandelion. Worth a UI affordance later, not a silent delete.
+
+---
+
+## 026 · POST /api/roster starts a job and returns immediately
+
+**Decided:** the route triggers `importRoster` without awaiting it, and the
+client polls `GET /api/roster`.
+
+**Why:** constraint 4. The roster is thousands of artists across many pages;
+holding a request open for it would block a worker and time out behind any
+proxy. The job row doubles as the lock, so a second POST while one is running
+returns current status rather than starting a race.
+
+**Consequence:** a killed server mid-import leaves the job row `running` with a
+stale cursor. The next run resumes correctly, but the status is briefly wrong.
+Fixing that needs a heartbeat or a startup reconciliation, and neither is worth
+building before the feed exists.
