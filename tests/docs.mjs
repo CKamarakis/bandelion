@@ -106,6 +106,51 @@ for (const p of referenced) {
   check(existsSync(join(root, p)), `CLAUDE.md references an existing file: ${p}`);
 }
 
+// --- LIMITS.md stays honest -------------------------------------------------
+// A hand-kept list of known gaps rots the same way prose does, and rots
+// *silently*: a limit that was fixed but still listed teaches everyone to
+// distrust the file, which is worse than not having it.
+//
+// This cannot check whether a limit is still true — only a human knows that.
+// What it can check is that the file keeps the shape that makes it useful, and
+// that every decision it cites actually exists.
+
+const limits = readFileSync(join(root, 'LIMITS.md'), 'utf8');
+
+{
+  const entries = [...limits.matchAll(/^## (L\d+) · (.+?) · (blocks-flow|degrades|cosmetic)$/gm)];
+  check(entries.length > 0, 'LIMITS.md has entries in the documented format');
+
+  // Ids are how a commit message or a decision refers to one of these, so a
+  // duplicate id makes the reference ambiguous.
+  const ids = entries.map(([, id]) => id);
+  check(new Set(ids).size === ids.length, 'LIMITS.md entry ids are unique', ids.join(' '));
+
+  // Every entry needs an exit condition. An entry with no trigger is a
+  // complaint, not a plan, and will still be here in a year.
+  const sections = limits.split(/^## /m).slice(1);
+  for (const section of sections) {
+    const heading = section.split('\n')[0];
+    const id = heading.match(/^(L\d+)/)?.[1];
+    if (!id) continue;
+    check(
+      /\*\*Trigger:?\*\*|\*\*Trigger\b/.test(section) || /\*\*What would lift it/.test(section),
+      `${id} says what would lift it or when to act`,
+    );
+  }
+
+  // Decisions cited by number must exist, so a renumbering does not leave
+  // dangling references.
+  const decisions = readFileSync(join(root, 'DECISIONS.md'), 'utf8');
+  const cited = new Set([...limits.matchAll(/decision (\d{3})/g)].map(([, n]) => n));
+  for (const n of cited) {
+    check(
+      new RegExp(`^## ${n} · `, 'm').test(decisions),
+      `LIMITS.md cites decision ${n}, which exists`,
+    );
+  }
+}
+
 // --- README stays consistent about how to run it ----------------------------
 
 const readme = readFileSync(join(root, 'README.md'), 'utf8');

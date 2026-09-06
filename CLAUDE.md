@@ -66,7 +66,9 @@ tests/seed.mjs      hand-run: builds data/seed.db so screens work without OAuth
 ```
 
 Not built yet: the feed itself, release fetching, and every source adapter
-other than Spotify and MusicBrainz. Releases will come from MusicBrainz rather
+other than Spotify and MusicBrainz. `LIMITS.md` tracks what is deferred and
+what would lift each limit — the improvement queue for after the happy path
+works; `tests/docs.mjs` keeps its shape honest. Releases will come from MusicBrainz rather
 than Spotify (decision 032/033), and are blocked on MBID resolution — see
 `VENUES.md` for the Berlin venues the gig sources will target.
 
