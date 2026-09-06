@@ -74,6 +74,26 @@ if (commandsBlock) {
   }
 }
 
+// --- A script's target file exists ------------------------------------------
+// The third direction, and the one that actually bit: `fixtures:record` and
+// `seed` were documented, present in package.json, and pointed at files nobody
+// ever wrote. Both checks above passed the whole time, because each only
+// compared the docs against package.json — neither looked at the disk.
+//
+// Only local paths are checked. `next dev` and friends resolve through
+// node_modules and are not ours to verify.
+
+const LOCAL_PATH = /(?:^|\s)((?:src|tests|scripts)\/[\w./-]+\.(?:mjs|js|ts|tsx))/g;
+
+for (const [name, command] of Object.entries(pkg.scripts ?? {})) {
+  for (const [, target] of command.matchAll(LOCAL_PATH)) {
+    check(
+      existsSync(join(root, target)),
+      `script "${name}" points at an existing file: ${target}`,
+    );
+  }
+}
+
 // --- Files referenced elsewhere in the docs ---------------------------------
 // Backtick-quoted paths in prose rot the same way. Only check ones that look
 // like real repo paths, so a filename in an example is not a false positive.

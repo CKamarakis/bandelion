@@ -19,13 +19,15 @@ import { pathToFileURL } from 'node:url';
 const dir = import.meta.dirname;
 
 /**
- * Not suites. `screenshots.mjs` needs a running server and a browser, and the
- * next-resolve pair are module hooks loaded via --import below.
+ * Not suites. `screenshots.mjs` needs a running server and a browser,
+ * `record-fixture.mjs` and `seed.mjs` are hand-run scripts that write files,
+ * and the next-resolve pair are module hooks loaded via --import below.
  */
 const MANUAL = new Set([
   'run.mjs',
   'screenshots.mjs',
   'record-fixture.mjs',
+  'seed.mjs',
   'next-resolve.mjs',
   'next-resolve-hooks.mjs',
 ]);

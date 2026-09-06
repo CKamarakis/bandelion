@@ -59,10 +59,14 @@ src/matcher/        artist-name matching, tiered and deterministic
 src/app/            Next.js routes and UI
 tests/              standalone .mjs suites, auto-enrolled by run.mjs
 tests/fixtures/     recorded upstream responses — never call live APIs in tests
+tests/record-fixture.mjs  hand-run: the one script that does call live Spotify
+tests/seed.mjs      hand-run: builds data/seed.db so screens work without OAuth
 ```
 
-Not built yet: the feed itself, release fetching, and every source adapter
-other than Spotify.
+Not built yet: MBID resolution, the feed itself, release fetching, and every
+source adapter other than Spotify. Releases will come from MusicBrainz rather
+than Spotify (decision 032/033), and are blocked on MBID resolution — see
+`VENUES.md` for the Berlin venues the gig sources will target.
 
 ---
 

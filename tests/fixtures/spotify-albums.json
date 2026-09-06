@@ -1,0 +1,2062 @@
+{
+  "_comment": "Live GET /v1/artists/{id}/albums?include_groups=album,single&limit=10, no market parameter, recorded by npm run fixtures:record. limit=10 is the real ceiling here: 20 and above return 400 \"Invalid limit\", unlike /me/following which allows 50. Keyed by artist id. Re-record when the upstream shape changes; the diff names what broke.",
+  "_recordedAt": "2026-09-03T17:41:44.931Z",
+  "artists": {
+    "0Ivm3PYwfVFeq2trxYqLi2": {
+      "name": "*shels",
+      "response": {
+        "href": "https://api.spotify.com/v1/artists/0Ivm3PYwfVFeq2trxYqLi2/albums?offset=0&limit=10&locale=*&include_groups=album,single",
+        "limit": 10,
+        "next": null,
+        "offset": 0,
+        "previous": null,
+        "total": 5,
+        "items": [
+          {
+            "album_type": "album",
+            "total_tracks": 13,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/3xIpxM4JMvq0vHjtQhgncJ"
+            },
+            "href": "https://api.spotify.com/v1/albums/3xIpxM4JMvq0vHjtQhgncJ",
+            "id": "3xIpxM4JMvq0vHjtQhgncJ",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b2738f8694711e1d8103a6418389",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e028f8694711e1d8103a6418389",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d000048518f8694711e1d8103a6418389",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Plains of the Purple Buffalo",
+            "release_date": "2011-07-11",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:3xIpxM4JMvq0vHjtQhgncJ",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/0Ivm3PYwfVFeq2trxYqLi2"
+                },
+                "href": "https://api.spotify.com/v1/artists/0Ivm3PYwfVFeq2trxYqLi2",
+                "id": "0Ivm3PYwfVFeq2trxYqLi2",
+                "name": "*shels",
+                "type": "artist",
+                "uri": "spotify:artist:0Ivm3PYwfVFeq2trxYqLi2"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 8,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/0DafUgHTEqUzBKK0ywpfnK"
+            },
+            "href": "https://api.spotify.com/v1/albums/0DafUgHTEqUzBKK0ywpfnK",
+            "id": "0DafUgHTEqUzBKK0ywpfnK",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b27341fcb7f3439c59ab84462b76",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e0241fcb7f3439c59ab84462b76",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000485141fcb7f3439c59ab84462b76",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Laurentian's Atoll",
+            "release_date": "2007-11-19",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:0DafUgHTEqUzBKK0ywpfnK",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/0Ivm3PYwfVFeq2trxYqLi2"
+                },
+                "href": "https://api.spotify.com/v1/artists/0Ivm3PYwfVFeq2trxYqLi2",
+                "id": "0Ivm3PYwfVFeq2trxYqLi2",
+                "name": "*shels",
+                "type": "artist",
+                "uri": "spotify:artist:0Ivm3PYwfVFeq2trxYqLi2"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 11,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/4iEaigVfWLITrmwcj0bAfN"
+            },
+            "href": "https://api.spotify.com/v1/albums/4iEaigVfWLITrmwcj0bAfN",
+            "id": "4iEaigVfWLITrmwcj0bAfN",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273107efdb33a3151a80dcff999",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02107efdb33a3151a80dcff999",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851107efdb33a3151a80dcff999",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Sea of the Dying Dhow",
+            "release_date": "2007-06-18",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:4iEaigVfWLITrmwcj0bAfN",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/0Ivm3PYwfVFeq2trxYqLi2"
+                },
+                "href": "https://api.spotify.com/v1/artists/0Ivm3PYwfVFeq2trxYqLi2",
+                "id": "0Ivm3PYwfVFeq2trxYqLi2",
+                "name": "*shels",
+                "type": "artist",
+                "uri": "spotify:artist:0Ivm3PYwfVFeq2trxYqLi2"
+              }
+            ]
+          },
+          {
+            "album_type": "single",
+            "total_tracks": 3,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/5qMgYq1IrfPwjRkvLOmtrT"
+            },
+            "href": "https://api.spotify.com/v1/albums/5qMgYq1IrfPwjRkvLOmtrT",
+            "id": "5qMgYq1IrfPwjRkvLOmtrT",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273cc77688f50e27c57792a5c12",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02cc77688f50e27c57792a5c12",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851cc77688f50e27c57792a5c12",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Butterflies (On Luci's Way)",
+            "release_date": "2011-07-04",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:5qMgYq1IrfPwjRkvLOmtrT",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/0Ivm3PYwfVFeq2trxYqLi2"
+                },
+                "href": "https://api.spotify.com/v1/artists/0Ivm3PYwfVFeq2trxYqLi2",
+                "id": "0Ivm3PYwfVFeq2trxYqLi2",
+                "name": "*shels",
+                "type": "artist",
+                "uri": "spotify:artist:0Ivm3PYwfVFeq2trxYqLi2"
+              }
+            ]
+          },
+          {
+            "album_type": "single",
+            "total_tracks": 6,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/6ZcUGcJyqQRB38Ea8oOMlm"
+            },
+            "href": "https://api.spotify.com/v1/albums/6ZcUGcJyqQRB38Ea8oOMlm",
+            "id": "6ZcUGcJyqQRB38Ea8oOMlm",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b2733732bb77a0ee00480236bbed",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e023732bb77a0ee00480236bbed",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d000048513732bb77a0ee00480236bbed",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Wingsfortheirsmiles",
+            "release_date": "2004-01-01",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:6ZcUGcJyqQRB38Ea8oOMlm",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/0Ivm3PYwfVFeq2trxYqLi2"
+                },
+                "href": "https://api.spotify.com/v1/artists/0Ivm3PYwfVFeq2trxYqLi2",
+                "id": "0Ivm3PYwfVFeq2trxYqLi2",
+                "name": "*shels",
+                "type": "artist",
+                "uri": "spotify:artist:0Ivm3PYwfVFeq2trxYqLi2"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "2jTNmsCOcNGrCztpaFa7Tn": {
+      "name": "Couleur Locale",
+      "response": {
+        "href": "https://api.spotify.com/v1/artists/2jTNmsCOcNGrCztpaFa7Tn/albums?offset=0&limit=10&locale=*&include_groups=album,single",
+        "limit": 10,
+        "next": null,
+        "offset": 0,
+        "previous": null,
+        "total": 1,
+        "items": [
+          {
+            "album_type": "album",
+            "total_tracks": 11,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/6CLwrG6t8zqjnUvD29pLpC"
+            },
+            "href": "https://api.spotify.com/v1/albums/6CLwrG6t8zqjnUvD29pLpC",
+            "id": "6CLwrG6t8zqjnUvD29pLpC",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b2731d700ef281a43bc506d12d96",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e021d700ef281a43bc506d12d96",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d000048511d700ef281a43bc506d12d96",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Κουλέρ Λοκάλ",
+            "release_date": "2016-03-18",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:6CLwrG6t8zqjnUvD29pLpC",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2jTNmsCOcNGrCztpaFa7Tn"
+                },
+                "href": "https://api.spotify.com/v1/artists/2jTNmsCOcNGrCztpaFa7Tn",
+                "id": "2jTNmsCOcNGrCztpaFa7Tn",
+                "name": "Couleur Locale",
+                "type": "artist",
+                "uri": "spotify:artist:2jTNmsCOcNGrCztpaFa7Tn"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "2SRIVGDkdqQnrQdaXxDkJt": {
+      "name": "Haken",
+      "response": {
+        "href": "https://api.spotify.com/v1/artists/2SRIVGDkdqQnrQdaXxDkJt/albums?offset=0&limit=10&locale=*&include_groups=album,single",
+        "limit": 10,
+        "next": "https://api.spotify.com/v1/artists/2SRIVGDkdqQnrQdaXxDkJt/albums?offset=10&limit=10&locale=*&include_groups=album,single",
+        "offset": 0,
+        "previous": null,
+        "total": 38,
+        "items": [
+          {
+            "album_type": "album",
+            "total_tracks": 21,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/0eE2ZynDLL8R55NWXNm1TG"
+            },
+            "href": "https://api.spotify.com/v1/albums/0eE2ZynDLL8R55NWXNm1TG",
+            "id": "0eE2ZynDLL8R55NWXNm1TG",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273f19f20476e981a536c6f6ba4",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02f19f20476e981a536c6f6ba4",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851f19f20476e981a536c6f6ba4",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Liveforms: An Evening With Haken (Live in London 2024)",
+            "release_date": "2025-05-09",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:0eE2ZynDLL8R55NWXNm1TG",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2SRIVGDkdqQnrQdaXxDkJt"
+                },
+                "href": "https://api.spotify.com/v1/artists/2SRIVGDkdqQnrQdaXxDkJt",
+                "id": "2SRIVGDkdqQnrQdaXxDkJt",
+                "name": "Haken",
+                "type": "artist",
+                "uri": "spotify:artist:2SRIVGDkdqQnrQdaXxDkJt"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 9,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/62Z9kh3RuUnkXrnyhHWJPX"
+            },
+            "href": "https://api.spotify.com/v1/albums/62Z9kh3RuUnkXrnyhHWJPX",
+            "id": "62Z9kh3RuUnkXrnyhHWJPX",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b2732462afd15267d50cc8bf4ad5",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e022462afd15267d50cc8bf4ad5",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d000048512462afd15267d50cc8bf4ad5",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Fauna",
+            "release_date": "2023-03-03",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:62Z9kh3RuUnkXrnyhHWJPX",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2SRIVGDkdqQnrQdaXxDkJt"
+                },
+                "href": "https://api.spotify.com/v1/artists/2SRIVGDkdqQnrQdaXxDkJt",
+                "id": "2SRIVGDkdqQnrQdaXxDkJt",
+                "name": "Haken",
+                "type": "artist",
+                "uri": "spotify:artist:2SRIVGDkdqQnrQdaXxDkJt"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 18,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/1KOHbC0QWnvLUKT5GS4JtE"
+            },
+            "href": "https://api.spotify.com/v1/albums/1KOHbC0QWnvLUKT5GS4JtE",
+            "id": "1KOHbC0QWnvLUKT5GS4JtE",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b27324f307a7a373d44b1208534e",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e0224f307a7a373d44b1208534e",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000485124f307a7a373d44b1208534e",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Fauna (Deluxe Edition)",
+            "release_date": "2023-03-03",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:1KOHbC0QWnvLUKT5GS4JtE",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2SRIVGDkdqQnrQdaXxDkJt"
+                },
+                "href": "https://api.spotify.com/v1/artists/2SRIVGDkdqQnrQdaXxDkJt",
+                "id": "2SRIVGDkdqQnrQdaXxDkJt",
+                "name": "Haken",
+                "type": "artist",
+                "uri": "spotify:artist:2SRIVGDkdqQnrQdaXxDkJt"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 11,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/1i6DTKXsonvhHZYdLhIbk1"
+            },
+            "href": "https://api.spotify.com/v1/albums/1i6DTKXsonvhHZYdLhIbk1",
+            "id": "1i6DTKXsonvhHZYdLhIbk1",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b2736e571a7ee00d655b1f9cce5e",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e026e571a7ee00d655b1f9cce5e",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d000048516e571a7ee00d655b1f9cce5e",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Virus",
+            "release_date": "2020-07-24",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:1i6DTKXsonvhHZYdLhIbk1",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2SRIVGDkdqQnrQdaXxDkJt"
+                },
+                "href": "https://api.spotify.com/v1/artists/2SRIVGDkdqQnrQdaXxDkJt",
+                "id": "2SRIVGDkdqQnrQdaXxDkJt",
+                "name": "Haken",
+                "type": "artist",
+                "uri": "spotify:artist:2SRIVGDkdqQnrQdaXxDkJt"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 22,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/16dthDo2uTNNhCxhmPAB3b"
+            },
+            "href": "https://api.spotify.com/v1/albums/16dthDo2uTNNhCxhmPAB3b",
+            "id": "16dthDo2uTNNhCxhmPAB3b",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b27358c57917ba263ebe1966a3e1",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e0258c57917ba263ebe1966a3e1",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000485158c57917ba263ebe1966a3e1",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Virus (Deluxe Edition)",
+            "release_date": "2020-07-24",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:16dthDo2uTNNhCxhmPAB3b",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2SRIVGDkdqQnrQdaXxDkJt"
+                },
+                "href": "https://api.spotify.com/v1/artists/2SRIVGDkdqQnrQdaXxDkJt",
+                "id": "2SRIVGDkdqQnrQdaXxDkJt",
+                "name": "Haken",
+                "type": "artist",
+                "uri": "spotify:artist:2SRIVGDkdqQnrQdaXxDkJt"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 4,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/5tCkJBpsqSgjk1ZHvHdC2I"
+            },
+            "href": "https://api.spotify.com/v1/albums/5tCkJBpsqSgjk1ZHvHdC2I",
+            "id": "5tCkJBpsqSgjk1ZHvHdC2I",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b27342d2104963fa21b94fd84edd",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e0242d2104963fa21b94fd84edd",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000485142d2104963fa21b94fd84edd",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "L+1VE",
+            "release_date": "2018-12-07",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:5tCkJBpsqSgjk1ZHvHdC2I",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2SRIVGDkdqQnrQdaXxDkJt"
+                },
+                "href": "https://api.spotify.com/v1/artists/2SRIVGDkdqQnrQdaXxDkJt",
+                "id": "2SRIVGDkdqQnrQdaXxDkJt",
+                "name": "Haken",
+                "type": "artist",
+                "uri": "spotify:artist:2SRIVGDkdqQnrQdaXxDkJt"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 7,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/1PhYHO7Pva9e1YQY5GQ8zx"
+            },
+            "href": "https://api.spotify.com/v1/albums/1PhYHO7Pva9e1YQY5GQ8zx",
+            "id": "1PhYHO7Pva9e1YQY5GQ8zx",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b2735d6ab51dbb9209aea8c476ee",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e025d6ab51dbb9209aea8c476ee",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d000048515d6ab51dbb9209aea8c476ee",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Vector",
+            "release_date": "2018-10-26",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:1PhYHO7Pva9e1YQY5GQ8zx",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2SRIVGDkdqQnrQdaXxDkJt"
+                },
+                "href": "https://api.spotify.com/v1/artists/2SRIVGDkdqQnrQdaXxDkJt",
+                "id": "2SRIVGDkdqQnrQdaXxDkJt",
+                "name": "Haken",
+                "type": "artist",
+                "uri": "spotify:artist:2SRIVGDkdqQnrQdaXxDkJt"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 12,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/2hTxg2jvBxLCxvBOqB9Hq9"
+            },
+            "href": "https://api.spotify.com/v1/albums/2hTxg2jvBxLCxvBOqB9Hq9",
+            "id": "2hTxg2jvBxLCxvBOqB9Hq9",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273a4bcdee1d30269681319f56f",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02a4bcdee1d30269681319f56f",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851a4bcdee1d30269681319f56f",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Vector (Deluxe Edition)",
+            "release_date": "2018-10-26",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:2hTxg2jvBxLCxvBOqB9Hq9",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2SRIVGDkdqQnrQdaXxDkJt"
+                },
+                "href": "https://api.spotify.com/v1/artists/2SRIVGDkdqQnrQdaXxDkJt",
+                "id": "2SRIVGDkdqQnrQdaXxDkJt",
+                "name": "Haken",
+                "type": "artist",
+                "uri": "spotify:artist:2SRIVGDkdqQnrQdaXxDkJt"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 11,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/4WnultA7cwoXVOiqjiPOQg"
+            },
+            "href": "https://api.spotify.com/v1/albums/4WnultA7cwoXVOiqjiPOQg",
+            "id": "4WnultA7cwoXVOiqjiPOQg",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273696059f7cc647dd83bd05776",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02696059f7cc647dd83bd05776",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851696059f7cc647dd83bd05776",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "L-1VE (Live in Amsterdam 2017)",
+            "release_date": "2018-06-22",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:4WnultA7cwoXVOiqjiPOQg",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2SRIVGDkdqQnrQdaXxDkJt"
+                },
+                "href": "https://api.spotify.com/v1/artists/2SRIVGDkdqQnrQdaXxDkJt",
+                "id": "2SRIVGDkdqQnrQdaXxDkJt",
+                "name": "Haken",
+                "type": "artist",
+                "uri": "spotify:artist:2SRIVGDkdqQnrQdaXxDkJt"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 9,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/1qD29n5sWzkZPnMOFSkCIC"
+            },
+            "href": "https://api.spotify.com/v1/albums/1qD29n5sWzkZPnMOFSkCIC",
+            "id": "1qD29n5sWzkZPnMOFSkCIC",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b27361538881835cce6adf80181b",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e0261538881835cce6adf80181b",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000485161538881835cce6adf80181b",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Affinity",
+            "release_date": "2016-04-29",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:1qD29n5sWzkZPnMOFSkCIC",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2SRIVGDkdqQnrQdaXxDkJt"
+                },
+                "href": "https://api.spotify.com/v1/artists/2SRIVGDkdqQnrQdaXxDkJt",
+                "id": "2SRIVGDkdqQnrQdaXxDkJt",
+                "name": "Haken",
+                "type": "artist",
+                "uri": "spotify:artist:2SRIVGDkdqQnrQdaXxDkJt"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "2PDepyCtfybWn5UJv0DmKw": {
+      "name": "Molly Nilsson",
+      "response": {
+        "href": "https://api.spotify.com/v1/artists/2PDepyCtfybWn5UJv0DmKw/albums?offset=0&limit=10&locale=*&include_groups=album,single",
+        "limit": 10,
+        "next": "https://api.spotify.com/v1/artists/2PDepyCtfybWn5UJv0DmKw/albums?offset=10&limit=10&locale=*&include_groups=album,single",
+        "offset": 0,
+        "previous": null,
+        "total": 16,
+        "items": [
+          {
+            "album_type": "album",
+            "total_tracks": 13,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/4Jna0PC7dXubuBNNeJtbAA"
+            },
+            "href": "https://api.spotify.com/v1/albums/4Jna0PC7dXubuBNNeJtbAA",
+            "id": "4Jna0PC7dXubuBNNeJtbAA",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273afc0d6089b8317580a24b006",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02afc0d6089b8317580a24b006",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851afc0d6089b8317580a24b006",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Amateur",
+            "release_date": "2025-10-01",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:4Jna0PC7dXubuBNNeJtbAA",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2PDepyCtfybWn5UJv0DmKw"
+                },
+                "href": "https://api.spotify.com/v1/artists/2PDepyCtfybWn5UJv0DmKw",
+                "id": "2PDepyCtfybWn5UJv0DmKw",
+                "name": "Molly Nilsson",
+                "type": "artist",
+                "uri": "spotify:artist:2PDepyCtfybWn5UJv0DmKw"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 10,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/6BWJZfps9TMudDT2CL0UhI"
+            },
+            "href": "https://api.spotify.com/v1/albums/6BWJZfps9TMudDT2CL0UhI",
+            "id": "6BWJZfps9TMudDT2CL0UhI",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273a0d7e372403e4b8d1a9209bb",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02a0d7e372403e4b8d1a9209bb",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851a0d7e372403e4b8d1a9209bb",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Un-American Activities",
+            "release_date": "2024-07-07",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:6BWJZfps9TMudDT2CL0UhI",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2PDepyCtfybWn5UJv0DmKw"
+                },
+                "href": "https://api.spotify.com/v1/artists/2PDepyCtfybWn5UJv0DmKw",
+                "id": "2PDepyCtfybWn5UJv0DmKw",
+                "name": "Molly Nilsson",
+                "type": "artist",
+                "uri": "spotify:artist:2PDepyCtfybWn5UJv0DmKw"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 11,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/2kTRQdoZgmxMtTD17vyVNU"
+            },
+            "href": "https://api.spotify.com/v1/albums/2kTRQdoZgmxMtTD17vyVNU",
+            "id": "2kTRQdoZgmxMtTD17vyVNU",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273f92fd2c1aa1da567fc6f69b7",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02f92fd2c1aa1da567fc6f69b7",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851f92fd2c1aa1da567fc6f69b7",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Extreme",
+            "release_date": "2022-01-15",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:2kTRQdoZgmxMtTD17vyVNU",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2PDepyCtfybWn5UJv0DmKw"
+                },
+                "href": "https://api.spotify.com/v1/artists/2PDepyCtfybWn5UJv0DmKw",
+                "id": "2PDepyCtfybWn5UJv0DmKw",
+                "name": "Molly Nilsson",
+                "type": "artist",
+                "uri": "spotify:artist:2PDepyCtfybWn5UJv0DmKw"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 10,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/6obvMVCOQ0Hw8A5CRbSJuP"
+            },
+            "href": "https://api.spotify.com/v1/albums/6obvMVCOQ0Hw8A5CRbSJuP",
+            "id": "6obvMVCOQ0Hw8A5CRbSJuP",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b2734edc39f9678a756c8de1c002",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e024edc39f9678a756c8de1c002",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d000048514edc39f9678a756c8de1c002",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "2020",
+            "release_date": "2018-10-21",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:6obvMVCOQ0Hw8A5CRbSJuP",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2PDepyCtfybWn5UJv0DmKw"
+                },
+                "href": "https://api.spotify.com/v1/artists/2PDepyCtfybWn5UJv0DmKw",
+                "id": "2PDepyCtfybWn5UJv0DmKw",
+                "name": "Molly Nilsson",
+                "type": "artist",
+                "uri": "spotify:artist:2PDepyCtfybWn5UJv0DmKw"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 12,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/3wyZNkNP8tUegRaPWV1lap"
+            },
+            "href": "https://api.spotify.com/v1/albums/3wyZNkNP8tUegRaPWV1lap",
+            "id": "3wyZNkNP8tUegRaPWV1lap",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273851b75a69e110970cf2f3677",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02851b75a69e110970cf2f3677",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851851b75a69e110970cf2f3677",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Imaginations",
+            "release_date": "2017-05-22",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:3wyZNkNP8tUegRaPWV1lap",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2PDepyCtfybWn5UJv0DmKw"
+                },
+                "href": "https://api.spotify.com/v1/artists/2PDepyCtfybWn5UJv0DmKw",
+                "id": "2PDepyCtfybWn5UJv0DmKw",
+                "name": "Molly Nilsson",
+                "type": "artist",
+                "uri": "spotify:artist:2PDepyCtfybWn5UJv0DmKw"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 13,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/6FljbPhdjpY5f7UjzzQCai"
+            },
+            "href": "https://api.spotify.com/v1/albums/6FljbPhdjpY5f7UjzzQCai",
+            "id": "6FljbPhdjpY5f7UjzzQCai",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273947b612d0e6889a040029feb",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02947b612d0e6889a040029feb",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851947b612d0e6889a040029feb",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Zenith",
+            "release_date": "2015-09-25",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:6FljbPhdjpY5f7UjzzQCai",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2PDepyCtfybWn5UJv0DmKw"
+                },
+                "href": "https://api.spotify.com/v1/artists/2PDepyCtfybWn5UJv0DmKw",
+                "id": "2PDepyCtfybWn5UJv0DmKw",
+                "name": "Molly Nilsson",
+                "type": "artist",
+                "uri": "spotify:artist:2PDepyCtfybWn5UJv0DmKw"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 12,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/7GEaEU9cyCn7E43ZPDX5p0"
+            },
+            "href": "https://api.spotify.com/v1/albums/7GEaEU9cyCn7E43ZPDX5p0",
+            "id": "7GEaEU9cyCn7E43ZPDX5p0",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273bcffb4b246a386d4f388ea98",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02bcffb4b246a386d4f388ea98",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851bcffb4b246a386d4f388ea98",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "The Travels",
+            "release_date": "2013-06-19",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:7GEaEU9cyCn7E43ZPDX5p0",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2PDepyCtfybWn5UJv0DmKw"
+                },
+                "href": "https://api.spotify.com/v1/artists/2PDepyCtfybWn5UJv0DmKw",
+                "id": "2PDepyCtfybWn5UJv0DmKw",
+                "name": "Molly Nilsson",
+                "type": "artist",
+                "uri": "spotify:artist:2PDepyCtfybWn5UJv0DmKw"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 11,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/7B4IgyqqCprSGQImiLwe2S"
+            },
+            "href": "https://api.spotify.com/v1/albums/7B4IgyqqCprSGQImiLwe2S",
+            "id": "7B4IgyqqCprSGQImiLwe2S",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273af7ed4c7c2170f1c8cc2fafd",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02af7ed4c7c2170f1c8cc2fafd",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851af7ed4c7c2170f1c8cc2fafd",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "History",
+            "release_date": "2011-12-14",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:7B4IgyqqCprSGQImiLwe2S",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2PDepyCtfybWn5UJv0DmKw"
+                },
+                "href": "https://api.spotify.com/v1/artists/2PDepyCtfybWn5UJv0DmKw",
+                "id": "2PDepyCtfybWn5UJv0DmKw",
+                "name": "Molly Nilsson",
+                "type": "artist",
+                "uri": "spotify:artist:2PDepyCtfybWn5UJv0DmKw"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 9,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/1PIGBD6huDAqWSeRMpDXrA"
+            },
+            "href": "https://api.spotify.com/v1/albums/1PIGBD6huDAqWSeRMpDXrA",
+            "id": "1PIGBD6huDAqWSeRMpDXrA",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273bc60728b6fd40f65cb833dc3",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02bc60728b6fd40f65cb833dc3",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851bc60728b6fd40f65cb833dc3",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Follow the Light",
+            "release_date": "2010-06-07",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:1PIGBD6huDAqWSeRMpDXrA",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2PDepyCtfybWn5UJv0DmKw"
+                },
+                "href": "https://api.spotify.com/v1/artists/2PDepyCtfybWn5UJv0DmKw",
+                "id": "2PDepyCtfybWn5UJv0DmKw",
+                "name": "Molly Nilsson",
+                "type": "artist",
+                "uri": "spotify:artist:2PDepyCtfybWn5UJv0DmKw"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 13,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/3BRCtUxoDikSSrOFyCvT7q"
+            },
+            "href": "https://api.spotify.com/v1/albums/3BRCtUxoDikSSrOFyCvT7q",
+            "id": "3BRCtUxoDikSSrOFyCvT7q",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273e92e29af03db9a643da4a1ec",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02e92e29af03db9a643da4a1ec",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851e92e29af03db9a643da4a1ec",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "These Things Take Time",
+            "release_date": "2009-06-26",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:3BRCtUxoDikSSrOFyCvT7q",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2PDepyCtfybWn5UJv0DmKw"
+                },
+                "href": "https://api.spotify.com/v1/artists/2PDepyCtfybWn5UJv0DmKw",
+                "id": "2PDepyCtfybWn5UJv0DmKw",
+                "name": "Molly Nilsson",
+                "type": "artist",
+                "uri": "spotify:artist:2PDepyCtfybWn5UJv0DmKw"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "5IhRC86twNb6XePyW4i05E": {
+      "name": "STAKE",
+      "response": {
+        "href": "https://api.spotify.com/v1/artists/5IhRC86twNb6XePyW4i05E/albums?offset=0&limit=10&locale=*&include_groups=album,single",
+        "limit": 10,
+        "next": "https://api.spotify.com/v1/artists/5IhRC86twNb6XePyW4i05E/albums?offset=10&limit=10&locale=*&include_groups=album,single",
+        "offset": 0,
+        "previous": null,
+        "total": 15,
+        "items": [
+          {
+            "album_type": "album",
+            "total_tracks": 8,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/2v4uysFI6VtP3SjpJ12ioS"
+            },
+            "href": "https://api.spotify.com/v1/albums/2v4uysFI6VtP3SjpJ12ioS",
+            "id": "2v4uysFI6VtP3SjpJ12ioS",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b2731e8c33317b0403960a29b3af",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e021e8c33317b0403960a29b3af",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d000048511e8c33317b0403960a29b3af",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "LOVE, DEATH and DECAY",
+            "release_date": "2022-09-30",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:2v4uysFI6VtP3SjpJ12ioS",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/5IhRC86twNb6XePyW4i05E"
+                },
+                "href": "https://api.spotify.com/v1/artists/5IhRC86twNb6XePyW4i05E",
+                "id": "5IhRC86twNb6XePyW4i05E",
+                "name": "STAKE",
+                "type": "artist",
+                "uri": "spotify:artist:5IhRC86twNb6XePyW4i05E"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 8,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/7sul4jDJGcX4VPO6KfbDxA"
+            },
+            "href": "https://api.spotify.com/v1/albums/7sul4jDJGcX4VPO6KfbDxA",
+            "id": "7sul4jDJGcX4VPO6KfbDxA",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273dab3b15d59ca40181971c5c2",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02dab3b15d59ca40181971c5c2",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851dab3b15d59ca40181971c5c2",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Critical Method",
+            "release_date": "2019-11-01",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:7sul4jDJGcX4VPO6KfbDxA",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/5IhRC86twNb6XePyW4i05E"
+                },
+                "href": "https://api.spotify.com/v1/artists/5IhRC86twNb6XePyW4i05E",
+                "id": "5IhRC86twNb6XePyW4i05E",
+                "name": "STAKE",
+                "type": "artist",
+                "uri": "spotify:artist:5IhRC86twNb6XePyW4i05E"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 11,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/6Z3juGDmyEBchC7BPTdt3O"
+            },
+            "href": "https://api.spotify.com/v1/albums/6Z3juGDmyEBchC7BPTdt3O",
+            "id": "6Z3juGDmyEBchC7BPTdt3O",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b2734fd522fec6b708d358aee977",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e024fd522fec6b708d358aee977",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d000048514fd522fec6b708d358aee977",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Kosmokoma",
+            "release_date": "2015-11-20",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:6Z3juGDmyEBchC7BPTdt3O",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/5IhRC86twNb6XePyW4i05E"
+                },
+                "href": "https://api.spotify.com/v1/artists/5IhRC86twNb6XePyW4i05E",
+                "id": "5IhRC86twNb6XePyW4i05E",
+                "name": "STAKE",
+                "type": "artist",
+                "uri": "spotify:artist:5IhRC86twNb6XePyW4i05E"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 12,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/5S1zqzpgN5bj4Cq6cjBddF"
+            },
+            "href": "https://api.spotify.com/v1/albums/5S1zqzpgN5bj4Cq6cjBddF",
+            "id": "5S1zqzpgN5bj4Cq6cjBddF",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273ecbbda8bd33c96b31f64caca",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02ecbbda8bd33c96b31f64caca",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851ecbbda8bd33c96b31f64caca",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "The Hutch",
+            "release_date": "2013-04-19",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:5S1zqzpgN5bj4Cq6cjBddF",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/5IhRC86twNb6XePyW4i05E"
+                },
+                "href": "https://api.spotify.com/v1/artists/5IhRC86twNb6XePyW4i05E",
+                "id": "5IhRC86twNb6XePyW4i05E",
+                "name": "STAKE",
+                "type": "artist",
+                "uri": "spotify:artist:5IhRC86twNb6XePyW4i05E"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 10,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/0wZ0S4nPymrhTO5Rq7WZ3w"
+            },
+            "href": "https://api.spotify.com/v1/albums/0wZ0S4nPymrhTO5Rq7WZ3w",
+            "id": "0wZ0S4nPymrhTO5Rq7WZ3w",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273cba14b4d0716cad5efa23fee",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02cba14b4d0716cad5efa23fee",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851cba14b4d0716cad5efa23fee",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "All Is Chaos",
+            "release_date": "2011-03-06",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:0wZ0S4nPymrhTO5Rq7WZ3w",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/5IhRC86twNb6XePyW4i05E"
+                },
+                "href": "https://api.spotify.com/v1/artists/5IhRC86twNb6XePyW4i05E",
+                "id": "5IhRC86twNb6XePyW4i05E",
+                "name": "STAKE",
+                "type": "artist",
+                "uri": "spotify:artist:5IhRC86twNb6XePyW4i05E"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 7,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/3YyOLUd1KxJhj9auu9DBkc"
+            },
+            "href": "https://api.spotify.com/v1/albums/3YyOLUd1KxJhj9auu9DBkc",
+            "id": "3YyOLUd1KxJhj9auu9DBkc",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273fbb24bae57c0feaae8fb3b17",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02fbb24bae57c0feaae8fb3b17",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851fbb24bae57c0feaae8fb3b17",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "When the Candle Dies Out",
+            "release_date": "2009-03-16",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:3YyOLUd1KxJhj9auu9DBkc",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/5IhRC86twNb6XePyW4i05E"
+                },
+                "href": "https://api.spotify.com/v1/artists/5IhRC86twNb6XePyW4i05E",
+                "id": "5IhRC86twNb6XePyW4i05E",
+                "name": "STAKE",
+                "type": "artist",
+                "uri": "spotify:artist:5IhRC86twNb6XePyW4i05E"
+              }
+            ]
+          },
+          {
+            "album_type": "single",
+            "total_tracks": 3,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/66MMAaQo88cHPr1PKwnhbQ"
+            },
+            "href": "https://api.spotify.com/v1/albums/66MMAaQo88cHPr1PKwnhbQ",
+            "id": "66MMAaQo88cHPr1PKwnhbQ",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b2736f0b9016ba7cc43e71ce9b8f",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e026f0b9016ba7cc43e71ce9b8f",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d000048516f0b9016ba7cc43e71ce9b8f",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Deadlock Eyes",
+            "release_date": "2022-09-02",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:66MMAaQo88cHPr1PKwnhbQ",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/5IhRC86twNb6XePyW4i05E"
+                },
+                "href": "https://api.spotify.com/v1/artists/5IhRC86twNb6XePyW4i05E",
+                "id": "5IhRC86twNb6XePyW4i05E",
+                "name": "STAKE",
+                "type": "artist",
+                "uri": "spotify:artist:5IhRC86twNb6XePyW4i05E"
+              }
+            ]
+          },
+          {
+            "album_type": "single",
+            "total_tracks": 2,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/3nnEbXmNwMZJbnxCvBwXh1"
+            },
+            "href": "https://api.spotify.com/v1/albums/3nnEbXmNwMZJbnxCvBwXh1",
+            "id": "3nnEbXmNwMZJbnxCvBwXh1",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b2735170b239e31c56f5ed09cb5b",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e025170b239e31c56f5ed09cb5b",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d000048515170b239e31c56f5ed09cb5b",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Deliverance Dance",
+            "release_date": "2022-07-15",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:3nnEbXmNwMZJbnxCvBwXh1",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/5IhRC86twNb6XePyW4i05E"
+                },
+                "href": "https://api.spotify.com/v1/artists/5IhRC86twNb6XePyW4i05E",
+                "id": "5IhRC86twNb6XePyW4i05E",
+                "name": "STAKE",
+                "type": "artist",
+                "uri": "spotify:artist:5IhRC86twNb6XePyW4i05E"
+              }
+            ]
+          },
+          {
+            "album_type": "single",
+            "total_tracks": 1,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/7yJzpzGaRLtDgEzFe0Z8eN"
+            },
+            "href": "https://api.spotify.com/v1/albums/7yJzpzGaRLtDgEzFe0Z8eN",
+            "id": "7yJzpzGaRLtDgEzFe0Z8eN",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273ab184461f8f0245fc6093a33",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02ab184461f8f0245fc6093a33",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851ab184461f8f0245fc6093a33",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "F*ck My Anxiety",
+            "release_date": "2022-06-07",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:7yJzpzGaRLtDgEzFe0Z8eN",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/5IhRC86twNb6XePyW4i05E"
+                },
+                "href": "https://api.spotify.com/v1/artists/5IhRC86twNb6XePyW4i05E",
+                "id": "5IhRC86twNb6XePyW4i05E",
+                "name": "STAKE",
+                "type": "artist",
+                "uri": "spotify:artist:5IhRC86twNb6XePyW4i05E"
+              }
+            ]
+          },
+          {
+            "album_type": "single",
+            "total_tracks": 1,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/4sghux3xBBb9TLRXOMkZyg"
+            },
+            "href": "https://api.spotify.com/v1/albums/4sghux3xBBb9TLRXOMkZyg",
+            "id": "4sghux3xBBb9TLRXOMkZyg",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273f6e9f18dbce6267b96ffd975",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02f6e9f18dbce6267b96ffd975",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851f6e9f18dbce6267b96ffd975",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "The Weight of Our Age",
+            "release_date": "2021-06-18",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:4sghux3xBBb9TLRXOMkZyg",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/5IhRC86twNb6XePyW4i05E"
+                },
+                "href": "https://api.spotify.com/v1/artists/5IhRC86twNb6XePyW4i05E",
+                "id": "5IhRC86twNb6XePyW4i05E",
+                "name": "STAKE",
+                "type": "artist",
+                "uri": "spotify:artist:5IhRC86twNb6XePyW4i05E"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "6xPOeIDWmM9ooOw7SBknMl": {
+      "name": "The Night Flight Orchestra",
+      "response": {
+        "href": "https://api.spotify.com/v1/artists/6xPOeIDWmM9ooOw7SBknMl/albums?offset=0&limit=10&locale=*&include_groups=album,single",
+        "limit": 10,
+        "next": "https://api.spotify.com/v1/artists/6xPOeIDWmM9ooOw7SBknMl/albums?offset=10&limit=10&locale=*&include_groups=album,single",
+        "offset": 0,
+        "previous": null,
+        "total": 19,
+        "items": [
+          {
+            "album_type": "album",
+            "total_tracks": 13,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/20AtqMaAxXaiCFxeq2XDpV"
+            },
+            "href": "https://api.spotify.com/v1/albums/20AtqMaAxXaiCFxeq2XDpV",
+            "id": "20AtqMaAxXaiCFxeq2XDpV",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b2731e2c7cff960c5cb0d8d767f1",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e021e2c7cff960c5cb0d8d767f1",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d000048511e2c7cff960c5cb0d8d767f1",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Give Us The Moon",
+            "release_date": "2025-01-31",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:20AtqMaAxXaiCFxeq2XDpV",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/6xPOeIDWmM9ooOw7SBknMl"
+                },
+                "href": "https://api.spotify.com/v1/artists/6xPOeIDWmM9ooOw7SBknMl",
+                "id": "6xPOeIDWmM9ooOw7SBknMl",
+                "name": "The Night Flight Orchestra",
+                "type": "artist",
+                "uri": "spotify:artist:6xPOeIDWmM9ooOw7SBknMl"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 12,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/2EruEBw8awLTVzwhSd4yqt"
+            },
+            "href": "https://api.spotify.com/v1/albums/2EruEBw8awLTVzwhSd4yqt",
+            "id": "2EruEBw8awLTVzwhSd4yqt",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273553a802a1a7b66e9ad521009",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02553a802a1a7b66e9ad521009",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851553a802a1a7b66e9ad521009",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Aeromantic II",
+            "release_date": "2021-09-03",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:2EruEBw8awLTVzwhSd4yqt",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/6xPOeIDWmM9ooOw7SBknMl"
+                },
+                "href": "https://api.spotify.com/v1/artists/6xPOeIDWmM9ooOw7SBknMl",
+                "id": "6xPOeIDWmM9ooOw7SBknMl",
+                "name": "The Night Flight Orchestra",
+                "type": "artist",
+                "uri": "spotify:artist:6xPOeIDWmM9ooOw7SBknMl"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 12,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/0nu8H20H4e73VhvW5R8GOS"
+            },
+            "href": "https://api.spotify.com/v1/albums/0nu8H20H4e73VhvW5R8GOS",
+            "id": "0nu8H20H4e73VhvW5R8GOS",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b2733bd146c699d74f438e06f9fc",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e023bd146c699d74f438e06f9fc",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d000048513bd146c699d74f438e06f9fc",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Aeromantic",
+            "release_date": "2020-02-28",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:0nu8H20H4e73VhvW5R8GOS",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/6xPOeIDWmM9ooOw7SBknMl"
+                },
+                "href": "https://api.spotify.com/v1/artists/6xPOeIDWmM9ooOw7SBknMl",
+                "id": "6xPOeIDWmM9ooOw7SBknMl",
+                "name": "The Night Flight Orchestra",
+                "type": "artist",
+                "uri": "spotify:artist:6xPOeIDWmM9ooOw7SBknMl"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 12,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/2e3TucUba32xDKLlqsTNm2"
+            },
+            "href": "https://api.spotify.com/v1/albums/2e3TucUba32xDKLlqsTNm2",
+            "id": "2e3TucUba32xDKLlqsTNm2",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273305ed02cd35d7c8ed40a96f9",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02305ed02cd35d7c8ed40a96f9",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851305ed02cd35d7c8ed40a96f9",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Sometimes the World Ain't Enough",
+            "release_date": "2018-06-29",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:2e3TucUba32xDKLlqsTNm2",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/6xPOeIDWmM9ooOw7SBknMl"
+                },
+                "href": "https://api.spotify.com/v1/artists/6xPOeIDWmM9ooOw7SBknMl",
+                "id": "6xPOeIDWmM9ooOw7SBknMl",
+                "name": "The Night Flight Orchestra",
+                "type": "artist",
+                "uri": "spotify:artist:6xPOeIDWmM9ooOw7SBknMl"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 11,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/7sCUwxqW8oor9atVS5vm8p"
+            },
+            "href": "https://api.spotify.com/v1/albums/7sCUwxqW8oor9atVS5vm8p",
+            "id": "7sCUwxqW8oor9atVS5vm8p",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273c9404751e6d87a60f8303b83",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02c9404751e6d87a60f8303b83",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851c9404751e6d87a60f8303b83",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Amber Galactic",
+            "release_date": "2017-05-19",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:7sCUwxqW8oor9atVS5vm8p",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/6xPOeIDWmM9ooOw7SBknMl"
+                },
+                "href": "https://api.spotify.com/v1/artists/6xPOeIDWmM9ooOw7SBknMl",
+                "id": "6xPOeIDWmM9ooOw7SBknMl",
+                "name": "The Night Flight Orchestra",
+                "type": "artist",
+                "uri": "spotify:artist:6xPOeIDWmM9ooOw7SBknMl"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 12,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/1Dj7Zh5R4VTZQn5hejYlfN"
+            },
+            "href": "https://api.spotify.com/v1/albums/1Dj7Zh5R4VTZQn5hejYlfN",
+            "id": "1Dj7Zh5R4VTZQn5hejYlfN",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b27388c6774cfb6642e1c13a68f8",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e0288c6774cfb6642e1c13a68f8",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000485188c6774cfb6642e1c13a68f8",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Skyline Whispers",
+            "release_date": "2015-06-09",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:1Dj7Zh5R4VTZQn5hejYlfN",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/6xPOeIDWmM9ooOw7SBknMl"
+                },
+                "href": "https://api.spotify.com/v1/artists/6xPOeIDWmM9ooOw7SBknMl",
+                "id": "6xPOeIDWmM9ooOw7SBknMl",
+                "name": "The Night Flight Orchestra",
+                "type": "artist",
+                "uri": "spotify:artist:6xPOeIDWmM9ooOw7SBknMl"
+              }
+            ]
+          },
+          {
+            "album_type": "album",
+            "total_tracks": 11,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/0SqFLkhUPdnfOUIc9xGGjA"
+            },
+            "href": "https://api.spotify.com/v1/albums/0SqFLkhUPdnfOUIc9xGGjA",
+            "id": "0SqFLkhUPdnfOUIc9xGGjA",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b2738df722c1ad66a363a63bed65",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e028df722c1ad66a363a63bed65",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d000048518df722c1ad66a363a63bed65",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Internal Affairs",
+            "release_date": "2012-06-18",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:0SqFLkhUPdnfOUIc9xGGjA",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/6xPOeIDWmM9ooOw7SBknMl"
+                },
+                "href": "https://api.spotify.com/v1/artists/6xPOeIDWmM9ooOw7SBknMl",
+                "id": "6xPOeIDWmM9ooOw7SBknMl",
+                "name": "The Night Flight Orchestra",
+                "type": "artist",
+                "uri": "spotify:artist:6xPOeIDWmM9ooOw7SBknMl"
+              }
+            ]
+          },
+          {
+            "album_type": "single",
+            "total_tracks": 3,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/2FkWJRSe1EeVVwVuijAdal"
+            },
+            "href": "https://api.spotify.com/v1/albums/2FkWJRSe1EeVVwVuijAdal",
+            "id": "2FkWJRSe1EeVVwVuijAdal",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b2732b2a8d4f1c02b1c2d8883ad8",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e022b2a8d4f1c02b1c2d8883ad8",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d000048512b2a8d4f1c02b1c2d8883ad8",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Give Us The Moon",
+            "release_date": "2025-01-16",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:2FkWJRSe1EeVVwVuijAdal",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/6xPOeIDWmM9ooOw7SBknMl"
+                },
+                "href": "https://api.spotify.com/v1/artists/6xPOeIDWmM9ooOw7SBknMl",
+                "id": "6xPOeIDWmM9ooOw7SBknMl",
+                "name": "The Night Flight Orchestra",
+                "type": "artist",
+                "uri": "spotify:artist:6xPOeIDWmM9ooOw7SBknMl"
+              }
+            ]
+          },
+          {
+            "album_type": "single",
+            "total_tracks": 2,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/3WypaxHgTZcFIAKlUaIkD2"
+            },
+            "href": "https://api.spotify.com/v1/albums/3WypaxHgTZcFIAKlUaIkD2",
+            "id": "3WypaxHgTZcFIAKlUaIkD2",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b2735ec2b7c5e40245d44e962a61",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e025ec2b7c5e40245d44e962a61",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d000048515ec2b7c5e40245d44e962a61",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Way To Spend The Night",
+            "release_date": "2024-12-11",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:3WypaxHgTZcFIAKlUaIkD2",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/6xPOeIDWmM9ooOw7SBknMl"
+                },
+                "href": "https://api.spotify.com/v1/artists/6xPOeIDWmM9ooOw7SBknMl",
+                "id": "6xPOeIDWmM9ooOw7SBknMl",
+                "name": "The Night Flight Orchestra",
+                "type": "artist",
+                "uri": "spotify:artist:6xPOeIDWmM9ooOw7SBknMl"
+              }
+            ]
+          },
+          {
+            "album_type": "single",
+            "total_tracks": 1,
+            "external_urls": {
+              "spotify": "https://open.spotify.com/album/352iPdeIIZ6mSJjXEbqWDi"
+            },
+            "href": "https://api.spotify.com/v1/albums/352iPdeIIZ6mSJjXEbqWDi",
+            "id": "352iPdeIIZ6mSJjXEbqWDi",
+            "images": [
+              {
+                "url": "https://i.scdn.co/image/ab67616d0000b273b55be6ab3b3f9531e0cbc7f7",
+                "height": 640,
+                "width": 640
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00001e02b55be6ab3b3f9531e0cbc7f7",
+                "height": 300,
+                "width": 300
+              },
+              {
+                "url": "https://i.scdn.co/image/ab67616d00004851b55be6ab3b3f9531e0cbc7f7",
+                "height": 64,
+                "width": 64
+              }
+            ],
+            "name": "Shooting Velvet",
+            "release_date": "2024-10-29",
+            "release_date_precision": "day",
+            "type": "album",
+            "uri": "spotify:album:352iPdeIIZ6mSJjXEbqWDi",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/6xPOeIDWmM9ooOw7SBknMl"
+                },
+                "href": "https://api.spotify.com/v1/artists/6xPOeIDWmM9ooOw7SBknMl",
+                "id": "6xPOeIDWmM9ooOw7SBknMl",
+                "name": "The Night Flight Orchestra",
+                "type": "artist",
+                "uri": "spotify:artist:6xPOeIDWmM9ooOw7SBknMl"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
