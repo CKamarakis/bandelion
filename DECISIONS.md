@@ -568,3 +568,115 @@ resolution guard added for decision 021 — it had never executed once.
 Exactly the failure mode PLAYBOOK warns about under "tests that mirror the
 implementation": a suite that appears to assert something and does not. Caught
 only because appending a third block made the pattern visible.
+
+---
+
+## 032 · Spotify's album endpoint is quota-limited, and the penalty is a day
+
+**Measured**, not read: a sequential scan of the roster calling
+`GET /artists/{id}/albums` was 429'd after roughly 100 artists, with
+`Retry-After: 86377` — 24 hours, not seconds. At the same moment
+`GET /me/following` and `GET /artists/{id}` both still returned 200 on the same
+token, so the limit is scoped to a group of endpoints rather than to the app.
+
+**It is a quota, not a rate limit**, which is why backing off does not help.
+Spotify's own [quota modes] page: *"a quota system that limits the number of
+requests made through development mode apps... Note that this is different from
+rate limits."* Endpoints sit in quota buckets; the thresholds are undisclosed.
+Community reports describe the same thing — 13-18 hour `Retry-After` values on
+this endpoint specifically, and ~200 requests triggering a day-long lockout.
+
+[quota modes]: https://developer.spotify.com/documentation/web-api/concepts/quota-modes
+
+**Decided: Spotify is not the release source.** A full sweep of 625 artists
+cannot complete in a day at any pacing, and no backoff strategy survives a
+quota. Releases come from MusicBrainz instead (decision 033). Spotify keeps the
+jobs its surviving endpoints do well: `/me/following` for the roster, and
+`/artists/{id}` for artwork, lazily and cached.
+
+Development mode is the reason the ceiling is this low, and it is the mode every
+self-hosted instance runs in — so this is the normal case, not an edge case.
+Extended quota needs 250k MAU and is closed to individuals, as *The Spotify
+ceiling* in CLAUDE.md already records.
+
+**Wherever a Spotify call does survive:** `Retry-After` must be obeyed but never
+slept on. A worker that honours an 86,377-second wait is a worker that is gone
+for a day. Record the deadline, stop the run, resume past it.
+
+**Also measured:** `limit` on this endpoint maxes at **10**. Values of 20 and
+above return `400 Invalid limit`, unlike `/me/following`, which allows 50. The
+reference page says "Default: 5, Range: 0-10" and is correct; a web search
+claiming 50 is not.
+
+**How this was found:** the scan was run as a background command with output
+piped, so Node buffered stdout and the file stayed empty for 27 minutes. It
+looked like a hung process and was killed; the buffer flushed on kill and
+showed the 429. A probe that matters should write progress to a file as it
+goes.
+
+
+---
+
+## 033 · Releases come from MusicBrainz, by browse and never by search
+
+**Decided:** the release pass queries `release-group?artist=<mbid>` once per
+artist. Not Spotify (decision 032), and not MusicBrainz's own search endpoint.
+
+**Why not search.** A single windowed query — `release?query=date:[from TO to]`
+— looked ideal: 2,383 releases across every artist in ~25 seconds, the same
+"fetch the window, match locally" shape the gig sources use. It is unusable.
+Two identical back-to-back sweeps:
+
+```
+run A: count=2383  fetched=2383  distinct=1800
+run B: count=2383  fetched=2383  distinct=1819
+overlap 1298   |   A-only 502   |   B-only 521
+```
+
+Offset paging over a live Lucene index reorders under you between page
+requests. Each sweep repeats ~580 rows and **misses ~22% of the window**, a
+different fifth each run. A radar that silently drops a fifth of releases is
+worse than no radar, because nothing looks wrong.
+
+**Why browse works.** It reads the database directly rather than the search
+cluster: paging is stable, results are exact, and matching is by MBID rather
+than by name. 625 calls at ~1.1s is roughly 12 minutes for the full roster,
+checkpointed, with no daily quota. Slower than 25 seconds and correct, which is
+the trade this project makes everywhere else too.
+
+**Throttling is not about our pacing.** Slowing down made it *worse* — at
+1100ms 4/10 requests succeeded, at 2000ms 0/10 — and the 503s carried
+`x-ratelimit-remaining: 10-14` of 15, i.e. budget left. Identical pacing gave
+4/10 on one run and 9/10 on another. Comparing endpoint families at the same
+rate:
+
+```
+search  @1100ms:  9/10 ok
+browse  @1100ms: 10/10 ok
+lookup  @1100ms: 10/10 ok
+```
+
+Only search throttles, because it shares a congested cluster. So the answer was
+never a longer delay; it was a different endpoint. Retry on 503 anyway — unlike
+Spotify's quota, retrying works.
+
+**Two traps for the adapter:**
+
+- A 503 from MusicBrainz returns a *JSON body*. Checking `res.ok` before
+  parsing is mandatory: a naive parse reads it as an empty result set, and a
+  throttled page becomes a confidently empty one. This already bit once during
+  probing, reported as "0 of 38 release-groups".
+- Half the corpus has no usable date. Of 2,382 releases in a 2-month window:
+  **1,112 day-precision, 32 month, 1,238 year-only**. Year-only releases sit
+  outside the window rule entirely rather than being pinned to a false day, and
+  keep `release_date_precision` so a card can say "2026" and mean it.
+
+**Duplicate editions are real but tractable.** One record appears once per
+format and territory — vinyl, CD, SHM-CD, digital — each a distinct release
+under a shared release-group MBID. Collapse on the release-group, keep the
+editions as detail. Deluxe editions are genuinely separate products and are
+kept apart by `total_tracks`, which is what distinguishes them from a mere
+repressing.
+
+**Blocked on:** MBID resolution, which does not exist yet. All 625 artists have
+`mbid = NULL`, so this is the next thing to build.
