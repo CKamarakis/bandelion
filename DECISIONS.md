@@ -680,3 +680,64 @@ repressing.
 
 **Blocked on:** MBID resolution, which does not exist yet. All 625 artists have
 `mbid = NULL`, so this is the next thing to build.
+
+---
+
+## 034 · MBIDs come from the Spotify URL relation, never from a name search
+
+**Decided:** resolution asks MusicBrainz "which artist do you have for this
+Spotify URL?" (`url?resource=...&inc=artist-rels`). A name search is a fallback
+that fills the review queue and never writes an identity.
+
+**Why, measured on the real roster.** Two artists on it are called WITCH and two
+are called Pentagram. A name query returns *byte-identical* results for both
+members of each pair — MusicBrainz's top hit for "Witch" is the Zambian zamrock
+band whichever one you asked about:
+
+```
+score 100  6fc531d2  WITCH  [ZM]  Zambian psychedelic rock band
+score  95  ad748c20  Witch  [??]  Chicago based experimental trio
+score  87  279e253d  Witch  [US]  US heavy metal band from Orange County
+```
+
+Any strategy that trusts the top score gives both roster rows the same MBID and
+merges two bands. That is decision 008 ("a false match is worse than a miss") at
+the identity layer, where it is worse still: a wrong MBID silently attaches
+another band's entire release history to your feed.
+
+The URL join has none of that ambiguity — it is a relation a human curated.
+Tested against both ambiguous pairs plus controls: **9 artists, 9 distinct
+MBIDs, zero collisions.**
+
+**Cost:** artists with no Spotify URL relation in MusicBrainz do not resolve at
+all. On the live run that was roughly 20%, and they go to `match_queue` for a
+human rather than being guessed at. Would change if the queue turns out to be
+mostly obvious matches, meaning we are too timid — measure before loosening.
+
+---
+
+## 035 · A busy source degrades one artist, not the run
+
+**Decided:** `resolveOne` is wrapped so a lookup that exhausts its retries
+counts as a transient failure and the job continues. Health is reported from
+what actually happened, not from whether the job crashed.
+
+**Why:** the first live run died on artist 4 of 625 with "MusicBrainz stayed
+busy after 4 attempts", having resolved 3. Constraint 2 says one failing source
+must not empty the feed; the same logic applies inside a job, where one busy
+lookup must not cost the other 621. The artist keeps `mbid = NULL`, so the next
+run picks it up — `pendingArtists` selects on exactly that.
+
+**Retry budget raised to 8 attempts, exponential, capped at 15s.** Four attempts
+with linear backoff gave up while MusicBrainz was merely busy. Decision 033
+measured why: the 503s come in bursts unrelated to our pacing.
+
+**The trap this avoids:** `recordSuccess` on every run that did not throw. A run
+where all 625 lookups 503'd would then report the source healthy — precisely the
+invisible-breakage failure `adapter_health` exists to prevent. `recordHealth`
+reports failure when every attempt failed.
+
+**Also corrected:** the CLI promised "about 12 minutes" from the 1.1s pacing.
+Measured on the real roster it is **about 8 seconds per artist** — two calls
+each plus retries — so 625 artists is over an hour. The estimate now says so,
+and mentions that Ctrl-C resumes.

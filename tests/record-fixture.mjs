@@ -10,6 +10,11 @@
  *   npm run fixtures:record -- albums <artistId> [<artistId>...]
  *   npm run fixtures:record -- following
  *   npm run fixtures:record -- roster-sample [count]
+ *   npm run fixtures:record -- mbid
+ *
+ * `mbid` records MusicBrainz identity lookups and needs no Spotify token. It
+ * deliberately records the ambiguous roster names (two WITCHes, two
+ * Pentagrams), because they are the cases that decide how resolution works.
  *
  * `roster-sample` picks artists out of your own imported roster, spread across
  * the popularity range, because a fixture recorded only from famous artists
@@ -42,9 +47,102 @@ if (!mode) {
     'Usage:\n' +
       '  npm run fixtures:record -- albums <artistId> [<artistId>...]\n' +
       '  npm run fixtures:record -- following\n' +
-      '  npm run fixtures:record -- roster-sample [count]',
+      '  npm run fixtures:record -- roster-sample [count]\n' +
+      '  npm run fixtures:record -- mbid            (MusicBrainz, no Spotify token needed)',
   );
   process.exit(2);
+}
+
+/**
+ * MusicBrainz identity resolution, recorded from the ambiguous cases.
+ *
+ * Separate from the Spotify path below because it needs no token, and because
+ * the cases that matter are chosen rather than sampled: the two WITCHes and two
+ * Pentagrams are the reason resolution works the way it does, so the fixture
+ * has to contain them or the tests prove nothing.
+ */
+if (mode === 'mbid') {
+  const { loadConfig } = await import('../src/config.ts');
+  const contact = loadConfig().musicbrainzContact;
+  if (!contact) {
+    console.error('MUSICBRAINZ_CONTACT is not set; MusicBrainz needs a real User-Agent.');
+    process.exit(1);
+  }
+
+  const ua = `Bandelion/0.1 ( ${contact} )`;
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  async function mbGet(path) {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const res = await fetch(`https://musicbrainz.org/ws/2/${path}`, {
+        headers: { 'User-Agent': ua, Accept: 'application/json' },
+      });
+      // A 503 carries a JSON body, so status must be checked before parsing.
+      if (res.status === 503) { await sleep(2500); continue; }
+      if (res.status === 404) return { __status: 404 };
+      if (!res.ok) throw new Error(`GET ${path} -> ${res.status}`);
+      return res.json();
+    }
+    throw new Error(`MusicBrainz stayed busy: ${path}`);
+  }
+
+  const rows = db()
+    .prepare(
+      `SELECT a.id, a.name, x.external_id AS spotifyId
+         FROM artists a
+         JOIN artist_external_ids x ON x.artist_id = a.id AND x.source = 'spotify'
+        WHERE a.name_normalized IN ('witch','pentagram')
+           OR a.name IN ('Haken', '*shels')
+        ORDER BY a.name_normalized, a.id`,
+    )
+    .all();
+
+  if (rows.length === 0) {
+    console.error('No matching artists in the roster. Import it first.');
+    process.exit(1);
+  }
+
+  const recorded = {
+    _comment:
+      'Live MusicBrainz responses, recorded by npm run fixtures:record -- mbid. ' +
+      'Contains the ambiguous pairs (two WITCHes, two Pentagrams) because they ' +
+      'are why resolution joins on the Spotify URL relation rather than on a ' +
+      'name search — a name query for either returns identical results. ' +
+      'A 503 from MusicBrainz returns a JSON body, so status is checked first.',
+    _recordedAt: new Date().toISOString(),
+    urlLookups: {},
+    nameSearches: {},
+  };
+
+  for (const row of rows) {
+    const resource = `https://open.spotify.com/artist/${row.spotifyId}`;
+    recorded.urlLookups[row.spotifyId] = {
+      artist: row.name,
+      response: await mbGet(`url?resource=${encodeURIComponent(resource)}&inc=artist-rels&fmt=json`),
+    };
+    console.log(`  url  ${row.name} (${row.spotifyId})`);
+    await sleep(1200);
+  }
+
+  for (const name of ['WITCH', 'Witch', 'Pentagram']) {
+    const q = encodeURIComponent(`artist:"${name}"`);
+    recorded.nameSearches[name] = await mbGet(`artist?query=${q}&fmt=json&limit=5`);
+    console.log(`  name ${name}`);
+    await sleep(1200);
+  }
+
+  // One artist's links, so the link classifier has real relation shapes.
+  const haken = rows.find((r) => r.name === 'Haken');
+  const hakenMbid = haken
+    ? recorded.urlLookups[haken.spotifyId]?.response?.relations?.find((r) => r.artist)?.artist?.id
+    : null;
+  if (hakenMbid) {
+    recorded.artistLinks = { [hakenMbid]: await mbGet(`artist/${hakenMbid}?inc=url-rels&fmt=json`) };
+    console.log(`  links ${hakenMbid}`);
+  }
+
+  write('musicbrainz-identity.json', recorded);
+  process.exit(0);
 }
 
 /**

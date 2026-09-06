@@ -28,7 +28,7 @@ npm run build
 npm start              # serve the production build
 npm test               # whole suite
 npm run verify         # build + test — run before committing
-npm run ingest         # trigger ingest manually, don't wait for the scheduler
+npm run ingest         # roster import; `npm run ingest resolve` for MBIDs
 npm run seed           # build a seeded database, so screens work without OAuth
 npm run eval:matcher   # artist-name matcher eval set, prints a score
 npm run fixtures:record # capture a live upstream response into tests/fixtures/
@@ -47,6 +47,7 @@ Written as phases land. What exists today:
 src/adapters/       one file per source, all implementing SourceAdapter
 src/adapters/types.ts   the contract every adapter implements
 src/adapters/spotify.ts the roster source: followed artists, paged and resumable
+src/adapters/musicbrainz.ts identity: MBID by Spotify-URL join, links, releases later
 src/auth/           OAuth: PKCE, token exchange, encryption at rest
 src/auth/crypto.ts  AES-256-GCM for tokens; the DB never holds plaintext
 src/config.ts       every per-instance value, read from env
@@ -54,6 +55,7 @@ src/config-env.ts   .env loading for entry points Next does not start
 src/db/             schema, migrations, queries
 src/jobs/           checkpointed ingest jobs
 src/jobs/roster.ts  the Spotify roster import: resumable, never deletes
+src/jobs/resolve.ts MBID resolution: exact join first, review queue second
 src/jobs/cli.ts     `npm run ingest`
 src/matcher/        artist-name matching, tiered and deterministic
 src/app/            Next.js routes and UI
@@ -63,8 +65,8 @@ tests/record-fixture.mjs  hand-run: the one script that does call live Spotify
 tests/seed.mjs      hand-run: builds data/seed.db so screens work without OAuth
 ```
 
-Not built yet: MBID resolution, the feed itself, release fetching, and every
-source adapter other than Spotify. Releases will come from MusicBrainz rather
+Not built yet: the feed itself, release fetching, and every source adapter
+other than Spotify and MusicBrainz. Releases will come from MusicBrainz rather
 than Spotify (decision 032/033), and are blocked on MBID resolution — see
 `VENUES.md` for the Berlin venues the gig sources will target.
 

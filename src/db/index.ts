@@ -227,6 +227,88 @@ export function getRoster(db: DB, userId: number) {
   }[];
 }
 
+/**
+ * Record a proven MusicBrainz identity.
+ *
+ * Guarded on `mbid IS NULL` so a re-run cannot overwrite an identity that is
+ * already set — including one a human confirmed through the review queue. An
+ * MBID is a claim about which band this is, and the second writer is not
+ * automatically righter than the first.
+ */
+export function setArtistMbid(db: DB, artistId: number, mbid: string): void {
+  db.prepare('UPDATE artists SET mbid = ? WHERE id = ? AND mbid IS NULL').run(mbid, artistId);
+}
+
+/**
+ * Store artist links, ignoring ones already known.
+ *
+ * The primary key is (artist_id, kind, url), so re-running resolution is
+ * idempotent and a source that reports the same Bandcamp page twice writes one
+ * row. `verified_at` records when we last saw the link asserted, which is the
+ * honest thing to show next to a link we have not followed.
+ */
+export function addArtistLinks(
+  db: DB,
+  artistId: number,
+  links: { kind: string; url: string }[],
+  source: string,
+): number {
+  if (links.length === 0) return 0;
+
+  const stmt = db.prepare(
+    `INSERT OR IGNORE INTO artist_links (artist_id, kind, url, source, verified_at)
+     VALUES (?, ?, ?, ?, datetime('now'))`,
+  );
+
+  let written = 0;
+  const run = db.prepare('BEGIN');
+  run.run();
+  try {
+    for (const link of links) {
+      written += Number(stmt.run(artistId, link.kind, link.url, source).changes);
+    }
+    db.prepare('COMMIT').run();
+  } catch (err) {
+    db.prepare('ROLLBACK').run();
+    throw err;
+  }
+  return written;
+}
+
+/**
+ * Put an ambiguous match in front of a human instead of guessing.
+ *
+ * Deliberately not deduplicated on raw_name: the same name arriving from two
+ * sources is two separate judgements, and collapsing them would hide one.
+ */
+export function queueForReview(
+  db: DB,
+  entry: {
+    rawName: string;
+    source: string;
+    sourceUrl?: string | null;
+    candidateArtistId?: number | null;
+    score: number;
+    payload?: string | null;
+  },
+): number {
+  const r = db
+    .prepare(
+      `INSERT INTO match_queue
+         (raw_name, source, source_url, candidate_artist_id, score, payload_json)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    )
+    .run(
+      entry.rawName,
+      entry.source,
+      entry.sourceUrl ?? null,
+      entry.candidateArtistId ?? null,
+      entry.score,
+      entry.payload ?? null,
+    );
+  return Number(r.lastInsertRowid);
+}
+
 export function getAliases(db: DB) {
   return db
     .prepare('SELECT artist_id AS artistId, alias_normalized AS aliasNormalized FROM artist_aliases')

@@ -1,0 +1,2157 @@
+{
+  "_comment": "Live MusicBrainz responses, recorded by npm run fixtures:record -- mbid. Contains the ambiguous pairs (two WITCHes, two Pentagrams) because they are why resolution joins on the Spotify URL relation rather than on a name search — a name query for either returns identical results. A 503 from MusicBrainz returns a JSON body, so status is checked first.",
+  "_recordedAt": "2026-09-06T15:35:22.599Z",
+  "urlLookups": {
+    "2SRIVGDkdqQnrQdaXxDkJt": {
+      "artist": "Haken",
+      "response": {
+        "resource": "https://open.spotify.com/artist/2SRIVGDkdqQnrQdaXxDkJt",
+        "relations": [
+          {
+            "artist": {
+              "id": "0246a3fd-a254-416d-8cd2-e31da4ac6f59",
+              "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+              "sort-name": "Haken",
+              "country": "GB",
+              "disambiguation": "",
+              "name": "Haken",
+              "type": "Group"
+            },
+            "end": null,
+            "ended": false,
+            "begin": null,
+            "type-id": "769085a1-c2f7-4c24-a532-2375a77693bd",
+            "attribute-ids": {},
+            "direction": "backward",
+            "attribute-values": {},
+            "target-credit": "",
+            "type": "free streaming",
+            "attributes": [],
+            "target-type": "artist",
+            "source-credit": ""
+          }
+        ],
+        "id": "f6ef0a30-bc1e-4c71-911e-91efbd076ed6"
+      }
+    },
+    "0xybuiDEYo3YuT3fLPaIyE": {
+      "artist": "Pentagram",
+      "response": {
+        "resource": "https://open.spotify.com/artist/0xybuiDEYo3YuT3fLPaIyE",
+        "relations": [
+          {
+            "source-credit": "",
+            "attributes": [],
+            "target-type": "artist",
+            "direction": "backward",
+            "type": "free streaming",
+            "attribute-values": {},
+            "target-credit": "",
+            "ended": false,
+            "end": null,
+            "artist": {
+              "disambiguation": "American doom metal band",
+              "type": "Group",
+              "name": "Pentagram",
+              "id": "d7e9b9e7-8ac3-4be4-85c8-64601d68261c",
+              "sort-name": "Pentagram",
+              "country": "US",
+              "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b"
+            },
+            "attribute-ids": {},
+            "begin": null,
+            "type-id": "769085a1-c2f7-4c24-a532-2375a77693bd"
+          }
+        ],
+        "id": "862e746c-1ca0-4a5c-8592-03d6fd41f0c9"
+      }
+    },
+    "1Xz8iP9Dvl5uI88iraOhs7": {
+      "artist": "Pentagram",
+      "response": {
+        "relations": [
+          {
+            "artist": {
+              "sort-name": "Pentagram",
+              "country": "TR",
+              "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+              "id": "8c2e4f17-540c-42d9-abba-bc1e6c9d9e6d",
+              "type": "Group",
+              "name": "Pentagram",
+              "disambiguation": "Turkish heavy metal band, a.k.a. Mezarkabul"
+            },
+            "end": null,
+            "ended": false,
+            "type-id": "769085a1-c2f7-4c24-a532-2375a77693bd",
+            "begin": null,
+            "attribute-ids": {},
+            "direction": "backward",
+            "target-credit": "",
+            "attribute-values": {},
+            "type": "free streaming",
+            "target-type": "artist",
+            "attributes": [],
+            "source-credit": ""
+          }
+        ],
+        "resource": "https://open.spotify.com/artist/1Xz8iP9Dvl5uI88iraOhs7",
+        "id": "15c01438-f8c6-4b17-a6ff-1efd784cc70c"
+      }
+    },
+    "0Ivm3PYwfVFeq2trxYqLi2": {
+      "artist": "*shels",
+      "response": {
+        "relations": [
+          {
+            "attributes": [],
+            "artist": {
+              "type": "Group",
+              "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+              "country": null,
+              "name": "*shels",
+              "id": "b6553107-4d02-4248-982b-354cca3b1cfe",
+              "disambiguation": "",
+              "sort-name": "*shels"
+            },
+            "attribute-ids": {},
+            "begin": null,
+            "direction": "backward",
+            "attribute-values": {},
+            "type": "free streaming",
+            "target-credit": "",
+            "type-id": "769085a1-c2f7-4c24-a532-2375a77693bd",
+            "source-credit": "",
+            "end": null,
+            "ended": false,
+            "target-type": "artist"
+          }
+        ],
+        "id": "9763f187-b105-4dbe-be5a-10208bca3377",
+        "resource": "https://open.spotify.com/artist/0Ivm3PYwfVFeq2trxYqLi2"
+      }
+    },
+    "0LMkPoi2xIgpOPUSJMftqM": {
+      "artist": "WITCH",
+      "response": {
+        "resource": "https://open.spotify.com/artist/0LMkPoi2xIgpOPUSJMftqM",
+        "relations": [
+          {
+            "begin": null,
+            "direction": "backward",
+            "attribute-ids": {},
+            "attribute-values": {},
+            "attributes": [],
+            "artist": {
+              "disambiguation": "Zambian psychedelic rock band",
+              "sort-name": "WITCH",
+              "name": "WITCH",
+              "id": "6fc531d2-9a47-496b-b4b5-01e2b17fe99d",
+              "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+              "country": "ZM",
+              "type": "Group"
+            },
+            "end": null,
+            "ended": false,
+            "source-credit": "",
+            "target-type": "artist",
+            "type": "free streaming",
+            "target-credit": "",
+            "type-id": "769085a1-c2f7-4c24-a532-2375a77693bd"
+          }
+        ],
+        "id": "287b6a9f-1a8f-4f3a-a3ca-f4437cec4caa"
+      }
+    },
+    "6uNOBEATMcW8SSunnKy9a3": {
+      "artist": "Witch",
+      "response": {
+        "id": "7a5f93ed-50de-43b4-a551-1a619740b0e7",
+        "relations": [
+          {
+            "attribute-ids": {},
+            "type": "free streaming",
+            "begin": null,
+            "target-type": "artist",
+            "type-id": "769085a1-c2f7-4c24-a532-2375a77693bd",
+            "ended": false,
+            "direction": "backward",
+            "attributes": [],
+            "target-credit": "",
+            "end": null,
+            "attribute-values": {},
+            "source-credit": "",
+            "artist": {
+              "name": "Witch",
+              "disambiguation": "stoner/doom metal band from Brattleboro, Vermont",
+              "country": "US",
+              "id": "2b6f6ed7-8a1e-4907-8300-3b246134fc1a",
+              "sort-name": "Witch",
+              "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+              "type": "Group"
+            }
+          }
+        ],
+        "resource": "https://open.spotify.com/artist/6uNOBEATMcW8SSunnKy9a3"
+      }
+    }
+  },
+  "nameSearches": {
+    "WITCH": {
+      "created": "2026-09-06T15:33:31.671Z",
+      "count": 399,
+      "offset": 0,
+      "artists": [
+        {
+          "id": "6fc531d2-9a47-496b-b4b5-01e2b17fe99d",
+          "type": "Group",
+          "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+          "score": 100,
+          "name": "WITCH",
+          "sort-name": "WITCH",
+          "country": "ZM",
+          "area": {
+            "id": "d662dd74-1fc1-3e36-b427-bbbe29684618",
+            "type": "Country",
+            "type-id": "06dd0ae4-8c74-30bb-b43d-95dcedf961de",
+            "name": "Zambia",
+            "sort-name": "Zambia",
+            "life-span": {
+              "ended": null
+            }
+          },
+          "begin-area": {
+            "id": "6a508078-9f08-4356-a9cf-0bee05037f69",
+            "type": "City",
+            "type-id": "6fd8f29a-3d0a-32fc-980d-ea697b69da78",
+            "name": "Kitwe",
+            "sort-name": "Kitwe",
+            "life-span": {
+              "ended": null
+            }
+          },
+          "disambiguation": "Zambian psychedelic rock band",
+          "isnis": [
+            "0000000098347336"
+          ],
+          "life-span": {
+            "begin": "1971",
+            "ended": null
+          },
+          "aliases": [
+            {
+              "sort-name": "Witch, The",
+              "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+              "name": "The Witch",
+              "locale": null,
+              "type": "Artist name",
+              "primary": null,
+              "begin-date": null,
+              "end-date": null
+            },
+            {
+              "sort-name": "W.I.T.C.H.",
+              "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+              "name": "W.I.T.C.H.",
+              "locale": null,
+              "type": "Artist name",
+              "primary": null,
+              "begin-date": null,
+              "end-date": null
+            }
+          ],
+          "tags": [
+            {
+              "count": 3,
+              "name": "zamrock"
+            }
+          ]
+        },
+        {
+          "id": "8e8bce36-51e0-4d10-8be4-19a8931b73b1",
+          "type": "Group",
+          "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+          "score": 95,
+          "name": "Angel Witch",
+          "sort-name": "Angel Witch",
+          "country": "GB",
+          "area": {
+            "id": "8a754a16-0027-3a29-b6d7-2b40ea0481ed",
+            "type": "Country",
+            "type-id": "06dd0ae4-8c74-30bb-b43d-95dcedf961de",
+            "name": "United Kingdom",
+            "sort-name": "United Kingdom",
+            "life-span": {
+              "ended": null
+            }
+          },
+          "begin-area": {
+            "id": "f03d09b3-39dc-4083-afd6-159e3f0d462f",
+            "type": "City",
+            "type-id": "6fd8f29a-3d0a-32fc-980d-ea697b69da78",
+            "name": "London",
+            "sort-name": "London",
+            "life-span": {
+              "ended": null
+            }
+          },
+          "life-span": {
+            "begin": "1977",
+            "ended": null
+          },
+          "aliases": [
+            {
+              "sort-name": "Angelwitch",
+              "name": "Angelwitch",
+              "locale": null,
+              "type": null,
+              "primary": null,
+              "begin-date": null,
+              "end-date": null
+            }
+          ],
+          "tags": [
+            {
+              "count": 1,
+              "name": "thrash metal"
+            },
+            {
+              "count": 1,
+              "name": "speed metal"
+            },
+            {
+              "count": 1,
+              "name": "groove metal"
+            },
+            {
+              "count": 0,
+              "name": "classic pop and rock"
+            },
+            {
+              "count": 2,
+              "name": "metal"
+            },
+            {
+              "count": 4,
+              "name": "heavy metal"
+            },
+            {
+              "count": 5,
+              "name": "nwobhm"
+            }
+          ]
+        },
+        {
+          "id": "ad748c20-623b-4066-9787-7c6910ad1dc7",
+          "type": "Group",
+          "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+          "score": 95,
+          "name": "Witch",
+          "sort-name": "Witch",
+          "disambiguation": "Chicago based experimental trio",
+          "isnis": [
+            "0000000469949636"
+          ],
+          "life-span": {
+            "begin": "1980-06",
+            "ended": null
+          },
+          "tags": [
+            {
+              "count": 1,
+              "name": "experimental"
+            },
+            {
+              "count": 1,
+              "name": "indie"
+            },
+            {
+              "count": 1,
+              "name": "alternative"
+            },
+            {
+              "count": 1,
+              "name": "illinois"
+            }
+          ]
+        },
+        {
+          "id": "57f421fc-a6a9-4b84-b7b5-5d6cd9230be2",
+          "type": "Group",
+          "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+          "score": 89,
+          "name": "Arkham Witch",
+          "sort-name": "Arkham Witch",
+          "area": {
+            "id": "c996bd09-5afd-4a0d-adf0-61aebb7b795d",
+            "type": "Subdivision",
+            "type-id": "fd3d44c5-80a1-3842-9745-2c4972d35afa",
+            "name": "West Yorkshire",
+            "sort-name": "West Yorkshire",
+            "life-span": {
+              "ended": null
+            }
+          },
+          "disambiguation": "doom metal",
+          "life-span": {
+            "begin": "2008",
+            "ended": null
+          },
+          "tags": [
+            {
+              "count": 1,
+              "name": "heavy/doom-metal"
+            }
+          ]
+        },
+        {
+          "id": "56475e8b-8cd5-4ecb-93dd-5b12584534c4",
+          "score": 88,
+          "name": "Witch House",
+          "sort-name": "Witch House",
+          "life-span": {
+            "begin": "2009",
+            "ended": null
+          },
+          "tags": [
+            {
+              "count": 1,
+              "name": "witch house"
+            },
+            {
+              "count": 1,
+              "name": "experimental"
+            },
+            {
+              "count": 1,
+              "name": "downtempo"
+            },
+            {
+              "count": 1,
+              "name": "big beat"
+            },
+            {
+              "count": 1,
+              "name": "electronic"
+            },
+            {
+              "count": 1,
+              "name": "broken beat"
+            },
+            {
+              "count": 1,
+              "name": "psychedelic"
+            },
+            {
+              "count": 1,
+              "name": "electronica"
+            },
+            {
+              "count": 1,
+              "name": "ambient"
+            },
+            {
+              "count": 1,
+              "name": "chillwave"
+            },
+            {
+              "count": 1,
+              "name": "house"
+            },
+            {
+              "count": 1,
+              "name": "hiphop"
+            },
+            {
+              "count": 1,
+              "name": "hip hop"
+            },
+            {
+              "count": 1,
+              "name": "hip-hop"
+            },
+            {
+              "count": 1,
+              "name": "chillout"
+            },
+            {
+              "count": 1,
+              "name": "trip-hop"
+            },
+            {
+              "count": 1,
+              "name": "instrumental"
+            }
+          ]
+        }
+      ]
+    },
+    "Witch": {
+      "created": "2026-09-06T15:28:37.029Z",
+      "count": 399,
+      "offset": 0,
+      "artists": [
+        {
+          "id": "6fc531d2-9a47-496b-b4b5-01e2b17fe99d",
+          "type": "Group",
+          "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+          "score": 100,
+          "name": "WITCH",
+          "sort-name": "WITCH",
+          "country": "ZM",
+          "area": {
+            "id": "d662dd74-1fc1-3e36-b427-bbbe29684618",
+            "type": "Country",
+            "type-id": "06dd0ae4-8c74-30bb-b43d-95dcedf961de",
+            "name": "Zambia",
+            "sort-name": "Zambia",
+            "life-span": {
+              "ended": null
+            }
+          },
+          "begin-area": {
+            "id": "6a508078-9f08-4356-a9cf-0bee05037f69",
+            "type": "City",
+            "type-id": "6fd8f29a-3d0a-32fc-980d-ea697b69da78",
+            "name": "Kitwe",
+            "sort-name": "Kitwe",
+            "life-span": {
+              "ended": null
+            }
+          },
+          "disambiguation": "Zambian psychedelic rock band",
+          "isnis": [
+            "0000000098347336"
+          ],
+          "life-span": {
+            "begin": "1971",
+            "ended": null
+          },
+          "aliases": [
+            {
+              "sort-name": "Witch, The",
+              "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+              "name": "The Witch",
+              "locale": null,
+              "type": "Artist name",
+              "primary": null,
+              "begin-date": null,
+              "end-date": null
+            },
+            {
+              "sort-name": "W.I.T.C.H.",
+              "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+              "name": "W.I.T.C.H.",
+              "locale": null,
+              "type": "Artist name",
+              "primary": null,
+              "begin-date": null,
+              "end-date": null
+            }
+          ],
+          "tags": [
+            {
+              "count": 3,
+              "name": "zamrock"
+            }
+          ]
+        },
+        {
+          "id": "8e8bce36-51e0-4d10-8be4-19a8931b73b1",
+          "type": "Group",
+          "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+          "score": 95,
+          "name": "Angel Witch",
+          "sort-name": "Angel Witch",
+          "country": "GB",
+          "area": {
+            "id": "8a754a16-0027-3a29-b6d7-2b40ea0481ed",
+            "type": "Country",
+            "type-id": "06dd0ae4-8c74-30bb-b43d-95dcedf961de",
+            "name": "United Kingdom",
+            "sort-name": "United Kingdom",
+            "life-span": {
+              "ended": null
+            }
+          },
+          "begin-area": {
+            "id": "f03d09b3-39dc-4083-afd6-159e3f0d462f",
+            "type": "City",
+            "type-id": "6fd8f29a-3d0a-32fc-980d-ea697b69da78",
+            "name": "London",
+            "sort-name": "London",
+            "life-span": {
+              "ended": null
+            }
+          },
+          "life-span": {
+            "begin": "1977",
+            "ended": null
+          },
+          "aliases": [
+            {
+              "sort-name": "Angelwitch",
+              "name": "Angelwitch",
+              "locale": null,
+              "type": null,
+              "primary": null,
+              "begin-date": null,
+              "end-date": null
+            }
+          ],
+          "tags": [
+            {
+              "count": 1,
+              "name": "thrash metal"
+            },
+            {
+              "count": 1,
+              "name": "speed metal"
+            },
+            {
+              "count": 1,
+              "name": "groove metal"
+            },
+            {
+              "count": 0,
+              "name": "classic pop and rock"
+            },
+            {
+              "count": 2,
+              "name": "metal"
+            },
+            {
+              "count": 4,
+              "name": "heavy metal"
+            },
+            {
+              "count": 5,
+              "name": "nwobhm"
+            }
+          ]
+        },
+        {
+          "id": "ad748c20-623b-4066-9787-7c6910ad1dc7",
+          "type": "Group",
+          "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+          "score": 95,
+          "name": "Witch",
+          "sort-name": "Witch",
+          "disambiguation": "Chicago based experimental trio",
+          "isnis": [
+            "0000000469949636"
+          ],
+          "life-span": {
+            "begin": "1980-06",
+            "ended": null
+          },
+          "tags": [
+            {
+              "count": 1,
+              "name": "experimental"
+            },
+            {
+              "count": 1,
+              "name": "indie"
+            },
+            {
+              "count": 1,
+              "name": "alternative"
+            },
+            {
+              "count": 1,
+              "name": "illinois"
+            }
+          ]
+        },
+        {
+          "id": "57f421fc-a6a9-4b84-b7b5-5d6cd9230be2",
+          "type": "Group",
+          "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+          "score": 89,
+          "name": "Arkham Witch",
+          "sort-name": "Arkham Witch",
+          "area": {
+            "id": "c996bd09-5afd-4a0d-adf0-61aebb7b795d",
+            "type": "Subdivision",
+            "type-id": "fd3d44c5-80a1-3842-9745-2c4972d35afa",
+            "name": "West Yorkshire",
+            "sort-name": "West Yorkshire",
+            "life-span": {
+              "ended": null
+            }
+          },
+          "disambiguation": "doom metal",
+          "life-span": {
+            "begin": "2008",
+            "ended": null
+          },
+          "tags": [
+            {
+              "count": 1,
+              "name": "heavy/doom-metal"
+            }
+          ]
+        },
+        {
+          "id": "56475e8b-8cd5-4ecb-93dd-5b12584534c4",
+          "score": 88,
+          "name": "Witch House",
+          "sort-name": "Witch House",
+          "life-span": {
+            "begin": "2009",
+            "ended": null
+          },
+          "tags": [
+            {
+              "count": 1,
+              "name": "witch house"
+            },
+            {
+              "count": 1,
+              "name": "experimental"
+            },
+            {
+              "count": 1,
+              "name": "downtempo"
+            },
+            {
+              "count": 1,
+              "name": "big beat"
+            },
+            {
+              "count": 1,
+              "name": "electronic"
+            },
+            {
+              "count": 1,
+              "name": "broken beat"
+            },
+            {
+              "count": 1,
+              "name": "psychedelic"
+            },
+            {
+              "count": 1,
+              "name": "electronica"
+            },
+            {
+              "count": 1,
+              "name": "ambient"
+            },
+            {
+              "count": 1,
+              "name": "chillwave"
+            },
+            {
+              "count": 1,
+              "name": "house"
+            },
+            {
+              "count": 1,
+              "name": "hiphop"
+            },
+            {
+              "count": 1,
+              "name": "hip hop"
+            },
+            {
+              "count": 1,
+              "name": "hip-hop"
+            },
+            {
+              "count": 1,
+              "name": "chillout"
+            },
+            {
+              "count": 1,
+              "name": "trip-hop"
+            },
+            {
+              "count": 1,
+              "name": "instrumental"
+            }
+          ]
+        }
+      ]
+    },
+    "Pentagram": {
+      "created": "2026-09-06T15:33:50.351Z",
+      "count": 16,
+      "offset": 0,
+      "artists": [
+        {
+          "id": "d7e9b9e7-8ac3-4be4-85c8-64601d68261c",
+          "type": "Group",
+          "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+          "score": 100,
+          "name": "Pentagram",
+          "sort-name": "Pentagram",
+          "country": "US",
+          "area": {
+            "id": "489ce91b-6658-3307-9877-795b68554c98",
+            "type": "Country",
+            "type-id": "06dd0ae4-8c74-30bb-b43d-95dcedf961de",
+            "name": "United States",
+            "sort-name": "United States",
+            "life-span": {
+              "ended": null
+            }
+          },
+          "begin-area": {
+            "id": "505da2f1-075d-4bcc-9f87-5908795ffe1f",
+            "type": "City",
+            "type-id": "6fd8f29a-3d0a-32fc-980d-ea697b69da78",
+            "name": "Alexandria",
+            "sort-name": "Alexandria",
+            "life-span": {
+              "ended": null
+            }
+          },
+          "disambiguation": "American doom metal band",
+          "isnis": [
+            "0000000088239884"
+          ],
+          "life-span": {
+            "begin": "1971-10-31",
+            "ended": null
+          },
+          "aliases": [
+            {
+              "sort-name": "Macabre",
+              "name": "Macabre",
+              "locale": null,
+              "type": null,
+              "primary": null,
+              "begin-date": null,
+              "end-date": null
+            }
+          ],
+          "tags": [
+            {
+              "count": 1,
+              "name": "rock"
+            },
+            {
+              "count": 7,
+              "name": "heavy metal"
+            },
+            {
+              "count": 1,
+              "name": "metal"
+            },
+            {
+              "count": 10,
+              "name": "doom metal"
+            },
+            {
+              "count": 1,
+              "name": "psychedelic rock"
+            },
+            {
+              "count": 0,
+              "name": "blues rock"
+            },
+            {
+              "count": 0,
+              "name": "classic rock"
+            },
+            {
+              "count": 1,
+              "name": "traditional doom metal"
+            }
+          ]
+        },
+        {
+          "id": "8c2e4f17-540c-42d9-abba-bc1e6c9d9e6d",
+          "type": "Group",
+          "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+          "score": 95,
+          "name": "Pentagram",
+          "sort-name": "Pentagram",
+          "country": "TR",
+          "area": {
+            "id": "d3be28b4-41f7-3752-8a05-ed45e1d1e492",
+            "type": "Country",
+            "type-id": "06dd0ae4-8c74-30bb-b43d-95dcedf961de",
+            "name": "Türkiye",
+            "sort-name": "Türkiye",
+            "life-span": {
+              "ended": null
+            }
+          },
+          "begin-area": {
+            "id": "f9a822ff-adce-434c-9292-a8b6a0a37a8e",
+            "type": "City",
+            "type-id": "6fd8f29a-3d0a-32fc-980d-ea697b69da78",
+            "name": "Istanbul",
+            "sort-name": "Istanbul",
+            "life-span": {
+              "ended": null
+            }
+          },
+          "disambiguation": "Turkish heavy metal band, a.k.a. Mezarkabul",
+          "isnis": [
+            "0000000111671422"
+          ],
+          "life-span": {
+            "begin": "1987",
+            "ended": null
+          },
+          "aliases": [
+            {
+              "sort-name": "Mezarkabul",
+              "name": "Mezarkabul",
+              "locale": null,
+              "type": null,
+              "primary": null,
+              "begin-date": null,
+              "end-date": null
+            }
+          ],
+          "tags": [
+            {
+              "count": 2,
+              "name": "thrash metal"
+            },
+            {
+              "count": 2,
+              "name": "heavy metal"
+            },
+            {
+              "count": 2,
+              "name": "folk metal"
+            },
+            {
+              "count": 2,
+              "name": "turkish"
+            }
+          ]
+        },
+        {
+          "id": "72baf7ed-2c17-4ee8-921e-8b650c6cc914",
+          "type": "Group",
+          "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+          "score": 87,
+          "name": "Pentagram",
+          "sort-name": "Pentagram",
+          "country": "IN",
+          "area": {
+            "id": "d31a9a15-537f-3669-ad53-25753ddd2772",
+            "type": "Country",
+            "type-id": "06dd0ae4-8c74-30bb-b43d-95dcedf961de",
+            "name": "India",
+            "sort-name": "India",
+            "life-span": {
+              "ended": null
+            }
+          },
+          "disambiguation": "rock band from Mumbai, India",
+          "life-span": {
+            "ended": null
+          },
+          "tags": [
+            {
+              "count": 1,
+              "name": "electronic rock"
+            },
+            {
+              "count": 1,
+              "name": "electro-rock"
+            }
+          ]
+        },
+        {
+          "id": "3c55c2ff-ac8d-43b1-a0e2-ef0c6a21c202",
+          "type": "Group",
+          "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+          "score": 84,
+          "name": "Pentagram Chile",
+          "sort-name": "Pentagram Chile",
+          "country": "CL",
+          "area": {
+            "id": "82d5f4d6-aed4-3ff5-81d1-5363ac6e97a7",
+            "type": "Country",
+            "type-id": "06dd0ae4-8c74-30bb-b43d-95dcedf961de",
+            "name": "Chile",
+            "sort-name": "Chile",
+            "life-span": {
+              "ended": null
+            }
+          },
+          "begin-area": {
+            "id": "77ec97c2-5377-4ac7-b156-620470e71940",
+            "type": "City",
+            "type-id": "6fd8f29a-3d0a-32fc-980d-ea697b69da78",
+            "name": "Santiago",
+            "sort-name": "Santiago",
+            "life-span": {
+              "ended": null
+            }
+          },
+          "disambiguation": "Chilean death metal band, previously known as Pentagram",
+          "life-span": {
+            "begin": "1985",
+            "ended": null
+          },
+          "aliases": [
+            {
+              "sort-name": "Pentagram Chile",
+              "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+              "name": "Pentagram Chile",
+              "locale": null,
+              "type": "Artist name",
+              "primary": null,
+              "begin-date": "2012-05",
+              "end-date": null
+            },
+            {
+              "sort-name": "Pentagram",
+              "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+              "name": "Pentagram",
+              "locale": null,
+              "type": "Artist name",
+              "primary": null,
+              "begin-date": "2009",
+              "end-date": "2012-05"
+            },
+            {
+              "sort-name": "Pentagram",
+              "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+              "name": "Pentagram",
+              "locale": null,
+              "type": "Artist name",
+              "primary": null,
+              "begin-date": "2001",
+              "end-date": "2001"
+            },
+            {
+              "sort-name": "Pentagram",
+              "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+              "name": "Pentagram",
+              "locale": null,
+              "type": "Artist name",
+              "primary": null,
+              "begin-date": "1991",
+              "end-date": "1992"
+            },
+            {
+              "sort-name": "Pentagram",
+              "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+              "name": "Pentagram",
+              "locale": null,
+              "type": "Artist name",
+              "primary": null,
+              "begin-date": "1985",
+              "end-date": "1988"
+            }
+          ],
+          "tags": [
+            {
+              "count": 1,
+              "name": "death metal"
+            }
+          ]
+        },
+        {
+          "id": "ecb3911f-94da-49ac-8cf1-70e53e7ca633",
+          "type": "Group",
+          "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+          "score": 82,
+          "name": "Pentagram",
+          "sort-name": "Pentagram",
+          "country": "GR",
+          "area": {
+            "id": "803db0ca-b6ed-3bbc-aeb8-f89efd0a2168",
+            "type": "Country",
+            "type-id": "06dd0ae4-8c74-30bb-b43d-95dcedf961de",
+            "name": "Greece",
+            "sort-name": "Greece",
+            "life-span": {
+              "ended": null
+            }
+          },
+          "disambiguation": "Greek",
+          "life-span": {
+            "ended": null
+          },
+          "tags": [
+            {
+              "count": 1,
+              "name": "greek"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "artistLinks": {
+    "0246a3fd-a254-416d-8cd2-e31da4ac6f59": {
+      "end-area": null,
+      "gender-id": null,
+      "country": "GB",
+      "gender": null,
+      "disambiguation": "",
+      "ipis": [],
+      "area": {
+        "disambiguation": "",
+        "type": null,
+        "name": "United Kingdom",
+        "id": "8a754a16-0027-3a29-b6d7-2b40ea0481ed",
+        "sort-name": "United Kingdom",
+        "iso-3166-1-codes": [
+          "GB"
+        ],
+        "type-id": null
+      },
+      "type": "Group",
+      "name": "Haken",
+      "life-span": {
+        "end": null,
+        "ended": false,
+        "begin": "2007"
+      },
+      "id": "0246a3fd-a254-416d-8cd2-e31da4ac6f59",
+      "isnis": [
+        "0000000469029063"
+      ],
+      "sort-name": "Haken",
+      "relations": [
+        {
+          "attribute-values": {},
+          "target-credit": "",
+          "type": "allmusic",
+          "direction": "forward",
+          "begin": null,
+          "type-id": "6b3e3c85-0002-4f34-aca6-80ace0d7e846",
+          "attribute-ids": {},
+          "end": null,
+          "url": {
+            "id": "90c731d1-3e03-4176-bf2a-3f4ac0ecd20a",
+            "resource": "https://www.allmusic.com/artist/mn0001369015"
+          },
+          "ended": false,
+          "source-credit": "",
+          "attributes": [],
+          "target-type": "url"
+        },
+        {
+          "type": "bandcamp",
+          "attribute-values": {},
+          "target-credit": "",
+          "direction": "forward",
+          "attribute-ids": {},
+          "begin": null,
+          "type-id": "c550166e-0548-4a18-b1d4-e2ae423a3e88",
+          "ended": false,
+          "url": {
+            "resource": "https://hakenofficial.bandcamp.com/",
+            "id": "8d34f02c-2e01-4a92-8270-6dfdc8a202aa"
+          },
+          "end": null,
+          "source-credit": "",
+          "attributes": [],
+          "target-type": "url"
+        },
+        {
+          "source-credit": "",
+          "target-type": "url",
+          "attributes": [],
+          "type": "bandsintown",
+          "target-credit": "",
+          "attribute-values": {},
+          "direction": "forward",
+          "attribute-ids": {},
+          "type-id": "ea45ed3d-2d5e-456e-8c32-94b6f51426e2",
+          "begin": null,
+          "ended": false,
+          "url": {
+            "id": "f200449b-4063-4618-982e-d27bb87a0368",
+            "resource": "https://www.bandsintown.com/a/296639"
+          },
+          "end": null
+        },
+        {
+          "source-credit": "",
+          "target-type": "url",
+          "attributes": [],
+          "target-credit": "",
+          "attribute-values": {},
+          "type": "BBC Music page",
+          "direction": "forward",
+          "type-id": "d028a975-000c-4525-9333-d3c8425e4b54",
+          "begin": null,
+          "attribute-ids": {},
+          "url": {
+            "id": "abbfeb40-8d25-4c53-8e6b-1d0ce41efbc0",
+            "resource": "https://www.bbc.co.uk/music/artists/0246a3fd-a254-416d-8cd2-e31da4ac6f59"
+          },
+          "end": "2020-11-19",
+          "ended": true
+        },
+        {
+          "attributes": [],
+          "target-type": "url",
+          "source-credit": "",
+          "url": {
+            "resource": "https://www.discogs.com/artist/2481019",
+            "id": "9d21e71c-c0f5-4455-a83b-5c888f745ebb"
+          },
+          "end": null,
+          "ended": false,
+          "begin": null,
+          "type-id": "04a5b104-a4c2-4bac-99a1-7b837c37d9e4",
+          "attribute-ids": {},
+          "direction": "forward",
+          "attribute-values": {},
+          "target-credit": "",
+          "type": "discogs"
+        },
+        {
+          "target-type": "url",
+          "attributes": [],
+          "source-credit": "",
+          "type-id": "769085a1-c2f7-4c24-a532-2375a77693bd",
+          "begin": null,
+          "attribute-ids": {},
+          "end": null,
+          "url": {
+            "id": "d3152305-40cb-4d63-8f5a-e331d5359d5d",
+            "resource": "https://music.migu.cn/v3/music/artist/1002457907"
+          },
+          "ended": false,
+          "target-credit": "",
+          "attribute-values": {},
+          "type": "free streaming",
+          "direction": "forward"
+        },
+        {
+          "attributes": [],
+          "target-type": "url",
+          "source-credit": "",
+          "attribute-ids": {},
+          "begin": null,
+          "type-id": "769085a1-c2f7-4c24-a532-2375a77693bd",
+          "ended": false,
+          "end": null,
+          "url": {
+            "resource": "https://open.spotify.com/artist/2SRIVGDkdqQnrQdaXxDkJt",
+            "id": "f6ef0a30-bc1e-4c71-911e-91efbd076ed6"
+          },
+          "type": "free streaming",
+          "attribute-values": {},
+          "target-credit": "",
+          "direction": "forward"
+        },
+        {
+          "target-type": "url",
+          "attributes": [],
+          "source-credit": "",
+          "ended": false,
+          "url": {
+            "id": "039d7b23-5d27-4b1b-8da5-31469e9164f0",
+            "resource": "https://www.deezer.com/artist/427183"
+          },
+          "end": null,
+          "attribute-ids": {},
+          "type-id": "769085a1-c2f7-4c24-a532-2375a77693bd",
+          "begin": null,
+          "direction": "forward",
+          "type": "free streaming",
+          "target-credit": "",
+          "attribute-values": {}
+        },
+        {
+          "source-credit": "",
+          "attributes": [],
+          "target-type": "url",
+          "direction": "forward",
+          "attribute-values": {},
+          "target-credit": "",
+          "type": "free streaming",
+          "end": null,
+          "url": {
+            "resource": "http://www.pandora.com/haken",
+            "id": "9f72040d-5282-43ba-bccd-449ad534c53d"
+          },
+          "ended": false,
+          "begin": null,
+          "type-id": "769085a1-c2f7-4c24-a532-2375a77693bd",
+          "attribute-ids": {}
+        },
+        {
+          "source-credit": "",
+          "target-type": "url",
+          "attributes": [],
+          "target-credit": "",
+          "attribute-values": {},
+          "type": "image",
+          "direction": "forward",
+          "type-id": "221132e9-e30e-43f2-a741-15afc4c5fa7c",
+          "begin": null,
+          "attribute-ids": {},
+          "url": {
+            "id": "0f3c753c-46a3-4164-85b1-58b438645c10",
+            "resource": "https://commons.wikimedia.org/wiki/File:Ino_Rock_Festival_-_Haken_(2).jpg"
+          },
+          "end": null,
+          "ended": false
+        },
+        {
+          "source-credit": "",
+          "attributes": [],
+          "target-type": "url",
+          "direction": "forward",
+          "type": "last.fm",
+          "attribute-values": {},
+          "target-credit": "",
+          "ended": false,
+          "end": null,
+          "url": {
+            "id": "a2b1b058-d70b-4817-b55f-7564fb8b29b4",
+            "resource": "https://www.last.fm/music/Haken"
+          },
+          "attribute-ids": {},
+          "begin": null,
+          "type-id": "08db8098-c0df-4b78-82c3-c8697b4bba7f"
+        },
+        {
+          "attributes": [],
+          "target-type": "url",
+          "source-credit": "",
+          "begin": null,
+          "type-id": "e4d73442-3762-45a8-905c-401da65544ed",
+          "attribute-ids": {},
+          "end": null,
+          "url": {
+            "id": "da13a85c-6fa7-4be7-a96a-0ca1804740d1",
+            "resource": "https://genius.com/artists/Haken"
+          },
+          "ended": false,
+          "attribute-values": {},
+          "target-credit": "",
+          "type": "lyrics",
+          "direction": "forward"
+        },
+        {
+          "direction": "forward",
+          "target-credit": "",
+          "attribute-values": {},
+          "type": "lyrics",
+          "url": {
+            "resource": "https://www.musixmatch.com/artist/Haken",
+            "id": "740d1d91-86f1-4659-9348-b792f2d1dbf9"
+          },
+          "end": null,
+          "ended": false,
+          "type-id": "e4d73442-3762-45a8-905c-401da65544ed",
+          "begin": null,
+          "attribute-ids": {},
+          "source-credit": "",
+          "target-type": "url",
+          "attributes": []
+        },
+        {
+          "attribute-ids": {},
+          "type-id": "bac47923-ecde-4b59-822e-d08f0cd10156",
+          "begin": null,
+          "ended": false,
+          "end": null,
+          "url": {
+            "resource": "https://myspace.com/hakenmusic",
+            "id": "274e9d1f-194f-4279-adb1-ef12c0745086"
+          },
+          "type": "myspace",
+          "target-credit": "",
+          "attribute-values": {},
+          "direction": "forward",
+          "target-type": "url",
+          "attributes": [],
+          "source-credit": ""
+        },
+        {
+          "attributes": [],
+          "target-type": "url",
+          "source-credit": "",
+          "url": {
+            "resource": "https://hakenmusic.com/",
+            "id": "dec65233-8a93-4368-b693-83c518449b94"
+          },
+          "end": null,
+          "ended": false,
+          "begin": null,
+          "type-id": "fe33d22f-c3b0-4d68-bd53-a856badf2b15",
+          "attribute-ids": {},
+          "direction": "forward",
+          "attribute-values": {},
+          "target-credit": "",
+          "type": "official homepage"
+        },
+        {
+          "target-type": "url",
+          "attributes": [],
+          "source-credit": "",
+          "url": {
+            "id": "cde945b0-c5f9-4175-bf7d-c25abb18397d",
+            "resource": "https://catalogue.bnf.fr/ark:/12148/cb167300584"
+          },
+          "end": null,
+          "ended": false,
+          "type-id": "d94fb61c-fa20-4e3c-a19a-71a949fb2c55",
+          "begin": null,
+          "attribute-ids": {},
+          "direction": "forward",
+          "target-credit": "",
+          "attribute-values": {},
+          "type": "other databases"
+        },
+        {
+          "direction": "forward",
+          "attribute-values": {},
+          "target-credit": "",
+          "type": "other databases",
+          "url": {
+            "resource": "https://id.oclc.org/worldcat/entity/E39QQPVp7TPqk4pWYTrqyJYcqF",
+            "id": "dc16734f-9a41-4bf3-88ef-e7b232283b22"
+          },
+          "end": null,
+          "ended": false,
+          "begin": null,
+          "type-id": "d94fb61c-fa20-4e3c-a19a-71a949fb2c55",
+          "attribute-ids": {},
+          "source-credit": "",
+          "attributes": [],
+          "target-type": "url"
+        },
+        {
+          "end": null,
+          "url": {
+            "resource": "https://rateyourmusic.com/artist/haken",
+            "id": "65b054e4-eb09-49c9-bf58-35cf2700cc6b"
+          },
+          "ended": false,
+          "type-id": "d94fb61c-fa20-4e3c-a19a-71a949fb2c55",
+          "begin": null,
+          "attribute-ids": {},
+          "direction": "forward",
+          "target-credit": "",
+          "attribute-values": {},
+          "type": "other databases",
+          "target-type": "url",
+          "attributes": [],
+          "source-credit": ""
+        },
+        {
+          "source-credit": "",
+          "attributes": [],
+          "target-type": "url",
+          "attribute-values": {},
+          "target-credit": "",
+          "type": "other databases",
+          "direction": "forward",
+          "begin": null,
+          "type-id": "d94fb61c-fa20-4e3c-a19a-71a949fb2c55",
+          "attribute-ids": {},
+          "url": {
+            "resource": "https://www.metal-archives.com/bands/Haken/3540270852",
+            "id": "c97a8604-6b14-4cfd-ad05-01ff27d5e899"
+          },
+          "end": null,
+          "ended": false
+        },
+        {
+          "ended": false,
+          "url": {
+            "id": "46f554ab-f792-4d1e-9ac8-5aad221042be",
+            "resource": "https://www.metalmusicarchives.com/artist/haken"
+          },
+          "end": null,
+          "attribute-ids": {},
+          "type-id": "d94fb61c-fa20-4e3c-a19a-71a949fb2c55",
+          "begin": null,
+          "direction": "forward",
+          "type": "other databases",
+          "target-credit": "",
+          "attribute-values": {},
+          "target-type": "url",
+          "attributes": [],
+          "source-credit": ""
+        },
+        {
+          "source-credit": "",
+          "target-type": "url",
+          "attributes": [],
+          "direction": "forward",
+          "target-credit": "",
+          "attribute-values": {},
+          "type": "other databases",
+          "url": {
+            "resource": "https://www.musik-sammler.de/artist/haken/",
+            "id": "2f2e6c2b-6769-473c-af8f-5ad2561d5eae"
+          },
+          "end": null,
+          "ended": false,
+          "type-id": "d94fb61c-fa20-4e3c-a19a-71a949fb2c55",
+          "begin": null,
+          "attribute-ids": {}
+        },
+        {
+          "end": null,
+          "url": {
+            "resource": "https://www.progarchives.com/artist.asp?id=5598",
+            "id": "fd52c77c-70d0-4aa6-bcbd-46f9c02f8735"
+          },
+          "ended": false,
+          "begin": null,
+          "type-id": "d94fb61c-fa20-4e3c-a19a-71a949fb2c55",
+          "attribute-ids": {},
+          "direction": "forward",
+          "attribute-values": {},
+          "target-credit": "",
+          "type": "other databases",
+          "attributes": [],
+          "target-type": "url",
+          "source-credit": ""
+        },
+        {
+          "source-credit": "",
+          "attributes": [],
+          "target-type": "url",
+          "attribute-values": {},
+          "target-credit": "",
+          "type": "other databases",
+          "direction": "forward",
+          "begin": null,
+          "type-id": "d94fb61c-fa20-4e3c-a19a-71a949fb2c55",
+          "attribute-ids": {},
+          "url": {
+            "resource": "https://www.spirit-of-metal.com/en/band/Haken",
+            "id": "daa55677-e878-4bfe-9665-bd654f3cddad"
+          },
+          "end": null,
+          "ended": false
+        },
+        {
+          "direction": "forward",
+          "type": "other databases",
+          "attribute-values": {},
+          "target-credit": "",
+          "ended": false,
+          "end": null,
+          "url": {
+            "id": "a44f7e8c-55eb-49a3-bce6-a59b2f7c7998",
+            "resource": "https://www.spirit-of-rock.com/en/band/Haken"
+          },
+          "attribute-ids": {},
+          "begin": null,
+          "type-id": "d94fb61c-fa20-4e3c-a19a-71a949fb2c55",
+          "source-credit": "",
+          "attributes": [],
+          "target-type": "url"
+        },
+        {
+          "direction": "forward",
+          "target-credit": "",
+          "attribute-values": {},
+          "type": "other databases",
+          "url": {
+            "id": "cb43beaa-590c-4989-99e6-c850688556c7",
+            "resource": "https://www.whosampled.com/Haken/"
+          },
+          "end": null,
+          "ended": false,
+          "type-id": "d94fb61c-fa20-4e3c-a19a-71a949fb2c55",
+          "begin": null,
+          "attribute-ids": {},
+          "source-credit": "",
+          "target-type": "url",
+          "attributes": []
+        },
+        {
+          "target-type": "url",
+          "attributes": [],
+          "source-credit": "",
+          "ended": true,
+          "url": {
+            "resource": "https://play.google.com/store/music/artist?id=A6bto6p7nirabqsv5c6drshtzhm",
+            "id": "d4de790d-9177-40d0-97a8-43b1783aa52b"
+          },
+          "end": "2020-10-12",
+          "attribute-ids": {},
+          "type-id": "f8319a2f-f824-4617-81c8-be6560b3b203",
+          "begin": null,
+          "direction": "forward",
+          "type": "purchase for download",
+          "target-credit": "",
+          "attribute-values": {}
+        },
+        {
+          "source-credit": "",
+          "target-type": "url",
+          "attributes": [],
+          "direction": "forward",
+          "target-credit": "",
+          "attribute-values": {},
+          "type": "purchase for download",
+          "end": null,
+          "url": {
+            "id": "5f28a540-210f-4e0e-951f-30c804b650af",
+            "resource": "https://itunes.apple.com/gb/artist/id363702196"
+          },
+          "ended": false,
+          "type-id": "f8319a2f-f824-4617-81c8-be6560b3b203",
+          "begin": null,
+          "attribute-ids": {}
+        },
+        {
+          "target-type": "url",
+          "attributes": [],
+          "source-credit": "",
+          "type-id": "f8319a2f-f824-4617-81c8-be6560b3b203",
+          "begin": null,
+          "attribute-ids": {},
+          "end": null,
+          "url": {
+            "resource": "https://mora.jp/artist/619224/all",
+            "id": "90f25f10-34f8-400d-8cbd-10c20ad030b5"
+          },
+          "ended": false,
+          "target-credit": "",
+          "attribute-values": {},
+          "type": "purchase for download",
+          "direction": "forward"
+        },
+        {
+          "attribute-ids": {},
+          "type-id": "f8319a2f-f824-4617-81c8-be6560b3b203",
+          "begin": null,
+          "ended": false,
+          "end": null,
+          "url": {
+            "id": "5a348283-f14c-41f7-aea8-9cf6f655d675",
+            "resource": "https://music.apple.com/gb/artist/363702196"
+          },
+          "type": "purchase for download",
+          "target-credit": "",
+          "attribute-values": {},
+          "direction": "forward",
+          "target-type": "url",
+          "attributes": [],
+          "source-credit": ""
+        },
+        {
+          "target-type": "url",
+          "attributes": [],
+          "source-credit": "",
+          "type-id": "f8319a2f-f824-4617-81c8-be6560b3b203",
+          "begin": null,
+          "attribute-ids": {},
+          "end": null,
+          "url": {
+            "resource": "https://music.bugs.co.kr/artist/80204291",
+            "id": "552b7f9f-ece6-44f6-aa2c-f9bbb23af1eb"
+          },
+          "ended": false,
+          "target-credit": "",
+          "attribute-values": {},
+          "type": "purchase for download",
+          "direction": "forward"
+        },
+        {
+          "direction": "forward",
+          "type": "purchase for download",
+          "target-credit": "",
+          "attribute-values": {},
+          "ended": false,
+          "url": {
+            "id": "bd5a7e4a-5734-4df9-9919-6763aeb817b5",
+            "resource": "https://open.qobuz.com/artist/310938"
+          },
+          "end": null,
+          "attribute-ids": {},
+          "type-id": "f8319a2f-f824-4617-81c8-be6560b3b203",
+          "begin": null,
+          "source-credit": "",
+          "target-type": "url",
+          "attributes": []
+        },
+        {
+          "source-credit": "",
+          "attributes": [],
+          "target-type": "url",
+          "direction": "forward",
+          "type": "purchase for download",
+          "attribute-values": {},
+          "target-credit": "",
+          "ended": false,
+          "end": null,
+          "url": {
+            "id": "8dc4355e-e067-46b2-b937-f58e378545e8",
+            "resource": "https://ototoy.jp/_/default/a/562614"
+          },
+          "attribute-ids": {},
+          "begin": null,
+          "type-id": "f8319a2f-f824-4617-81c8-be6560b3b203"
+        },
+        {
+          "source-credit": "",
+          "target-type": "url",
+          "attributes": [],
+          "target-credit": "",
+          "attribute-values": {},
+          "type": "purchase for download",
+          "direction": "forward",
+          "type-id": "f8319a2f-f824-4617-81c8-be6560b3b203",
+          "begin": null,
+          "attribute-ids": {},
+          "url": {
+            "id": "cd3de7bd-385c-4426-a901-7ebc9cc62ac5",
+            "resource": "https://uk.7digital.com/artist/haken"
+          },
+          "end": null,
+          "ended": false
+        },
+        {
+          "direction": "forward",
+          "target-credit": "",
+          "attribute-values": {},
+          "type": "purchase for download",
+          "end": null,
+          "url": {
+            "id": "1912be72-2b3e-4e37-9e88-837452c1e9ef",
+            "resource": "https://www.melon.com/artist/detail.htm?artistId=863850"
+          },
+          "ended": false,
+          "type-id": "f8319a2f-f824-4617-81c8-be6560b3b203",
+          "begin": null,
+          "attribute-ids": {},
+          "source-credit": "",
+          "target-type": "url",
+          "attributes": []
+        },
+        {
+          "direction": "forward",
+          "type": "purchase for download",
+          "attribute-values": {},
+          "target-credit": "",
+          "ended": false,
+          "end": null,
+          "url": {
+            "resource": "https://www.qobuz.com/gb-en/interpreter/haken/310938",
+            "id": "ad91d8c2-eb34-4974-bc37-f16ddd9ed00b"
+          },
+          "attribute-ids": {},
+          "begin": null,
+          "type-id": "f8319a2f-f824-4617-81c8-be6560b3b203",
+          "source-credit": "",
+          "attributes": [],
+          "target-type": "url"
+        },
+        {
+          "attribute-values": {},
+          "target-credit": "",
+          "type": "purchase for mail-order",
+          "direction": "forward",
+          "begin": null,
+          "type-id": "611b1862-67af-4253-a64f-34adba305d1d",
+          "attribute-ids": {},
+          "end": null,
+          "url": {
+            "id": "6ef4747a-17ab-406d-b263-c3b7ed141073",
+            "resource": "https://www.amazon.com/-/e/B00FCDR0IU"
+          },
+          "ended": false,
+          "source-credit": "",
+          "attributes": [],
+          "target-type": "url"
+        },
+        {
+          "attribute-ids": {},
+          "begin": null,
+          "type-id": "611b1862-67af-4253-a64f-34adba305d1d",
+          "ended": false,
+          "url": {
+            "resource": "https://www.cdjapan.co.jp/person/700305839",
+            "id": "8bfddb56-eaa8-4d9a-94cf-16e975507eb6"
+          },
+          "end": null,
+          "type": "purchase for mail-order",
+          "attribute-values": {},
+          "target-credit": "",
+          "direction": "forward",
+          "attributes": [],
+          "target-type": "url",
+          "source-credit": ""
+        },
+        {
+          "source-credit": "",
+          "attributes": [],
+          "target-type": "url",
+          "attribute-values": {},
+          "target-credit": "",
+          "type": "setlistfm",
+          "direction": "forward",
+          "begin": null,
+          "type-id": "bf5d0d5e-27a1-4e94-9df7-3cdc67b3b207",
+          "attribute-ids": {},
+          "end": null,
+          "url": {
+            "resource": "https://www.setlist.fm/setlists/haken-2bd434ee.html",
+            "id": "7b5c280c-5361-4dbd-8979-37a445a5b2f2"
+          },
+          "ended": false
+        },
+        {
+          "source-credit": "",
+          "target-type": "url",
+          "attributes": [],
+          "target-credit": "",
+          "attribute-values": {},
+          "type": "social network",
+          "direction": "forward",
+          "type-id": "99429741-f3f6-484b-84f8-23af51991770",
+          "begin": null,
+          "attribute-ids": {},
+          "end": null,
+          "url": {
+            "resource": "https://twitter.com/Haken_Official",
+            "id": "52ccd81c-fdbf-4d36-abc8-e213896d46d8"
+          },
+          "ended": false
+        },
+        {
+          "target-type": "url",
+          "attributes": [],
+          "source-credit": "",
+          "ended": false,
+          "end": null,
+          "url": {
+            "resource": "https://www.facebook.com/HakenOfficial",
+            "id": "ac19f53d-908b-4264-8c60-19b691997c3e"
+          },
+          "attribute-ids": {},
+          "type-id": "99429741-f3f6-484b-84f8-23af51991770",
+          "begin": null,
+          "direction": "forward",
+          "type": "social network",
+          "target-credit": "",
+          "attribute-values": {}
+        },
+        {
+          "attributes": [],
+          "target-type": "url",
+          "source-credit": "",
+          "ended": false,
+          "url": {
+            "id": "738020a9-8eae-499c-9ce0-57db46bed70f",
+            "resource": "https://www.instagram.com/haken_official/"
+          },
+          "end": null,
+          "attribute-ids": {},
+          "begin": null,
+          "type-id": "99429741-f3f6-484b-84f8-23af51991770",
+          "direction": "forward",
+          "type": "social network",
+          "attribute-values": {},
+          "target-credit": ""
+        },
+        {
+          "ended": false,
+          "url": {
+            "resource": "https://www.tiktok.com/@hakenmusic",
+            "id": "3875b7ff-d0ad-4845-b5b1-7dedb8b73582"
+          },
+          "end": null,
+          "attribute-ids": {},
+          "begin": null,
+          "type-id": "99429741-f3f6-484b-84f8-23af51991770",
+          "direction": "forward",
+          "type": "social network",
+          "attribute-values": {},
+          "target-credit": "",
+          "attributes": [],
+          "target-type": "url",
+          "source-credit": ""
+        },
+        {
+          "target-type": "url",
+          "attributes": [],
+          "source-credit": "",
+          "end": null,
+          "url": {
+            "resource": "https://www.songkick.com/artists/625989",
+            "id": "0babbbf4-ce86-41be-a313-6e9878592003"
+          },
+          "ended": false,
+          "type-id": "aac9c4bc-a5b9-30b8-9839-e3ac314c6e58",
+          "begin": null,
+          "attribute-ids": {},
+          "direction": "forward",
+          "target-credit": "",
+          "attribute-values": {},
+          "type": "songkick"
+        },
+        {
+          "direction": "forward",
+          "type": "soundcloud",
+          "target-credit": "",
+          "attribute-values": {},
+          "ended": false,
+          "end": null,
+          "url": {
+            "resource": "https://soundcloud.com/hakenofficial",
+            "id": "099da0f0-48bc-40fe-9301-0a8b459444ed"
+          },
+          "attribute-ids": {},
+          "type-id": "89e4a949-0976-440d-bda1-5f772c1e5710",
+          "begin": null,
+          "source-credit": "",
+          "target-type": "url",
+          "attributes": []
+        },
+        {
+          "type": "streaming",
+          "attribute-values": {},
+          "target-credit": "",
+          "direction": "forward",
+          "attribute-ids": {},
+          "begin": null,
+          "type-id": "63cc5d1f-f096-4c94-a43f-ecb32ea94161",
+          "ended": true,
+          "end": "2022-06-08",
+          "url": {
+            "id": "a6b2e1df-c28c-44fc-89af-8bd5e2ee7705",
+            "resource": "https://us.napster.com/artist/haken"
+          },
+          "source-credit": "",
+          "attributes": [],
+          "target-type": "url"
+        },
+        {
+          "source-credit": "",
+          "target-type": "url",
+          "attributes": [],
+          "target-credit": "",
+          "attribute-values": {},
+          "type": "streaming",
+          "direction": "forward",
+          "type-id": "63cc5d1f-f096-4c94-a43f-ecb32ea94161",
+          "begin": null,
+          "attribute-ids": {},
+          "end": null,
+          "url": {
+            "id": "51dd1f0f-74f7-4962-b456-4ba7bf1e1dce",
+            "resource": "https://music.amazon.co.uk/artists/B003EJFCT8"
+          },
+          "ended": false
+        },
+        {
+          "direction": "forward",
+          "type": "streaming",
+          "attribute-values": {},
+          "target-credit": "",
+          "ended": false,
+          "end": null,
+          "url": {
+            "id": "5a348283-f14c-41f7-aea8-9cf6f655d675",
+            "resource": "https://music.apple.com/gb/artist/363702196"
+          },
+          "attribute-ids": {},
+          "begin": null,
+          "type-id": "63cc5d1f-f096-4c94-a43f-ecb32ea94161",
+          "source-credit": "",
+          "attributes": [],
+          "target-type": "url"
+        },
+        {
+          "url": {
+            "id": "552b7f9f-ece6-44f6-aa2c-f9bbb23af1eb",
+            "resource": "https://music.bugs.co.kr/artist/80204291"
+          },
+          "end": null,
+          "ended": false,
+          "begin": null,
+          "type-id": "63cc5d1f-f096-4c94-a43f-ecb32ea94161",
+          "attribute-ids": {},
+          "direction": "forward",
+          "attribute-values": {},
+          "target-credit": "",
+          "type": "streaming",
+          "attributes": [],
+          "target-type": "url",
+          "source-credit": ""
+        },
+        {
+          "attributes": [],
+          "target-type": "url",
+          "source-credit": "",
+          "ended": false,
+          "end": null,
+          "url": {
+            "id": "bd5a7e4a-5734-4df9-9919-6763aeb817b5",
+            "resource": "https://open.qobuz.com/artist/310938"
+          },
+          "attribute-ids": {},
+          "begin": null,
+          "type-id": "63cc5d1f-f096-4c94-a43f-ecb32ea94161",
+          "direction": "forward",
+          "type": "streaming",
+          "attribute-values": {},
+          "target-credit": ""
+        },
+        {
+          "type-id": "63cc5d1f-f096-4c94-a43f-ecb32ea94161",
+          "begin": null,
+          "attribute-ids": {},
+          "end": null,
+          "url": {
+            "id": "9611b5cf-c232-45d1-b1ab-b5ff83b4f82b",
+            "resource": "https://tidal.com/artist/10691388"
+          },
+          "ended": false,
+          "target-credit": "",
+          "attribute-values": {},
+          "type": "streaming",
+          "direction": "forward",
+          "target-type": "url",
+          "attributes": [],
+          "source-credit": ""
+        },
+        {
+          "ended": false,
+          "url": {
+            "id": "90b65170-dc0a-4434-8259-41b35e036319",
+            "resource": "https://tidal.com/artist/3671433"
+          },
+          "end": null,
+          "attribute-ids": {},
+          "begin": null,
+          "type-id": "63cc5d1f-f096-4c94-a43f-ecb32ea94161",
+          "direction": "forward",
+          "type": "streaming",
+          "attribute-values": {},
+          "target-credit": "",
+          "attributes": [],
+          "target-type": "url",
+          "source-credit": ""
+        },
+        {
+          "source-credit": "",
+          "attributes": [],
+          "target-type": "url",
+          "attribute-values": {},
+          "target-credit": "",
+          "type": "streaming",
+          "direction": "forward",
+          "begin": null,
+          "type-id": "63cc5d1f-f096-4c94-a43f-ecb32ea94161",
+          "attribute-ids": {},
+          "end": null,
+          "url": {
+            "id": "1912be72-2b3e-4e37-9e88-837452c1e9ef",
+            "resource": "https://www.melon.com/artist/detail.htm?artistId=863850"
+          },
+          "ended": false
+        },
+        {
+          "target-type": "url",
+          "attributes": [],
+          "source-credit": "",
+          "end": null,
+          "url": {
+            "resource": "https://www.qobuz.com/gb-en/interpreter/haken/310938",
+            "id": "ad91d8c2-eb34-4974-bc37-f16ddd9ed00b"
+          },
+          "ended": false,
+          "type-id": "63cc5d1f-f096-4c94-a43f-ecb32ea94161",
+          "begin": null,
+          "attribute-ids": {},
+          "direction": "forward",
+          "target-credit": "",
+          "attribute-values": {},
+          "type": "streaming"
+        },
+        {
+          "source-credit": "",
+          "attributes": [],
+          "target-type": "url",
+          "direction": "forward",
+          "attribute-values": {},
+          "target-credit": "",
+          "type": "VIAF",
+          "url": {
+            "id": "6e5f9a76-bc0a-45f4-af55-a0f7ce265997",
+            "resource": "http://viaf.org/viaf/15146095218900370622"
+          },
+          "end": null,
+          "ended": false,
+          "begin": null,
+          "type-id": "e8571dcc-35d4-4e91-a577-a3382fd84460",
+          "attribute-ids": {}
+        },
+        {
+          "source-credit": "",
+          "target-type": "url",
+          "attributes": [],
+          "type": "wikidata",
+          "target-credit": "",
+          "attribute-values": {},
+          "direction": "forward",
+          "attribute-ids": {},
+          "type-id": "689870a4-a1e4-4912-b17f-7b2664215698",
+          "begin": null,
+          "ended": false,
+          "url": {
+            "resource": "https://www.wikidata.org/wiki/Q774774",
+            "id": "1bbb3618-3940-4be6-bd19-0288ce9889dc"
+          },
+          "end": null
+        },
+        {
+          "attribute-ids": {},
+          "begin": null,
+          "type-id": "6a540e5b-58c6-4192-b6ba-dbc71ec8fcf0",
+          "ended": false,
+          "end": null,
+          "url": {
+            "id": "5376e8c8-77dd-49d3-80cd-f32352c0a672",
+            "resource": "https://www.youtube.com/channel/UCGGBF80givLRea3k6fLebcw"
+          },
+          "type": "youtube",
+          "attribute-values": {},
+          "target-credit": "",
+          "direction": "forward",
+          "attributes": [],
+          "target-type": "url",
+          "source-credit": ""
+        },
+        {
+          "url": {
+            "id": "9c8d8a9c-7518-47f0-b3a2-a873f92b8118",
+            "resource": "https://music.youtube.com/channel/UCY1AGog6eZVVFK0m2419owQ"
+          },
+          "end": null,
+          "ended": false,
+          "type-id": "631712a0-7525-42ba-b7a3-605aa7a238c4",
+          "begin": null,
+          "attribute-ids": {},
+          "direction": "forward",
+          "target-credit": "",
+          "attribute-values": {},
+          "type": "youtube music",
+          "target-type": "url",
+          "attributes": [],
+          "source-credit": ""
+        }
+      ],
+      "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+      "begin-area": {
+        "id": "f03d09b3-39dc-4083-afd6-159e3f0d462f",
+        "disambiguation": "Greater London",
+        "name": "London",
+        "type-id": null,
+        "sort-name": "London",
+        "type": null
+      }
+    }
+  }
+}
