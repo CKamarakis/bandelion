@@ -288,6 +288,90 @@ console.log('\n# a busy MusicBrainz degrades, it does not stop the run');
   check(stillNull === 1, 'the skipped artist is left for the next run');
 }
 
+console.log('\n# a later run picks up artists the cursor has passed');
+
+{
+  /*
+   * The bug: the cursor only moves forward, so after a full run it sits past
+   * the last artist and `id > cursor` finds nothing. The first live run ended
+   * with cursor 629 and 133 unresolved artists behind it, then reported
+   * "complete" on every subsequent run having attempted zero.
+   */
+  const db = seedDb();
+  const total = resolveStatus(db).total;
+  const busyId = Object.keys(fixture.urlLookups)[0];
+  const { fetch: inner } = fixtureFetch();
+
+  // First run: one artist is unreachable, everyone else resolves.
+  const flaky = async (url) =>
+    url.includes(busyId)
+      ? new Response(JSON.stringify({ error: 'currently busy' }), { status: 503 })
+      : inner(url);
+  await resolveArtists({ db, contact: 'test', fetchImpl: flaky, sleep: noSleep });
+
+  const stranded = resolveStatus(db);
+  check(stranded.resolved === total - 1, 'one artist is left unresolved by the first run');
+
+  // Second run with a healthy source must reach it, even though it sits
+  // behind the cursor the first run left behind.
+  const { fetch: healthy } = fixtureFetch();
+  const second = await resolveArtists({ db, contact: 'test', fetchImpl: healthy, sleep: noSleep });
+
+  check(second.attempted > 0, 'the second run actually attempts the stranded artist');
+  check(
+    resolveStatus(db).resolved === total,
+    'the stranded artist is resolved on the next run',
+    `${resolveStatus(db).resolved}/${total}`,
+  );
+}
+
+console.log('\n# an unresolvable artist does not spin the job forever');
+
+{
+  // The rewind must happen once. An artist MusicBrainz genuinely has no record
+  // of stays pending, and a rewind per pass would re-select it endlessly.
+  const db = openDatabase(':memory:');
+  upsertArtist(db, {
+    name: 'Nobody Has Heard Of This Band',
+    nameNormalized: normalizeName('Nobody Has Heard Of This Band'),
+    externalId: { source: 'spotify', id: 'no-such-spotify-id' },
+  });
+
+  const empty = async (url) =>
+    url.includes('/url')
+      ? new Response('{}', { status: 404 })
+      : new Response(JSON.stringify({ artists: [] }), { status: 200 });
+
+  const result = await resolveArtists({ db, contact: 'test', fetchImpl: empty, sleep: noSleep });
+  check(result.complete === true, 'the job terminates rather than spinning on an unresolvable artist');
+  check(result.attempted <= 2, `the artist is attempted at most twice (${result.attempted})`);
+}
+
+console.log('\n# a busy artist is not reported as absent');
+
+{
+  // The bug this covers: on the first full run, 17 artists were reported as
+  // "no MusicBrainz record" when MusicBrainz had simply stayed busy. One of
+  // them was Gojira, which resolves fine on a retry. `unresolved` counts both,
+  // so the two must stay separable or the CLI tells a comfortable lie.
+  const db = seedDb();
+  const { fetch: inner } = fixtureFetch();
+  const busyId = Object.keys(fixture.urlLookups)[0];
+  const flaky = async (url) =>
+    url.includes(busyId)
+      ? new Response(JSON.stringify({ error: 'currently busy' }), { status: 503 })
+      : inner(url);
+
+  const result = await resolveArtists({ db, contact: 'test', fetchImpl: flaky, sleep: noSleep });
+
+  check(result.transientFailures === 1, 'the busy artist is reported as transient');
+  check(
+    result.unresolved - result.transientFailures === 0,
+    'no artist is reported as genuinely absent when the source was only busy',
+    `unresolved ${result.unresolved}, transient ${result.transientFailures}`,
+  );
+}
+
 console.log('\n# health reflects what happened');
 
 {
@@ -331,11 +415,27 @@ console.log('\n# db helpers');
   check(first === 1 && again === 0, 'adding the same link twice writes one row');
   check(addArtistLinks(db, id, [], 'musicbrainz') === 0, 'an empty link list is a no-op');
 
-  queueForReview(db, { rawName: 'A', source: 'musicbrainz', score: 0.5 });
-  queueForReview(db, { rawName: 'A', source: 'eventim', score: 0.5 });
+  queueForReview(db, { rawName: 'A', source: 'musicbrainz', candidateArtistId: id, score: 0.5 });
+  queueForReview(db, { rawName: 'A', source: 'eventim', candidateArtistId: id, score: 0.5 });
   check(
     db.prepare('SELECT COUNT(*) c FROM match_queue').get().c === 2,
-    'the same name from two sources is two judgements, not one',
+    'the same artist from two sources is two judgements, not one',
+  );
+
+  // Three resolution runs put Nightstalker in the queue three times. The same
+  // question asked twice is not two questions.
+  queueForReview(db, { rawName: 'A', source: 'musicbrainz', candidateArtistId: id, score: 0.5 });
+  check(
+    db.prepare('SELECT COUNT(*) c FROM match_queue').get().c === 2,
+    're-queuing the same artist from the same source does not add a row',
+  );
+
+  // Unless the earlier one was already decided: that is a fresh question.
+  db.prepare("UPDATE match_queue SET status = 'rejected' WHERE source = 'musicbrainz'").run();
+  queueForReview(db, { rawName: 'A', source: 'musicbrainz', candidateArtistId: id, score: 0.5 });
+  check(
+    db.prepare("SELECT COUNT(*) c FROM match_queue WHERE status = 'pending'").get().c === 2,
+    'an artist can be queued again once the earlier row was decided',
   );
 }
 

@@ -741,3 +741,59 @@ reports failure when every attempt failed.
 Measured on the real roster it is **about 8 seconds per artist** — two calls
 each plus retries — so 625 artists is over an hour. The estimate now says so,
 and mentions that Ctrl-C resumes.
+
+---
+
+## 036 · A forward-only cursor cannot finish a job that skips rows
+
+**Found on the live roster.** The first full resolution run ended with the
+cursor at 629 (the last artist id) and 133 unresolved artists *behind* it. Every
+subsequent run then reported `complete` having attempted zero, because
+`pendingArtists` selects `id > cursor` and there is nothing past the end.
+
+The cursor is right for a first pass — it is what makes an hour-long job
+resumable. It is wrong as a completion test, because an artist can be skipped
+(MusicBrainz busy, or no record) and still leave the cursor moving past it.
+
+**Decided:** when the tail comes back empty, rewind to 0 and sweep once more.
+Only a sweep that starts from zero and finds nothing pending is genuinely
+complete. Exactly once per run, guarded by a flag *and* a set of ids already
+handled this run — without both, an artist MusicBrainz has no record of is
+re-selected forever, and the ones already queued get queued again.
+
+**Verified by mutation:** removing the rewind fails the two tests covering it.
+Confirmed live: the cursor jumped 615 → 22 mid-run and the second pass ran to
+completion.
+
+**The reporting bug this exposed.** The same run printed "17 with no MusicBrainz
+record" for a set including Gojira — an artist that resolves fine when asked
+again. Those were transient 503s counted into `unresolved` and never surfaced
+separately, so the CLI reported a permanent absence for a source that was merely
+busy. That is the same class of lie as an empty feed that means "we did not
+look". `transientFailures` now gets its own line.
+
+**Caught by sanity, not by a test.** The 17 were only investigated because
+Gojira and Thee Oh Sees looked wrong in a list of obscure bands. A result that
+is plausible in aggregate can still be wrong in a way only domain knowledge
+spots.
+
+---
+
+## 037 · The review queue holds questions, not events
+
+**Decided:** `queueForReview` returns the existing row when the same artist is
+already pending from the same source.
+
+**Why:** three resolution runs produced **343 queue rows for 117 artists** —
+Nightstalker, Sasquatch, Astroqueen and others queued three times each with
+identical payloads.
+
+The original comment justified not deduplicating on the grounds that the same
+name from two *sources* is two judgements. That is true and unchanged. But the
+same artist from the same source is one question asked repeatedly, and a review
+queue three times longer than it needs to be is one nobody works through.
+
+A decided row (confirmed or rejected) does not block a new one: that is a fresh
+question about an artist whose earlier answer is already recorded.
+
+**Repaired in place:** the 343 live rows were collapsed to 117, one per artist.

@@ -279,7 +279,12 @@ export function addArtistLinks(
  * Put an ambiguous match in front of a human instead of guessing.
  *
  * Deliberately not deduplicated on raw_name: the same name arriving from two
- * sources is two separate judgements, and collapsing them would hide one.
+ * *sources* is two separate judgements, and collapsing them would hide one.
+ *
+ * But the same artist from the same source is not — it is the same question
+ * asked twice. Three resolution runs produced 343 rows for 117 artists, with
+ * Nightstalker and friends queued three times each, which turns a review queue
+ * into a chore. A pending row for this artist and source is left alone.
  */
 export function queueForReview(
   db: DB,
@@ -292,6 +297,17 @@ export function queueForReview(
     payload?: string | null;
   },
 ): number {
+  if (entry.candidateArtistId != null) {
+    const pending = db
+      .prepare(
+        `SELECT id FROM match_queue
+          WHERE candidate_artist_id = ? AND source = ? AND status = 'pending'`,
+      )
+      .get(entry.candidateArtistId, entry.source) as { id: number } | undefined;
+    // Already awaiting the same decision. Re-queuing would not add information.
+    if (pending) return pending.id;
+  }
+
   const r = db
     .prepare(
       `INSERT INTO match_queue

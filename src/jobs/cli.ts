@@ -84,10 +84,26 @@ if (command === 'resolve') {
     },
   });
 
+  /*
+   * Transient failures are reported separately from real absences.
+   *
+   * They were folded into `unresolved` on the first full run, which printed
+   * "17 with no MusicBrainz record" for a set that included Gojira — an artist
+   * MusicBrainz resolves fine when asked again. Saying a source has no record
+   * when it was merely busy is the same class of lie as an empty feed that
+   * means "we did not look".
+   */
+  const trulyAbsent = result.unresolved - result.transientFailures;
   console.log(
     `\n${result.resolved} resolved, ${result.queued} queued for review, ` +
-      `${result.unresolved} with no MusicBrainz record.`,
+      `${trulyAbsent} with no MusicBrainz record.`,
   );
+  if (result.transientFailures > 0) {
+    console.log(
+      `${result.transientFailures} could not be reached (MusicBrainz stayed busy) ` +
+        'and will be retried on the next run.',
+    );
+  }
   if (result.queued > 0) {
     console.log('Queued artists need a human decision: MusicBrainz has several acts by that name.');
   }

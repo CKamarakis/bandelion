@@ -149,6 +149,10 @@ export async function resolveArtists(opts: {
   // Artists MusicBrainz stayed busy for. Reported, but never fatal.
   let transientFailures = 0;
   let lastTransientError: string | null = null;
+  // The rewind below is allowed once per run; see the comment at its use.
+  let rewound = false;
+  // Artist ids this run has already attempted, so the rewind does not redo them.
+  const handled = new Set<number>();
 
   try {
     while (attempted < budget) {
@@ -157,9 +161,38 @@ export async function resolveArtists(opts: {
         return { attempted, resolved, queued, unresolved, transientFailures, complete: false, error: 'stopped' };
       }
 
-      const batch = pendingArtists(db, cursor, Math.min(25, budget - attempted));
+      let batch = pendingArtists(db, cursor, Math.min(25, budget - attempted));
+
+      /*
+       * Reaching the end of the roster is not the same as finishing it.
+       *
+       * The cursor only moves forward, so once it passes the last artist,
+       * `id > cursor` finds nothing — including the artists this pass skipped
+       * because MusicBrainz was busy or had no record. The first full run
+       * ended with the cursor at 629 and 133 unresolved artists behind it, and
+       * every subsequent run reported "complete" having attempted zero.
+       *
+       * So when the tail is empty, rewind once and re-sweep from the start.
+       *
+       * Exactly once per run: an artist MusicBrainz has no record of is
+       * unresolvable no matter how often we ask, and without this guard the
+       * rewind would re-select it forever — the cursor advancing to the end,
+       * rewinding, and picking it up again. One extra pass retries what was
+       * transiently busy; a second would be a spin.
+       */
+      if (batch.length === 0 && cursor > 0 && !rewound) {
+        rewound = true;
+        cursor = 0;
+        // Only artists this run has not already handled. Without this the
+        // rewind re-attempts the ones just queued or found absent, queueing
+        // them twice and double-counting every outcome.
+        batch = pendingArtists(db, 0, Math.min(25, budget - attempted)).filter(
+          (a) => !handled.has(a.id),
+        );
+      }
+
       if (batch.length === 0) {
-        // Nothing left needing an MBID: the roster is fully resolved.
+        // A full sweep from the start found nothing pending: genuinely done.
         saveJob(db, JOB_NAME, { cursor: null, status: 'complete', lastError: null });
         recordHealth(db, attempted, transientFailures, lastTransientError);
         return { attempted, resolved, queued, unresolved, transientFailures, complete: true, error: lastTransientError ?? undefined };
@@ -190,6 +223,7 @@ export async function resolveArtists(opts: {
         else if (outcome === 'queued') queued++;
         else unresolved++;
 
+        handled.add(artist.id);
         cursor = artist.id;
         // Checkpoint every artist. The unit of work is one artist, so the
         // checkpoint should be too — a crash costs one lookup, not a batch.

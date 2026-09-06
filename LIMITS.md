@@ -34,9 +34,10 @@ is worse than no entry.
 
 ## L01 · About 17% of artists resolve to no MBID · degrades
 
-**Measured** over 376 of 625 artists: 302 resolved (80%), 64 queued (17%), the
-rest still running. The queue rate has been stable between 16.7% and 17.1%
-across the run, so 17% is a real figure rather than an early artefact.
+**Measured, run complete:** of 625 artists, **495 resolved (79.2%)**, 117
+queued for review (18.7%), 13 with no MusicBrainz record at all. A second pass
+over the artists the first pass stranded recovered only 3 more, so this is the
+ceiling for the URL-join strategy alone.
 
 **What they are.** Not ambiguous artists — artists MusicBrainz has no Spotify
 URL relation for. Of the first 55 queued: 50 were exact name matches at score
