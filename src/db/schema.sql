@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS artists (
   name             TEXT NOT NULL,
   name_normalized  TEXT NOT NULL,        -- see src/matcher/normalize.ts
   image_url        TEXT,
+  -- Drives tiered polling: a sweep skips artists checked recently.
+  last_release_check_at TEXT,
   created_at       TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_artists_normalized ON artists(name_normalized);
@@ -97,7 +99,10 @@ CREATE TABLE IF NOT EXISTS release_details (
   total_tracks      INTEGER,
   tracklist_json    TEXT,
   spotify_album_id  TEXT,
-  is_upcoming       INTEGER NOT NULL DEFAULT 0
+  is_upcoming       INTEGER NOT NULL DEFAULT 0,
+  -- 'day' | 'month' | 'year'. Half of all upstream dates carry no day, and a
+  -- year-only release must not be shown as though we knew the day.
+  date_precision    TEXT NOT NULL DEFAULT 'day'
 );
 
 CREATE TABLE IF NOT EXISTS gig_details (

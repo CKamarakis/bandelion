@@ -834,3 +834,63 @@ resolution completes at all.
 **Still open:** each artist costs two calls (identity, then links). Skipping the
 links call for artists that already have links would cut a re-run roughly in
 half. Tracked in `LIMITS.md` L03.
+
+---
+
+## 039 · Spotify has no lookahead at all; the upcoming feed is MusicBrainz-only
+
+**Measured:** across **60 sampled roster artists and 542 albums**, Spotify's
+`/artists/{id}/albums` returned **zero** future-dated releases. Not few — none.
+The same artists show releases from days before the sample (Tramhaus "Swarm",
+2026-08-26; Deathchant "KOVA/CRAWL", 2026-08-28), so the endpoint is current;
+it simply does not carry announced-but-unreleased records.
+
+MusicBrainz does. For Boy Harsher it had *GET MEAN* dated 2026-09-18 — eleven
+days ahead — while Spotify showed nothing after 2026-08-26 for the same artist.
+
+**Consequence:** "what is coming in the next two months", the thing the product
+exists for, cannot be answered from Spotify under any strategy. This closes the
+question left open when decision 032 ruled Spotify out on quota grounds: even
+with unlimited quota it would not have the data.
+
+**Corrects an earlier claim.** While planning the release pass I said Spotify
+"returns announced-but-unreleased albums with future release_date values, but
+inconsistently". That was wrong, and it was asserted from documentation rather
+than measurement. It is zero.
+
+**Also corrected:** the deluxe-edition duplication (decision 033) does not
+appear at release-group level. Haken's *Fauna* and *Fauna (Deluxe Edition)* are
+one release-group in MusicBrainz — the duplication lives at the *release* level.
+Browsing release-groups therefore collapses it for free, which is another point
+in favour of the endpoint chosen for other reasons.
+
+**Upcoming releases are rare.** Two future-dated release-groups across the four
+recorded artists, and zero across the first ten of a wider sample. A feed
+section for them will usually be short or empty, which is a design constraint
+rather than a bug.
+
+---
+
+## 040 · Schema changes need migrations, not just schema.sql
+
+**Decided:** `PRAGMA user_version` plus an append-only `MIGRATIONS` array in
+`src/db/index.ts`, run on every `openDatabase`.
+
+**Why:** `schema.sql` is entirely `CREATE TABLE IF NOT EXISTS`. It builds a new
+database correctly and does **nothing at all** to one that already exists. Two
+columns were needed for the release pass — `release_details.date_precision` and
+`artists.last_release_check_at` — and adding them only to `schema.sql` would
+have made them present for new installs and silently absent for every existing
+one. For a self-hosted app that is everybody who has already used it.
+
+`user_version` rather than a migrations table: it is built into SQLite, needs no
+schema of its own, and cannot drift from the thing it describes.
+
+**Each migration must be safe against a fresh database**, because a new install
+runs `schema.sql` *and* the migrations. Duplicate-column errors are swallowed;
+anything else propagates.
+
+**Verified:** a test builds a database the old way, migrates it, and asserts the
+columns appear and existing rows survive. Commenting out the `migrate(db)` call
+fails it. The live 625-artist database was migrated in place — version 0 → 1,
+both columns added, 625 artists and 495 MBIDs intact.

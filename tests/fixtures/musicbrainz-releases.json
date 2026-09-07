@@ -1,0 +1,1013 @@
+{
+  "_comment": "Live GET /ws/2/release-group?artist=<mbid>, recorded by npm run fixtures:record -- releases. Browse, not search: search paging is unstable and drops ~22% of rows per sweep (decision 033). Chosen artists, not sampled — Boy Harsher carries a future-dated release, which Spotify does not expose at all, and Haken carries a deluxe edition sharing a date with its standard release.",
+  "_recordedAt": "2026-09-07T21:28:34.392Z",
+  "_recordedRelativeTo": "2026-09-07",
+  "artists": {
+    "6dc9bc09-a0c7-40f9-b491-f90845927533": {
+      "name": "Boy Harsher",
+      "response": {
+        "release-groups": [
+          {
+            "title": "Pain",
+            "disambiguation": "",
+            "primary-type": "Single",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "id": "0dce3b90-4c53-47f8-ab15-8a992359a8b2",
+            "first-release-date": "2015-10-06"
+          },
+          {
+            "secondary-type-ids": [
+              "22a628ad-c082-3c4f-b1b6-d41665107b88"
+            ],
+            "secondary-types": [
+              "Soundtrack"
+            ],
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "primary-type": "Album",
+            "disambiguation": "",
+            "title": "My Animal (Original Score)",
+            "id": "127ea44f-84f9-4baa-a413-7a5ba90b66d1",
+            "first-release-date": "2023-10-06"
+          },
+          {
+            "id": "1609febb-a2cd-474f-82dd-26d9061310a5",
+            "secondary-types": [],
+            "secondary-type-ids": [],
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "primary-type": "Single",
+            "disambiguation": "",
+            "title": "Pain II",
+            "first-release-date": "2018-05-11"
+          },
+          {
+            "id": "416e4bfe-dcd4-4ab0-9ec1-a4050f428c20",
+            "primary-type": "EP",
+            "disambiguation": "",
+            "title": "Burn It Down",
+            "secondary-types": [],
+            "secondary-type-ids": [],
+            "primary-type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+            "first-release-date": "2022-10-14"
+          },
+          {
+            "secondary-types": [],
+            "secondary-type-ids": [],
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "primary-type": "Album",
+            "title": "Careful",
+            "disambiguation": "",
+            "id": "473c1534-3bf9-4ca3-b22f-1845e8ec4263",
+            "first-release-date": "2019-02-01"
+          },
+          {
+            "first-release-date": "2026-06-26",
+            "title": "Jeans",
+            "disambiguation": "",
+            "primary-type": "Single",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "secondary-types": [],
+            "secondary-type-ids": [],
+            "id": "5fa3af68-5321-40c9-a07c-fbe3759dd469"
+          },
+          {
+            "first-release-date": "2019-08-28",
+            "id": "628d0588-a4b1-4529-afec-1d3bfe97d5b4",
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "secondary-types": [
+              "Compilation",
+              "DJ-mix"
+            ],
+            "secondary-type-ids": [
+              "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1",
+              "0d47f47a-3fe5-3d69-ac9d-d566c23968bf"
+            ],
+            "disambiguation": "",
+            "title": "FACT Mix 726",
+            "primary-type": "Album"
+          },
+          {
+            "id": "87466810-bcb0-4153-9a15-87437599e94f",
+            "disambiguation": "",
+            "title": "Hard Beat",
+            "primary-type": "Single",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "first-release-date": "2026-07-21"
+          },
+          {
+            "first-release-date": "2016-06-20",
+            "primary-type": "Album",
+            "disambiguation": "",
+            "title": "Yr Body Is Nothing",
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "id": "9325a9ab-1f2f-477b-8c8c-5a585c797f0f"
+          },
+          {
+            "first-release-date": "2019-06-28",
+            "id": "94ff3b7a-1e4f-4978-ba45-57a5a0ca7878",
+            "primary-type": "Album",
+            "disambiguation": "",
+            "title": "Careful Remixes, Etc.",
+            "secondary-types": [
+              "Remix"
+            ],
+            "secondary-type-ids": [
+              "0c60f497-ff81-3818-befd-abfc84a4858b"
+            ],
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc"
+          },
+          {
+            "id": "a3f91d29-f3ed-4da0-8f8c-bb767067e2e8",
+            "title": "Country Girl",
+            "disambiguation": "",
+            "primary-type": "EP",
+            "primary-type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+            "secondary-types": [],
+            "secondary-type-ids": [],
+            "first-release-date": "2017-10-13"
+          },
+          {
+            "first-release-date": "2022-01-21",
+            "disambiguation": "",
+            "title": "The Runner (Original Soundtrack)",
+            "primary-type": "Album",
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "secondary-type-ids": [
+              "22a628ad-c082-3c4f-b1b6-d41665107b88"
+            ],
+            "secondary-types": [
+              "Soundtrack"
+            ],
+            "id": "a997db62-f64c-4aab-8373-f959d685644c"
+          },
+          {
+            "first-release-date": "2020-12-31",
+            "id": "c50062dd-0d71-47f7-9ac3-5a78628af34e",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "title": "Electric (Kris Baha Remix)",
+            "disambiguation": "",
+            "primary-type": "Single"
+          },
+          {
+            "first-release-date": "2023-12-13",
+            "id": "c50945e9-60f8-4596-8621-9465e5579c88",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "secondary-type-ids": [
+              "0c60f497-ff81-3818-befd-abfc84a4858b"
+            ],
+            "secondary-types": [
+              "Remix"
+            ],
+            "title": "Machina (Mundus remix)",
+            "disambiguation": "",
+            "primary-type": "Single"
+          },
+          {
+            "first-release-date": "2024-07-18",
+            "disambiguation": "",
+            "title": "Machina EP",
+            "primary-type": "EP",
+            "primary-type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+            "secondary-types": [],
+            "secondary-type-ids": [],
+            "id": "cd15d16b-95f7-4a17-a800-e39b4bae68f3"
+          },
+          {
+            "id": "d06430b9-1b36-4a65-b5cb-aca16f7d6314",
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "title": "GET MEAN",
+            "disambiguation": "",
+            "primary-type": "Album",
+            "first-release-date": "2026-09-18"
+          },
+          {
+            "primary-type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+            "secondary-types": [],
+            "secondary-type-ids": [],
+            "disambiguation": "",
+            "title": "Lesser Man",
+            "primary-type": "EP",
+            "id": "d98b8ab0-090c-426f-812e-0fb660deeeda",
+            "first-release-date": "2014-10-01"
+          },
+          {
+            "id": "fdf88476-e254-45b1-8eb4-a149701bddc4",
+            "primary-type": "Single",
+            "disambiguation": "",
+            "title": "R.O.V. (New Beat Edit - Part Time Punks Session)",
+            "secondary-types": [],
+            "secondary-type-ids": [],
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "first-release-date": "2020-03-27"
+          }
+        ],
+        "release-group-count": 18,
+        "release-group-offset": 0
+      }
+    },
+    "0246a3fd-a254-416d-8cd2-e31da4ac6f59": {
+      "name": "Haken",
+      "response": {
+        "release-group-count": 38,
+        "release-group-offset": 0,
+        "release-groups": [
+          {
+            "secondary-types": [],
+            "first-release-date": "2010-05-30",
+            "id": "148bc789-1498-4f0b-b992-91f0f3678d5f",
+            "secondary-type-ids": [],
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "title": "Aquarius",
+            "disambiguation": "",
+            "primary-type": "Album"
+          },
+          {
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "id": "1d07e500-8bc0-44d0-9807-efc90e30127b",
+            "secondary-type-ids": [
+              "6fd474e2-6b58-3102-9d17-d6f7eb7da0a0"
+            ],
+            "first-release-date": "2025-04-16",
+            "secondary-types": [
+              "Live"
+            ],
+            "disambiguation": "",
+            "title": "Puzzle Box (live in London 2024)",
+            "primary-type": "Single"
+          },
+          {
+            "id": "2a7f703b-a8b3-463c-ad83-0b03cc2b72dc",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "secondary-type-ids": [],
+            "first-release-date": "2020-04-03",
+            "secondary-types": [],
+            "primary-type": "Single",
+            "disambiguation": "",
+            "title": "Prosthetic"
+          },
+          {
+            "first-release-date": "2020-07-24",
+            "secondary-types": [],
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "id": "2bd8d6f5-8eec-4a39-8f7d-1c26c8ee248f",
+            "secondary-type-ids": [],
+            "primary-type": "Album",
+            "title": "Virus",
+            "disambiguation": ""
+          },
+          {
+            "first-release-date": "2018-10-19",
+            "secondary-types": [],
+            "secondary-type-ids": [],
+            "id": "30a0113d-d801-4ea5-8006-103593800e68",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "title": "A Cell Divides",
+            "disambiguation": "",
+            "primary-type": "Single"
+          },
+          {
+            "primary-type": "Single",
+            "title": "in a fever dream",
+            "disambiguation": "",
+            "secondary-types": [],
+            "first-release-date": "2026-05-21",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "id": "39a6e085-d1a6-46f0-8b45-bc6a0f77e0f6",
+            "secondary-type-ids": []
+          },
+          {
+            "primary-type": "Single",
+            "title": "Earthrise (Jeffguy remix)",
+            "disambiguation": "",
+            "first-release-date": "2016-10-08",
+            "secondary-types": [
+              "Remix"
+            ],
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "id": "3fdf10f5-f5e9-458f-a641-981f3c25a384",
+            "secondary-type-ids": [
+              "0c60f497-ff81-3818-befd-abfc84a4858b"
+            ]
+          },
+          {
+            "title": "Earthrise (live at Progpower USA 2016)",
+            "disambiguation": "",
+            "primary-type": "Single",
+            "secondary-types": [
+              "Live"
+            ],
+            "first-release-date": "2018-11-23",
+            "secondary-type-ids": [
+              "6fd474e2-6b58-3102-9d17-d6f7eb7da0a0"
+            ],
+            "id": "41bd7cd1-7d39-4644-814d-6b2bced7806b",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9"
+          },
+          {
+            "disambiguation": "",
+            "title": "The Architect – Jazzfinity",
+            "primary-type": "Single",
+            "id": "42410434-942c-4cce-862b-18e27034c59b",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "first-release-date": "2020-04-01"
+          },
+          {
+            "secondary-types": [],
+            "first-release-date": "2026-07-17",
+            "primary-type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+            "id": "44df52ad-cf1a-425f-8b27-583d60d851a9",
+            "secondary-type-ids": [],
+            "title": "in a fever dream",
+            "disambiguation": "",
+            "primary-type": "EP"
+          },
+          {
+            "id": "45f75bf9-2a26-4070-b67d-43a36876b130",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "secondary-type-ids": [],
+            "first-release-date": "2026-07-01",
+            "secondary-types": [],
+            "disambiguation": "",
+            "title": "delirium",
+            "primary-type": "Single"
+          },
+          {
+            "id": "484502da-c223-419f-bd0d-640c35eb07b5",
+            "secondary-type-ids": [],
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "secondary-types": [],
+            "first-release-date": "2018-08-31",
+            "disambiguation": "",
+            "title": "The Good Doctor",
+            "primary-type": "Single"
+          },
+          {
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "id": "541ea0b8-b6cd-4ade-b68e-a2e6f968fd2b",
+            "secondary-type-ids": [
+              "6fd474e2-6b58-3102-9d17-d6f7eb7da0a0"
+            ],
+            "first-release-date": "2018-06-08",
+            "secondary-types": [
+              "Live"
+            ],
+            "primary-type": "Single",
+            "disambiguation": "",
+            "title": "The Endless Knot"
+          },
+          {
+            "first-release-date": "2018-10-25",
+            "secondary-types": [],
+            "id": "562d848c-aac2-4cbd-b889-7546c63e6ae5",
+            "secondary-type-ids": [],
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "title": "Vector",
+            "disambiguation": "",
+            "primary-type": "Album"
+          },
+          {
+            "id": "589dbe50-12e0-4f6c-abd3-b4d7d112cbfd",
+            "secondary-type-ids": [
+              "6fd474e2-6b58-3102-9d17-d6f7eb7da0a0"
+            ],
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "secondary-types": [
+              "Live"
+            ],
+            "first-release-date": "2025-02-28",
+            "disambiguation": "",
+            "title": "Beneath the White Rainbow (live in London 2024)",
+            "primary-type": "Single"
+          },
+          {
+            "disambiguation": "",
+            "title": "In Memoriam",
+            "primary-type": "Single",
+            "id": "61bd43e3-74ea-4b34-9f09-18aed4f4d0c0",
+            "secondary-type-ids": [
+              "6fd474e2-6b58-3102-9d17-d6f7eb7da0a0"
+            ],
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "secondary-types": [
+              "Live"
+            ],
+            "first-release-date": "2018-05-11"
+          },
+          {
+            "primary-type": "Single",
+            "disambiguation": "",
+            "title": "The Alphabet of Me",
+            "id": "8404c4f2-5d01-40f4-bc7c-955f6886d0e8",
+            "secondary-type-ids": [],
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "first-release-date": "2022-12-09",
+            "secondary-types": []
+          },
+          {
+            "primary-type": "EP",
+            "title": "Restoration",
+            "disambiguation": "",
+            "first-release-date": "2014-10-24",
+            "secondary-types": [],
+            "primary-type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+            "id": "8862812f-f271-4aa4-8c77-5bf03f99ce45",
+            "secondary-type-ids": []
+          },
+          {
+            "id": "8c03a3f8-ecc2-4f4f-b34f-c4d0adbdd432",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "first-release-date": "2023-02-14",
+            "primary-type": "Single",
+            "disambiguation": "",
+            "title": "Lovebite"
+          },
+          {
+            "title": "Liveforms: An Evening With Haken",
+            "disambiguation": "",
+            "primary-type": "Album",
+            "first-release-date": "2025-05-09",
+            "secondary-types": [
+              "Live"
+            ],
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "id": "8e50d168-6372-4efd-a479-8406a5545ce7",
+            "secondary-type-ids": [
+              "6fd474e2-6b58-3102-9d17-d6f7eb7da0a0"
+            ]
+          },
+          {
+            "disambiguation": "",
+            "title": "Taurus",
+            "primary-type": "Single",
+            "secondary-type-ids": [],
+            "id": "942064ff-3516-4e88-a978-827293afaf1d",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "secondary-types": [],
+            "first-release-date": "2023-01-18"
+          },
+          {
+            "secondary-types": [],
+            "first-release-date": "2016-04-29",
+            "id": "a1faa8db-7337-45bd-948a-678ca6ffa9d1",
+            "secondary-type-ids": [],
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "primary-type": "Album",
+            "title": "Affinity",
+            "disambiguation": ""
+          },
+          {
+            "id": "a4209be7-fa3c-4eb9-ab7a-4ab68224df12",
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "secondary-type-ids": [
+              "6fd474e2-6b58-3102-9d17-d6f7eb7da0a0"
+            ],
+            "first-release-date": "2018-06-22",
+            "secondary-types": [
+              "Live"
+            ],
+            "primary-type": "Album",
+            "disambiguation": "",
+            "title": "L‐1VE"
+          },
+          {
+            "id": "a762516f-4de9-4b13-8b30-1eabd4f4ff66",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "first-release-date": "2026-06-11",
+            "primary-type": "Single",
+            "disambiguation": "",
+            "title": "bleeding sky"
+          },
+          {
+            "id": "a9cecf7b-0801-465e-a9ab-e4eb04730600",
+            "secondary-type-ids": [
+              "6fd474e2-6b58-3102-9d17-d6f7eb7da0a0"
+            ],
+            "primary-type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+            "secondary-types": [
+              "Live"
+            ],
+            "first-release-date": "2018-12-07",
+            "primary-type": "EP",
+            "disambiguation": "",
+            "title": "L+1VE"
+          },
+          {
+            "first-release-date": "2011-10-25",
+            "secondary-types": [],
+            "secondary-type-ids": [],
+            "id": "ad696558-566d-47d2-9d3e-d378758d25d3",
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "primary-type": "Album",
+            "title": "Visions",
+            "disambiguation": ""
+          },
+          {
+            "disambiguation": "",
+            "title": "Canary Yellow",
+            "primary-type": "Single",
+            "id": "b5b4f351-55ba-437f-b554-6539bdacc23a",
+            "secondary-type-ids": [],
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "first-release-date": "2020-05-01",
+            "secondary-types": []
+          },
+          {
+            "first-release-date": "2023-06-21",
+            "secondary-types": [],
+            "secondary-type-ids": [],
+            "id": "b9a4ccb6-9b7a-4cf5-ba8a-938e7faf6d44",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "title": "The Last Lullaby",
+            "disambiguation": "",
+            "primary-type": "Single"
+          },
+          {
+            "secondary-types": [],
+            "first-release-date": "2018-09-28",
+            "id": "bab43d14-1f94-4671-b78d-7348f665b683",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "secondary-type-ids": [],
+            "title": "Puzzle Box",
+            "disambiguation": "",
+            "primary-type": "Single"
+          },
+          {
+            "primary-type": "Single",
+            "title": "The Endless Knot",
+            "disambiguation": "",
+            "first-release-date": "2016-04-15",
+            "secondary-types": [],
+            "id": "c446ff2b-dfd1-4492-853c-c37e45b93a85",
+            "secondary-type-ids": [],
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9"
+          },
+          {
+            "id": "c9a4f9af-3479-4804-aef7-5233d8298938",
+            "secondary-type-ids": [
+              "81598169-0d6c-3bce-b4be-866fa658eda3"
+            ],
+            "primary-type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+            "secondary-types": [
+              "Demo"
+            ],
+            "first-release-date": "2007",
+            "disambiguation": "",
+            "title": "Souls / Snow",
+            "primary-type": "EP"
+          },
+          {
+            "secondary-types": [
+              "Remix"
+            ],
+            "first-release-date": "2023-08-18",
+            "id": "ca8ba5ee-bebf-4908-9088-adf559a36fe2",
+            "secondary-type-ids": [
+              "0c60f497-ff81-3818-befd-abfc84a4858b"
+            ],
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "primary-type": "Single",
+            "title": "Canary Yellow (acoustic version)",
+            "disambiguation": ""
+          },
+          {
+            "primary-type": "Album",
+            "disambiguation": "",
+            "title": "Fauna",
+            "secondary-type-ids": [],
+            "id": "ceacae43-41bb-4adf-b091-1c3e3cfdb223",
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "first-release-date": "2023-03-03",
+            "secondary-types": []
+          },
+          {
+            "disambiguation": "",
+            "title": "Nightingale",
+            "primary-type": "Single",
+            "id": "db5e378a-5004-4ca4-bad8-788a0f243ae3",
+            "secondary-type-ids": [],
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "first-release-date": "2022-04-26",
+            "secondary-types": []
+          },
+          {
+            "disambiguation": "",
+            "title": "Enter the 5th Dimension",
+            "primary-type": "Album",
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "id": "dc6a2853-1096-4657-a30b-4981a2deb128",
+            "secondary-type-ids": [
+              "81598169-0d6c-3bce-b4be-866fa658eda3"
+            ],
+            "secondary-types": [
+              "Demo"
+            ],
+            "first-release-date": "2008"
+          },
+          {
+            "primary-type": "Album",
+            "disambiguation": "",
+            "title": "The Mountain",
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "id": "ede19d6a-3d5c-45d9-ba10-7452ae0eb2e9",
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "first-release-date": "2013-08-30"
+          },
+          {
+            "secondary-types": [],
+            "first-release-date": "2020-05-22",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "id": "f09268a5-1eae-40de-887e-39861f1e5691",
+            "secondary-type-ids": [],
+            "primary-type": "Single",
+            "title": "Invasion",
+            "disambiguation": ""
+          },
+          {
+            "first-release-date": "2016-03-18",
+            "secondary-types": [],
+            "secondary-type-ids": [],
+            "id": "f64a49ee-8907-4f45-b7a7-2d60de8aa75f",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "primary-type": "Single",
+            "title": "Initiate",
+            "disambiguation": ""
+          }
+        ]
+      }
+    },
+    "3054e9b6-8573-4106-9660-a343688ed29f": {
+      "name": "Molly Nilsson",
+      "response": {
+        "release-group-offset": 0,
+        "release-groups": [
+          {
+            "secondary-types": [],
+            "first-release-date": "2025-10-01",
+            "title": "Amateur",
+            "secondary-type-ids": [],
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "id": "04cbb731-9d18-41a2-b0cf-9fa0929b5524",
+            "disambiguation": "",
+            "primary-type": "Album"
+          },
+          {
+            "title": "Let's Talk About Privileges",
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "first-release-date": "2016-10-03",
+            "disambiguation": "",
+            "primary-type": "Single",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "id": "05100a82-3e9a-4455-b246-aad141414218"
+          },
+          {
+            "secondary-types": [],
+            "first-release-date": "2022-01-15",
+            "secondary-type-ids": [],
+            "title": "Extreme",
+            "id": "08834f49-7995-47ae-96b3-a33809f670fa",
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "disambiguation": "",
+            "primary-type": "Album"
+          },
+          {
+            "secondary-types": [],
+            "first-release-date": "2014-11-13",
+            "secondary-type-ids": [],
+            "title": "Sex",
+            "id": "11d7b136-5441-4950-885d-c3b1e4a80b12",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "disambiguation": "",
+            "primary-type": "Single"
+          },
+          {
+            "secondary-types": [],
+            "first-release-date": "2011-12",
+            "secondary-type-ids": [],
+            "title": "History",
+            "id": "1863582e-f4d5-4a71-b2af-3ce824f6ccd7",
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "disambiguation": "",
+            "primary-type": "Album"
+          },
+          {
+            "disambiguation": "",
+            "primary-type": "Single",
+            "id": "1be605ee-2311-408c-b7d2-118e5333aef7",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "secondary-type-ids": [],
+            "title": "Certe Notti",
+            "secondary-types": [],
+            "first-release-date": "2025-05-06"
+          },
+          {
+            "primary-type": "Album",
+            "disambiguation": "",
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "id": "2d30a7bf-0ef5-4403-bb60-01303b2b81c7",
+            "title": "Follow The Light",
+            "secondary-type-ids": [],
+            "first-release-date": "2010-06-07",
+            "secondary-types": []
+          },
+          {
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "id": "2f18761d-e86e-4922-b2ec-bb9174762380",
+            "disambiguation": "",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2009-06-17",
+            "title": "Europa",
+            "secondary-type-ids": []
+          },
+          {
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "id": "3283bcb4-01c9-4f97-b1df-9706a997fd59",
+            "disambiguation": "",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2018-10-21",
+            "title": "Twenty Twenty",
+            "secondary-type-ids": []
+          },
+          {
+            "id": "3bccd029-084c-4e0d-9fec-b33719691ee4",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "primary-type": "Single",
+            "disambiguation": "",
+            "first-release-date": "2025-05-05",
+            "secondary-types": [],
+            "secondary-type-ids": [],
+            "title": "Il Peggior Bar di Caracas"
+          },
+          {
+            "disambiguation": "",
+            "primary-type": "Album",
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "id": "4f8d5013-7eba-4f3b-9c4c-2b386a9461fc",
+            "title": "These Things Take Time",
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "first-release-date": "2008-09"
+          },
+          {
+            "secondary-type-ids": [],
+            "title": "Think Pink",
+            "first-release-date": "2016-07-04",
+            "secondary-types": [],
+            "primary-type": "Single",
+            "disambiguation": "",
+            "id": "56d99ca4-58f1-47fc-b64e-73e3d46ed555",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9"
+          },
+          {
+            "primary-type": "Single",
+            "disambiguation": "",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "id": "65be713b-d3df-4cbf-b2f1-82f931f9d95e",
+            "title": "Un Po' Più Vicino Al Cielo",
+            "secondary-type-ids": [],
+            "first-release-date": "2025-05-05",
+            "secondary-types": []
+          },
+          {
+            "disambiguation": "",
+            "primary-type": "Single",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "id": "75c45177-14b5-4490-9642-f0062d2aa629",
+            "title": "Money Never Dreams",
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "first-release-date": "2016-12-09"
+          },
+          {
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "id": "78ce9974-ff0e-4974-ba07-105b9ea654b1",
+            "disambiguation": "",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2015-09-25",
+            "title": "Zenith",
+            "secondary-type-ids": []
+          },
+          {
+            "secondary-types": [],
+            "first-release-date": "2014-07-28",
+            "title": "Sólo Paraíso - The Summer Songs EP",
+            "secondary-type-ids": [],
+            "primary-type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+            "id": "7ee5d858-0eff-4c5a-abc8-d6825f87069d",
+            "disambiguation": "",
+            "primary-type": "EP"
+          },
+          {
+            "title": "Hey Moon",
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "first-release-date": "2021-03-29",
+            "disambiguation": "",
+            "primary-type": "Single",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "id": "916391af-aa9f-4f35-a8d6-71e7cb3f19b9"
+          },
+          {
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "id": "d21de095-30e4-4534-b1cb-3e884de53e7c",
+            "primary-type": "Album",
+            "disambiguation": "",
+            "first-release-date": "2017-05-26",
+            "secondary-types": [],
+            "title": "Imaginations",
+            "secondary-type-ids": []
+          },
+          {
+            "disambiguation": "",
+            "primary-type": "Single",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "id": "dca1a3b4-fd99-4ef0-9a4c-e8019082f2e1",
+            "title": "Extra",
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "first-release-date": "2023-03-22"
+          },
+          {
+            "secondary-type-ids": [],
+            "title": "Un-American Activities",
+            "secondary-types": [],
+            "first-release-date": "2024-07-07",
+            "disambiguation": "",
+            "primary-type": "Album",
+            "id": "e9b503b6-5a15-4b45-b1e2-f860ede1dd6a",
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc"
+          },
+          {
+            "title": "Single",
+            "secondary-type-ids": [],
+            "first-release-date": "2017-03-16",
+            "secondary-types": [],
+            "primary-type": "Single",
+            "disambiguation": "",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "id": "f690681e-c7d1-45de-aa9a-df369f20dd43"
+          },
+          {
+            "secondary-type-ids": [],
+            "title": "The Travels",
+            "first-release-date": "2013-06-19",
+            "secondary-types": [],
+            "primary-type": "Album",
+            "disambiguation": "",
+            "id": "fc5aded8-62f8-4f17-a400-f67468f1d269",
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc"
+          }
+        ],
+        "release-group-count": 22
+      }
+    },
+    "dace0d40-f90f-4b3b-99da-aa99be756920": {
+      "name": "Tramhaus",
+      "response": {
+        "release-group-offset": 0,
+        "release-group-count": 12,
+        "release-groups": [
+          {
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "primary-type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+            "primary-type": "EP",
+            "disambiguation": "",
+            "title": "Roodkapje Sessions",
+            "id": "128bf875-265b-4802-9ee1-8a22927a1caa",
+            "first-release-date": "2022-01-01"
+          },
+          {
+            "first-release-date": "2024-09-20",
+            "id": "1fd5c9b7-6863-4493-9973-9f214c727846",
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "title": "The First Exit",
+            "disambiguation": "",
+            "primary-type": "Album"
+          },
+          {
+            "first-release-date": "2024-05-24",
+            "secondary-types": [],
+            "secondary-type-ids": [],
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "primary-type": "Single",
+            "disambiguation": "",
+            "title": "Once Again",
+            "id": "2dff125d-81dd-41cc-93a1-f39d83d6d719"
+          },
+          {
+            "first-release-date": "2024-08-30",
+            "id": "3a81e946-1bff-4d8c-adcc-df9541f7da88",
+            "primary-type": "Single",
+            "title": "Ffleur Hari",
+            "disambiguation": "",
+            "secondary-types": [],
+            "secondary-type-ids": [],
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9"
+          },
+          {
+            "first-release-date": "2023-05-04",
+            "id": "3fc0fb4d-71cd-49c8-8194-54a0f2306e52",
+            "secondary-types": [],
+            "secondary-type-ids": [],
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "primary-type": "Single",
+            "title": "Minus Twenty",
+            "disambiguation": ""
+          },
+          {
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "secondary-types": [],
+            "secondary-type-ids": [],
+            "title": "Make It Happen",
+            "disambiguation": "",
+            "primary-type": "Single",
+            "id": "4a898c6f-0a41-439b-bbe8-3a82fefbfa52",
+            "first-release-date": "2022-06-28"
+          },
+          {
+            "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "disambiguation": "",
+            "title": "Blister",
+            "primary-type": "Album",
+            "id": "5d259cb9-2bad-49a7-9428-8e2174415e9e",
+            "first-release-date": "2026-10-09"
+          },
+          {
+            "primary-type": "EP",
+            "title": "Rotterdam",
+            "disambiguation": "",
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "primary-type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+            "id": "65016683-55aa-443f-af10-d8f8be1a8934",
+            "first-release-date": "2022-11-03"
+          },
+          {
+            "first-release-date": "2022-01-27",
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "primary-type": "Single",
+            "disambiguation": "",
+            "title": "I Don’t Sweat",
+            "id": "7ccd6fb0-13b8-4eff-b9da-fabab174dc5e"
+          },
+          {
+            "first-release-date": "2024-04-23",
+            "id": "a6050760-fbd4-4e15-8521-6b4bce176738",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "secondary-types": [],
+            "secondary-type-ids": [],
+            "disambiguation": "",
+            "title": "Beech",
+            "primary-type": "Single"
+          },
+          {
+            "first-release-date": "2023-02-02",
+            "id": "ad25e556-0fa9-4ba7-8fa5-eda6873e571c",
+            "primary-type": "Single",
+            "title": "The Goat",
+            "disambiguation": "",
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9"
+          },
+          {
+            "id": "e782f566-569c-4564-9168-e62aed014f9b",
+            "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+            "secondary-type-ids": [],
+            "secondary-types": [],
+            "title": "Switch",
+            "disambiguation": "",
+            "primary-type": "Single",
+            "first-release-date": "2023-03-09"
+          }
+        ]
+      }
+    }
+  }
+}

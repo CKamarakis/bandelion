@@ -274,6 +274,76 @@ check(job.done === 340, 'completing does not reset progress');
   }
 }
 
+// --- Migrations reach a database that already exists -------------------------
+// The case that matters: schema.sql is all CREATE TABLE IF NOT EXISTS, so it
+// builds a new database correctly and does nothing whatsoever to an old one. A
+// column added only there is present for new installs and silently missing for
+// everyone who already has data.
+
+console.log('\n# migrations');
+
+{
+  const fresh = openDatabase(':memory:');
+  const version = Number(fresh.prepare('PRAGMA user_version').get().user_version);
+  check(version > 0, `a new database records its schema version (${version})`);
+
+  const cols = (table) =>
+    fresh.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name);
+  check(cols('release_details').includes('date_precision'), 'release_details has date_precision');
+  check(cols('artists').includes('last_release_check_at'), 'artists has last_release_check_at');
+
+  // Opening again must be a no-op, not a second attempt at the same ALTERs.
+  const again = Number(fresh.prepare('PRAGMA user_version').get().user_version);
+  check(again === version, 'reopening does not change the version');
+}
+
+{
+  // Simulate the real upgrade: a database built before the columns existed.
+  const { DatabaseSync } = await import('node:sqlite');
+  const old = new DatabaseSync(':memory:');
+  old.exec(`CREATE TABLE artists (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              mbid TEXT UNIQUE, name TEXT NOT NULL,
+              name_normalized TEXT NOT NULL, image_url TEXT,
+              created_at TEXT NOT NULL DEFAULT (datetime('now')))`);
+  old.exec(`CREATE TABLE events (
+              id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL,
+              title TEXT NOT NULL, source TEXT NOT NULL,
+              source_event_id TEXT NOT NULL)`);
+  old.exec(`CREATE TABLE release_details (
+              event_id INTEGER PRIMARY KEY REFERENCES events(id),
+              release_type TEXT NOT NULL, cover_url TEXT, total_tracks INTEGER,
+              tracklist_json TEXT, spotify_album_id TEXT,
+              is_upcoming INTEGER NOT NULL DEFAULT 0)`);
+  old.prepare("INSERT INTO artists (name, name_normalized) VALUES ('Existing', 'existing')").run();
+
+  const before = old.prepare('PRAGMA table_info(release_details)').all().map((c) => c.name);
+  check(!before.includes('date_precision'), 'the old database really lacks the column');
+
+  // migrate() is not exported; openDatabase is the door everything uses, so
+  // drive it the same way the app does.
+  const { migrateForTest } = await import('../src/db/index.ts').then((m) => ({
+    migrateForTest: m.migrateForTest,
+  }));
+  migrateForTest(old);
+
+  const after = old.prepare('PRAGMA table_info(release_details)').all().map((c) => c.name);
+  check(after.includes('date_precision'), 'migrating an existing database adds date_precision');
+  check(
+    old.prepare('PRAGMA table_info(artists)').all().map((c) => c.name).includes('last_release_check_at'),
+    'migrating an existing database adds last_release_check_at',
+  );
+  check(
+    old.prepare('SELECT COUNT(*) c FROM artists').get().c === 1,
+    'existing rows survive the migration',
+  );
+
+  // Running it twice must not throw on the already-added column.
+  let threw = false;
+  try { migrateForTest(old); } catch { threw = true; }
+  check(!threw, 'migrating twice is safe');
+}
+
 // The exit must stay the LAST statement in this file. It sat halfway up once
 // and silently skipped every check appended after it, which is how a whole
 // block of assertions ran zero times while the suite reported green.

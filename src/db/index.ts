@@ -34,6 +34,67 @@ function schemaPath(): string {
   return here ? join(here, 'schema.sql') : join(process.cwd(), 'src', 'db', 'schema.sql');
 }
 
+/**
+ * Schema changes that must reach a database which already exists.
+ *
+ * `schema.sql` is all `CREATE TABLE IF NOT EXISTS`, so it builds a new database
+ * correctly and does nothing at all to an old one. Adding a column there alone
+ * means it appears for new installs and is silently missing for everyone with
+ * data — which, for a self-hosted app, is everyone who has been using it.
+ *
+ * Tracked with `PRAGMA user_version`, SQLite's built-in integer, so there is no
+ * migrations table to keep in step. Append only: each entry runs once, in
+ * order, and the version becomes the array length.
+ *
+ * Every statement must be safe to run against a database that has already been
+ * built fresh from `schema.sql`, because a new install runs both.
+ */
+const MIGRATIONS: { id: number; describe: string; sql: string[] }[] = [
+  {
+    id: 1,
+    describe: 'release date precision, and when an artist was last checked',
+    sql: [
+      /*
+       * Half of all MusicBrainz release dates carry no day (measured: 1,238 of
+       * 2,382 in a 2-month window are year-only). Storing "2027" as
+       * "2027-12-31" would make a guess indistinguishable from a real date, so
+       * the precision travels with the date and the UI can say "2027".
+       */
+      `ALTER TABLE release_details ADD COLUMN date_precision TEXT NOT NULL DEFAULT 'day'`,
+      // Tiered polling needs to know when an artist was last looked at, so a
+      // sweep can skip the ones checked recently rather than redoing all 625.
+      `ALTER TABLE artists ADD COLUMN last_release_check_at TEXT`,
+    ],
+  },
+];
+
+/** Bring an existing database up to the current schema version. */
+function migrate(db: DB): void {
+  const current = Number(
+    (db.prepare('PRAGMA user_version').get() as { user_version?: number })?.user_version ?? 0,
+  );
+
+  for (const migration of MIGRATIONS) {
+    if (migration.id <= current) continue;
+    for (const statement of migration.sql) {
+      try {
+        db.exec(statement);
+      } catch (err) {
+        // A fresh database built from schema.sql may already have the column.
+        // That is success, not a conflict; anything else is a real failure.
+        if (!/duplicate column name/i.test(String(err))) throw err;
+      }
+    }
+    db.exec(`PRAGMA user_version = ${migration.id}`);
+  }
+}
+
+/**
+ * Exported only so a test can drive a migration against a database built the
+ * old way. Production code goes through `openDatabase`, which calls it.
+ */
+export const migrateForTest = migrate;
+
 export function openDatabase(path: string): DB {
   if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
 
@@ -43,6 +104,9 @@ export function openDatabase(path: string): DB {
   db.exec('PRAGMA foreign_keys = ON');
 
   db.exec(readFileSync(schemaPath(), 'utf8'));
+  // After the schema, so a new database gets its tables first and then simply
+  // records that it is already at the current version.
+  migrate(db);
 
   return db;
 }

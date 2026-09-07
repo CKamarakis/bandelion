@@ -11,6 +11,7 @@
  *   npm run fixtures:record -- following
  *   npm run fixtures:record -- roster-sample [count]
  *   npm run fixtures:record -- mbid
+ *   npm run fixtures:record -- releases
  *
  * `mbid` records MusicBrainz identity lookups and needs no Spotify token. It
  * deliberately records the ambiguous roster names (two WITCHes, two
@@ -48,16 +49,112 @@ if (!mode) {
       '  npm run fixtures:record -- albums <artistId> [<artistId>...]\n' +
       '  npm run fixtures:record -- following\n' +
       '  npm run fixtures:record -- roster-sample [count]\n' +
-      '  npm run fixtures:record -- mbid            (MusicBrainz, no Spotify token needed)',
+      '  npm run fixtures:record -- mbid            (MusicBrainz identity, no Spotify token)\n' +
+      '  npm run fixtures:record -- releases        (MusicBrainz release-groups)',
   );
   process.exit(2);
 }
 
 /**
+ * MusicBrainz release-groups, recorded for the release pass.
+ *
+ * Chosen, not sampled. The set has to contain the cases the code must get
+ * right, or the tests prove nothing:
+ *
+ *  - Boy Harsher: a genuinely upcoming release (GET MEAN, dated ahead of the
+ *    recording). Spotify has no future-dated releases at all — checked across
+ *    60 artists and 542 albums — so the lookahead is MusicBrainz-only, and
+ *    without this artist no test exercises it.
+ *  - Haken: Fauna and Fauna (Deluxe Edition), the deluxe-vs-repressing case
+ *    that `total_tracks` exists to separate.
+ */
+if (mode === 'releases') {
+  const { loadConfig } = await import('../src/config.ts');
+  const contact = loadConfig().musicbrainzContact;
+  if (!contact) {
+    console.error('MUSICBRAINZ_CONTACT is not set; MusicBrainz needs a real User-Agent.');
+    process.exit(1);
+  }
+
+  const ua = `Bandelion/0.1 ( ${contact} )`;
+  const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  async function mbGet(path) {
+    for (let attempt = 0; attempt < 6; attempt++) {
+      let res;
+      try {
+        res = await fetch(`https://musicbrainz.org/ws/2/${path}`, {
+          headers: { 'User-Agent': ua, Accept: 'application/json' },
+        });
+      } catch {
+        await pause(3000);
+        continue;
+      }
+      // A 5xx carries a JSON body, so status is checked before parsing.
+      if (res.status >= 500) { await pause(3000); continue; }
+      if (!res.ok) throw new Error(`GET ${path} -> ${res.status}`);
+      return res.json();
+    }
+    throw new Error(`MusicBrainz stayed busy: ${path}`);
+  }
+
+  const wanted = ['Boy Harsher', 'Haken', 'Molly Nilsson', 'Tramhaus'];
+  const rows = db()
+    .prepare(
+      `SELECT id, name, mbid FROM artists
+        WHERE mbid IS NOT NULL AND name IN (${wanted.map(() => '?').join(',')})
+        ORDER BY name`,
+    )
+    .all(...wanted);
+
+  if (rows.length === 0) {
+    console.error('None of the chosen artists are resolved yet. Run: npm run ingest resolve');
+    process.exit(1);
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const recorded = {
+    _comment:
+      'Live GET /ws/2/release-group?artist=<mbid>, recorded by ' +
+      'npm run fixtures:record -- releases. Browse, not search: search paging is ' +
+      'unstable and drops ~22% of rows per sweep (decision 033). Chosen artists, ' +
+      'not sampled — Boy Harsher carries a future-dated release, which Spotify ' +
+      'does not expose at all, and Haken carries a deluxe edition sharing a date ' +
+      'with its standard release.',
+    _recordedAt: new Date().toISOString(),
+    _recordedRelativeTo: today,
+    artists: {},
+  };
+
+  for (const row of rows) {
+    const data = await mbGet(`release-group?artist=${row.mbid}&fmt=json&limit=100`);
+    const groups = data['release-groups'] ?? [];
+    const future = groups.filter((g) => (g['first-release-date'] ?? '') > today).length;
+    recorded.artists[row.mbid] = { name: row.name, response: data };
+    console.log(`  ${row.name}: ${groups.length} release-groups, ${future} future-dated`);
+    await pause(1200);
+  }
+
+  const totalFuture = Object.values(recorded.artists).reduce(
+    (n, a) => n + (a.response['release-groups'] ?? []).filter((g) => (g['first-release-date'] ?? '') > today).length,
+    0,
+  );
+  write('musicbrainz-releases.json', recorded);
+  if (totalFuture === 0) {
+    console.log(
+      '\nWarning: no future-dated release in this recording, so the upcoming\n' +
+        'path is not covered. Pick an artist with one before relying on it.',
+    );
+  } else {
+    console.log(`\n${totalFuture} future-dated release-group(s) captured.`);
+  }
+  process.exit(0);
+}
+
+/**
  * MusicBrainz identity resolution, recorded from the ambiguous cases.
  *
- * Separate from the Spotify path below because it needs no token, and because
- * the cases that matter are chosen rather than sampled: the two WITCHes and two
+ * The cases that matter are chosen rather than sampled: the two WITCHes and two
  * Pentagrams are the reason resolution works the way it does, so the fixture
  * has to contain them or the tests prove nothing.
  */
@@ -72,7 +169,7 @@ if (mode === 'mbid') {
   const ua = `Bandelion/0.1 ( ${contact} )`;
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-  async function mbGet(path) {
+  async function mbIdentityGet(path) {
     for (let attempt = 0; attempt < 5; attempt++) {
       const res = await fetch(`https://musicbrainz.org/ws/2/${path}`, {
         headers: { 'User-Agent': ua, Accept: 'application/json' },
@@ -118,7 +215,7 @@ if (mode === 'mbid') {
     const resource = `https://open.spotify.com/artist/${row.spotifyId}`;
     recorded.urlLookups[row.spotifyId] = {
       artist: row.name,
-      response: await mbGet(`url?resource=${encodeURIComponent(resource)}&inc=artist-rels&fmt=json`),
+      response: await mbIdentityGet(`url?resource=${encodeURIComponent(resource)}&inc=artist-rels&fmt=json`),
     };
     console.log(`  url  ${row.name} (${row.spotifyId})`);
     await sleep(1200);
@@ -126,7 +223,7 @@ if (mode === 'mbid') {
 
   for (const name of ['WITCH', 'Witch', 'Pentagram']) {
     const q = encodeURIComponent(`artist:"${name}"`);
-    recorded.nameSearches[name] = await mbGet(`artist?query=${q}&fmt=json&limit=5`);
+    recorded.nameSearches[name] = await mbIdentityGet(`artist?query=${q}&fmt=json&limit=5`);
     console.log(`  name ${name}`);
     await sleep(1200);
   }
@@ -137,7 +234,7 @@ if (mode === 'mbid') {
     ? recorded.urlLookups[haken.spotifyId]?.response?.relations?.find((r) => r.artist)?.artist?.id
     : null;
   if (hakenMbid) {
-    recorded.artistLinks = { [hakenMbid]: await mbGet(`artist/${hakenMbid}?inc=url-rels&fmt=json`) };
+    recorded.artistLinks = { [hakenMbid]: await mbIdentityGet(`artist/${hakenMbid}?inc=url-rels&fmt=json`) };
     console.log(`  links ${hakenMbid}`);
   }
 
