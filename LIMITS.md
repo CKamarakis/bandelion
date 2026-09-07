@@ -66,7 +66,7 @@ contributes nothing to the feed. Not before the flow works end to end.
 
 ## L02 · The review queue has no UI · blocks-flow (eventually)
 
-64 artists and counting sit in `match_queue` with `status = 'pending'` and no
+117 artists sit in `match_queue` with `status = 'pending'` and no
 screen to decide them on. The rows are correct and carry their candidates; there
 is simply nowhere to look at them.
 
@@ -190,6 +190,38 @@ shape of data.
 **Trigger:** once the release pass writes real rows. Not before — the seeded
 database exists precisely so the screen can be designed against real recorded
 shapes rather than invented ones.
+
+## L10 · The name-search fallback ignores aliases and renames · degrades
+
+Checking the 13 artists the run reported as having no MusicBrainz record, at
+least 3 of them **are** in MusicBrainz and the query simply could not reach
+them:
+
+| Roster name | MusicBrainz name | Why missed |
+|---|---|---|
+| Thee Oh Sees | Osees | the band renamed; MB stores the current name |
+| SKIADARESES | Σκιαδαρέσες | Greek script; carries the alias "Skiadareses" |
+| Heimerinoi Kolymvites | Χειμερινοί Κολυμβητές | Greek script, transliterated on Spotify |
+
+The fallback runs `artist:"<name>"`, an exact-phrase match against the primary
+name. It does not search the `alias` field, so an artist stored under its
+original script or a former name is invisible even when MusicBrainz has an
+alias saying exactly that.
+
+**Measured honestly:** of those 13, **2 are genuinely absent** (Hidden Pillars,
+Spectralfire — no hits under any query), 3 are confirmed misses as above, and 8
+are unconfirmed. A loose search returned score-100 hits for those 8, but
+MusicBrainz's score is relevance, not name equality — "Herr Rosen" ~ "Dale Herr"
+is a different act, not a rename. So: at least 2 truly absent, at most 10.
+
+**What would lift it:** query `alias:"<name>"` alongside `artist:"<name>"`, and
+apply the project's own normalisation to the query rather than sending the raw
+Spotify string. Decision 009 already built two normalisation keys for exactly
+this class of problem; they are not wired into the MusicBrainz query.
+
+**Trigger:** alongside L01's auto-accept work — both change how the fallback
+tier behaves, and doing them together means one re-run of the roster rather than
+two.
 
 ---
 

@@ -154,6 +154,77 @@ console.log('\n# 503 handling');
   check(calls.length === 3, `retried until success (${calls.length} calls)`);
 }
 
+console.log('\n# 502 and dropped sockets are retried too');
+
+{
+  // Seen live: MusicBrainz returns 502 as well as 503, and drops sockets
+  // mid-request (UND_ERR_SOCKET). Both were fatal, so an artist was reported
+  // as having no MusicBrainz record because the server had a bad moment.
+  const { fetch: inner } = fixtureFetch();
+  let calls = 0;
+  const badGateway = async (url) => {
+    calls++;
+    if (calls === 1) return new Response('<html>502</html>', { status: 502 });
+    return inner(url);
+  };
+  const id = Object.keys(fixture.urlLookups)[0];
+  const r = await resolveBySpotifyUrl(id, client(badGateway));
+  check(r.mbid !== null, 'a 502 is retried rather than treated as an absent artist');
+}
+
+{
+  const { fetch: inner } = fixtureFetch();
+  let calls = 0;
+  const flakySocket = async (url) => {
+    calls++;
+    if (calls === 1) {
+      const err = new Error('fetch failed');
+      err.cause = { code: 'UND_ERR_SOCKET' };
+      throw err;
+    }
+    return inner(url);
+  };
+  const id = Object.keys(fixture.urlLookups)[0];
+  const r = await resolveBySpotifyUrl(id, client(flakySocket));
+  check(r.mbid !== null, 'a dropped socket is retried rather than failing the artist');
+}
+
+{
+  // But a genuinely unreachable host still gives up, with a useful message
+  // rather than a bare "fetch failed".
+  const dead = async () => {
+    const err = new Error('fetch failed');
+    err.cause = { code: 'ENOTFOUND' };
+    throw err;
+  };
+  let message = '';
+  try {
+    await resolveBySpotifyUrl('whatever', client(dead));
+  } catch (err) {
+    message = err.message;
+  }
+  check(message.includes('unreachable'), 'an unreachable host eventually gives up');
+  check(message.includes('ENOTFOUND'), 'the give-up message names the underlying cause', message);
+}
+
+{
+  // Aborting is the operator stopping the job, not a fault to retry through.
+  const controller = new AbortController();
+  const aborting = async () => {
+    controller.abort();
+    const err = new Error('This operation was aborted');
+    err.name = 'AbortError';
+    throw err;
+  };
+  let threw = false;
+  try {
+    await resolveBySpotifyUrl('x', { contact: 'test', fetchImpl: aborting, sleep: noSleep, signal: controller.signal });
+  } catch {
+    threw = true;
+  }
+  check(threw, 'an aborted request propagates instead of being retried');
+}
+
 console.log('\n# link classification');
 
 {

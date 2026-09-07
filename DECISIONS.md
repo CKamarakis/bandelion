@@ -797,3 +797,40 @@ A decided row (confirmed or rejected) does not block a new one: that is a fresh
 question about an artist whose earlier answer is already recorded.
 
 **Repaired in place:** the 343 live rows were collapsed to 117, one per artist.
+
+---
+
+## 038 · Every transport fault is retried; politeness is not the lever
+
+**Decided:** the MusicBrainz client retries any 5xx and any thrown network
+error, not just 503. An aborted signal still propagates — that is the operator
+stopping the job, not a fault.
+
+**Why:** 503 was the only retried status, so a **502** — seen live alongside
+503s — threw immediately and cost the artist. Dropped sockets
+(`UND_ERR_SOCKET`, "other side closed") did the same. Both produced the failure
+mode decision 036 already named once: an artist reported as having no
+MusicBrainz record when the server had merely fallen over.
+
+**Why not just slow down.** The instinct is to hit them more gently. Measured in
+decision 033, that is backwards:
+
+```
+delay 1100ms:  4/10 ok
+delay 1500ms:  6/10 ok
+delay 2000ms:  0/10 ok
+```
+
+Slower was *worse*, and the 503s carried `x-ratelimit-remaining: 10-14` of 15 —
+budget left, still refused. Identical pacing scored 4/10 and 9/10 on two runs.
+The congestion is on their shared cluster, not in our request rate, so pacing
+below the documented 1 req/sec buys nothing and costs hours on a 625-artist job.
+
+**What actually helps**, in order: use browse/lookup rather than search (only
+search shares the congested cluster); retry patiently with capped exponential
+backoff; and degrade one artist rather than the run. Those three are why
+resolution completes at all.
+
+**Still open:** each artist costs two calls (identity, then links). Skipping the
+links call for artists that already have links would cut a re-run roughly in
+half. Tracked in `LIMITS.md` L03.

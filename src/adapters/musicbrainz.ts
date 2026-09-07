@@ -72,6 +72,13 @@ const defaultSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 
 export class MusicBrainzError extends Error {}
 
+/** Node wraps socket failures, so the useful text is often on `cause`. */
+function errorText(err: unknown): string {
+  if (!(err instanceof Error)) return String(err);
+  const cause = (err as { cause?: { code?: string } }).cause;
+  return cause?.code ? `${err.message} (${cause.code})` : err.message;
+}
+
 /**
  * One GET, with 503 retry.
  *
@@ -90,15 +97,38 @@ async function get(
   const sleep = opts.sleep ?? defaultSleep;
 
   for (let attempt = 0; attempt < attempts; attempt++) {
-    const res = await doFetch(`${WS}/${path}`, {
-      headers: { 'User-Agent': opts.contact, Accept: 'application/json' },
-      signal: opts.signal,
-    });
+    let res: Response;
+    try {
+      res = await doFetch(`${WS}/${path}`, {
+        headers: { 'User-Agent': opts.contact, Accept: 'application/json' },
+        signal: opts.signal,
+      });
+    } catch (err) {
+      /*
+       * A dropped connection is not an answer.
+       *
+       * MusicBrainz closed the socket mid-request several times while probing
+       * (UND_ERR_SOCKET, "other side closed"). Letting that propagate costs an
+       * artist for a fault that a retry fixes. An aborted signal is different —
+       * that is the operator stopping the job, and it must not be retried.
+       */
+      if (opts.signal?.aborted) throw err;
+      if (attempt === attempts - 1) {
+        throw new MusicBrainzError(
+          `MusicBrainz unreachable after ${attempts} attempts: ${errorText(err)}`,
+        );
+      }
+      await sleep(Math.min(1500 * 2 ** attempt, 15_000));
+      continue;
+    }
 
     // 404 is a real answer: MusicBrainz has no record of this URL. Not an error.
     if (res.status === 404) return null;
 
-    if (res.status === 503) {
+    // Any 5xx is their side having a bad moment, not a verdict about the
+    // artist. 502 was seen alongside 503 in practice, and treating it as fatal
+    // reported an artist absent when the server had simply fallen over.
+    if (res.status >= 500) {
       /*
        * Their throttle, not ours. Unlike Spotify's daily quota, retrying works.
        *
