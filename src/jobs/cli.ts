@@ -113,8 +113,67 @@ if (command === 'resolve') {
   process.exit(result.complete ? 0 : 1);
 }
 
+if (command === 'releases') {
+  const { importReleases, releaseStatus } = await import('./releases.ts');
+
+  if (!cfg.musicbrainzContact) {
+    console.error(
+      'MUSICBRAINZ_CONTACT is not set.\n' +
+        'MusicBrainz requires a real contact address in the User-Agent; see .env.example.',
+    );
+    process.exit(2);
+  }
+
+  const status = releaseStatus(db);
+  if (status.resolvable === 0) {
+    console.error(
+      'No artist has a MusicBrainz id yet, so there is nothing to look up.\n' +
+        'Run `npm run ingest resolve` first.',
+    );
+    process.exit(2);
+  }
+
+  console.log(
+    `releases: ${status.releases} known, ` +
+      `${status.checked}/${status.resolvable} artist(s) checked, status ${status.status}`,
+  );
+  const remaining = status.resolvable - status.checked;
+  if (remaining > 0) {
+    console.log(`about ${Math.ceil((remaining * 3) / 60)} minute(s) to sweep the rest.\n`);
+  }
+
+  const result = await importReleases({
+    db,
+    config: cfg,
+    contact: `Bandelion/0.1 ( ${cfg.musicbrainzContact} )`,
+    signal: controller.signal,
+    onProgress: ({ artistsChecked, written }) => {
+      if (artistsChecked % 25 === 0) console.log(`  ${artistsChecked} checked, ${written} new`);
+    },
+  });
+
+  console.log(
+    `\n${result.written} new release(s) from ${result.artistsChecked} artist(s); ` +
+      `${result.upcoming} of them not out yet.`,
+  );
+  // Seen-but-not-written is the normal steady state, and saying so stops a run
+  // that found nothing new from reading as a run that found nothing.
+  if (result.written === 0 && result.inWindow > 0) {
+    console.log(`${result.inWindow} release(s) in the window were already known.`);
+  }
+  if (result.transientFailures > 0) {
+    console.log(
+      `${result.transientFailures} artist(s) could not be reached and will be retried next run.`,
+    );
+  }
+  if (!result.complete) {
+    console.log(result.error ? `stopped: ${result.error}` : 'stopped early. Run again to resume.');
+  }
+  process.exit(result.complete ? 0 : 1);
+}
+
 if (command !== 'roster') {
-  console.error(`Unknown command "${command}". Use: roster (default) or resolve.`);
+  console.error(`Unknown command "${command}". Use: roster (default), resolve, or releases.`);
   process.exit(2);
 }
 

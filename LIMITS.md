@@ -134,12 +134,17 @@ window rule rather than pinned to a false date, and keep
 **Column now exists.** `release_details.date_precision` was added by migration 1
 (decision 040) and defaults to `'day'`.
 
-**Still unbuilt:** the UI treatment for an undated release. There is a real
-design question here — an "announced, no date" bucket is not the same as a dated
-feed item and probably should not look like one.
+**Done in the pipeline:** the release pass stores precision and admits
+year-only records to the window by comparing years rather than dropping them or
+widening them to a day. Verified end to end — a mutation widening year to day
+fails five checks.
 
-**Trigger:** the release pass. It cannot be deferred past that, because writing
-dates without precision loses information that cannot be recovered later.
+**Still unbuilt:** the UI treatment for an undated release. There is a real
+design question here — an "announced, no date" bucket is not the same as a
+dated feed item and probably should not look like one.
+
+**Trigger:** the feed. What remains is purely how an undated release looks on
+screen.
 
 ## L06 · Duplicate editions are understood but unhandled · degrades
 
@@ -206,6 +211,32 @@ shape of data.
 **Trigger:** once the release pass writes real rows. Not before — the seeded
 database exists precisely so the screen can be designed against real recorded
 shapes rather than invented ones.
+
+## L11 · MusicBrainz itself sometimes holds a record twice · degrades
+
+The release pass dedupes on release-group MBID, which is the right key — but
+MusicBrainz occasionally files one record under **two release-groups**. Seen on
+the first live sweep:
+
+```
+78ac8b67…  ENERGY  2026-07-17  Single  Gordo + WhoMadeWho
+a7af6ebe…  ENERGY  2026-07-17  Single  Gordo + WhoMadeWho
+```
+
+Identical title, date, type and artist credit. Two ids, so two feed rows.
+
+**Rate: 1 of 6 releases** on a 20-artist sample — too small a sample to design
+around, and the true rate is unknown.
+
+**What would lift it:** a second-tier collapse on (artist, title, date) after
+the MBID dedup, keeping the earliest-seen row. Cheap, since it is a local query
+over rows we already have. The risk is a genuine same-day double release by one
+artist, which is rare but real — a split single and its parent EP, say.
+
+**Trigger:** measure the rate across the full 495-artist sweep first. If it
+stays near 1-in-6 it is worth fixing before the feed ships, because your own
+rule says volume is the risk. If it is rarer, it can wait behind the feed
+itself. Do not fix it on a sample of one.
 
 ## L10 · The name-search fallback ignores aliases and renames · degrades
 

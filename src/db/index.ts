@@ -350,6 +350,62 @@ export function addArtistLinks(
  * Nightstalker and friends queued three times each, which turns a review queue
  * into a chore. A pending row for this artist and source is left alone.
  */
+export interface ReleaseEventRow {
+  artistId: number;
+  title: string;
+  /** May be partial: '2027', '2027-03', '2027-03-14'. */
+  eventDate: string | null;
+  datePrecision: 'day' | 'month' | 'year';
+  sourceEventId: string;
+  sourceUrl: string | null;
+  releaseType: string;
+  isUpcoming: boolean;
+  payload: string | null;
+}
+
+/**
+ * Write a release, or leave the existing one alone.
+ *
+ * `ON CONFLICT DO NOTHING` on (source, source_event_id) rather than an upsert:
+ * the release-group MBID is the novelty key, so a second sighting of the same
+ * id is the same record and carries nothing new. Overwriting would also reset
+ * `first_seen_at`, which is the only record of when *we* learned about it —
+ * and that is what "new to you" means in the feed.
+ *
+ * Returns the number of rows actually written, so a caller can report "3 new"
+ * rather than "47 seen".
+ */
+export function insertReleaseEvent(db: DB, row: ReleaseEventRow): number {
+  const result = db
+    .prepare(
+      `INSERT INTO events
+         (type, artist_id, title, event_date, announced_at, source,
+          source_event_id, source_url, payload_json, confidence)
+       VALUES ('release', ?, ?, ?, NULL, 'musicbrainz', ?, ?, ?, 1.0)
+       ON CONFLICT (source, source_event_id) DO NOTHING`,
+    )
+    .run(row.artistId, row.title, row.eventDate, row.sourceEventId, row.sourceUrl, row.payload);
+
+  if (Number(result.changes) === 0) return 0;
+
+  db.prepare(
+    `INSERT INTO release_details
+       (event_id, release_type, cover_url, total_tracks, tracklist_json,
+        spotify_album_id, is_upcoming, date_precision)
+     VALUES (?, ?, NULL, NULL, NULL, NULL, ?, ?)`,
+  ).run(Number(result.lastInsertRowid), row.releaseType, row.isUpcoming ? 1 : 0, row.datePrecision);
+
+  return 1;
+}
+
+/** Stamp when an artist was last swept, so tiered polling can skip it later. */
+export function markReleaseCheck(db: DB, artistId: number, when = new Date()): void {
+  db.prepare('UPDATE artists SET last_release_check_at = ? WHERE id = ?').run(
+    when.toISOString(),
+    artistId,
+  );
+}
+
 export function queueForReview(
   db: DB,
   entry: {

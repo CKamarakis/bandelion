@@ -894,3 +894,47 @@ anything else propagates.
 columns appear and existing rows survive. Commenting out the `migrate(db)` call
 fails it. The live 625-artist database was migrated in place — version 0 → 1,
 both columns added, 625 artists and 495 MBIDs intact.
+
+---
+
+## 041 · Releases are release-groups, and a second sighting writes nothing
+
+**Decided:** the release pass browses `release-group?artist=<mbid>` per artist
+and writes each group once, keyed on its MBID.
+
+**Release-groups rather than releases.** One call per artist instead of one per
+pressing, and MusicBrainz already collapses editions at this level — Haken's
+*Fauna* and *Fauna (Deluxe Edition)* are a single release-group, so the
+territorial and format duplicates that made the window search unusable never
+appear.
+
+The cost is real and accepted: a release-group carries **no cover art and no
+track count**. Both are stored as NULL rather than guessed at. Getting them
+means a second call per release, which is not worth it before the feed exists
+and can say whether artwork matters.
+
+**`ON CONFLICT DO NOTHING`, never an upsert.** The release-group MBID is the
+novelty key, so a second sighting is the same record and carries nothing new.
+An upsert would also reset `first_seen_at` — the only record of when *we*
+learned about a release, which is precisely what "new to you" means in a feed.
+A mutation changing this to an upsert fails two checks.
+
+**Secondary types beat primary types.** MusicBrainz files a live album as
+"Album + Live"; reading only the primary type puts a 2018 concert recording
+next to a new studio LP. Live, compilation, remix, demo and soundtrack are all
+reclassified, which matters because *volume is the risk, not sparsity*.
+
+**Tests pin "today" to the fixture's own `_recordedRelativeTo` stamp**, never
+the real clock. Boy Harsher's *GET MEAN* was eleven days ahead when recorded;
+against a live clock this suite would silently stop testing the upcoming path
+the moment that date passed, and nothing would fail.
+
+**A near-miss worth recording.** The first mutation run reported that widening
+year-only dates to 'day' broke nothing — the check that should have caught it
+did not exist, because every in-window release in the fixture happens to be
+day-precision. The fixture's real partial dates (2007, 2008, 2011-12, 2008-09)
+are all outside any sane window. Two tests were added that read those dates
+straight out of the fixture and push one through the whole pipeline; the
+mutation now fails five checks. The lesson is narrower than "test more": a
+fixture can contain the case you need and still never exercise it, if the code
+path filters it out before it is reached.

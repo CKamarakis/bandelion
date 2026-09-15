@@ -1,9 +1,11 @@
 /**
- * MusicBrainz: identity, and later releases.
+ * MusicBrainz: identity and releases.
  *
- * This file resolves a roster artist to an MBID, which is the join key
- * everything downstream needs. Releases come from the same source in a later
- * phase (decision 033).
+ * Two jobs, in order. It resolves a roster artist to an MBID — the join key
+ * everything downstream needs — and then browses that artist's release-groups
+ * for the feed. Spotify supplies neither: its album endpoint is quota-limited
+ * to a daily lockout (decision 032) and carries no future-dated releases at all
+ * (decision 039), so the entire lookahead lives here.
  *
  * The resolution strategy is not name search. Two artists on the real roster
  * are called WITCH and two are called Pentagram, and a name query for either
@@ -20,7 +22,14 @@
  * but its results go to the review queue rather than being written directly.
  */
 
-import type { FetchContext, FetchResult, SourceAdapter } from './types.ts';
+import type {
+  FetchContext,
+  FetchResult,
+  NormalizedEvent,
+  RawArtistRef,
+  ReleaseDetails,
+  SourceAdapter,
+} from './types.ts';
 
 const WS = 'https://musicbrainz.org/ws/2';
 
@@ -253,6 +262,203 @@ export function classifyLink(relType: string, url: string): string {
   return 'other';
 }
 
+/* --- Releases --------------------------------------------------------------
+ *
+ * Browse release-groups, never search. Search paging is unstable — two
+ * identical sweeps returned 1800 and 1819 distinct rows out of a claimed 2383
+ * (decision 033) — and browse is also the endpoint that does not throttle.
+ *
+ * Release-*groups*, not releases, for two reasons. It is one call per artist
+ * rather than one per pressing, and MusicBrainz already collapses editions at
+ * this level: Haken's Fauna and Fauna (Deluxe Edition) are a single
+ * release-group, so the territorial and format duplicates that plagued the
+ * window search never appear.
+ *
+ * The cost is that a release-group carries no cover art and no track count —
+ * those live on individual releases. Both stay null rather than invented.
+ */
+
+/** How precisely upstream knows the date. Half of all dates are not to the day. */
+export type DatePrecision = 'day' | 'month' | 'year';
+
+export interface ReleaseGroup {
+  /** Release-group MBID. The novelty key: seen before or not. */
+  mbid: string;
+  title: string;
+  /** ISO, but possibly partial: '2027', '2027-03' or '2027-03-14'. */
+  firstReleaseDate: string | null;
+  precision: DatePrecision | null;
+  primaryType: string | null;
+  secondaryTypes: string[];
+  /** The verbatim record, for `payload_json`. */
+  raw: unknown;
+}
+
+interface MbReleaseGroup {
+  id?: string;
+  title?: string;
+  'first-release-date'?: string;
+  'primary-type'?: string | null;
+  'secondary-types'?: string[];
+}
+
+/**
+ * Read precision off the string rather than trusting a separate field.
+ *
+ * MusicBrainz encodes it in the length: '2027', '2027-03', '2027-03-14'. A
+ * year-only date must never be widened to a day — writing '2027-12-31' makes a
+ * guess indistinguishable from a real date once it is in the column.
+ */
+export function datePrecision(date: string | null | undefined): DatePrecision | null {
+  if (!date) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return 'day';
+  if (/^\d{4}-\d{2}$/.test(date)) return 'month';
+  if (/^\d{4}$/.test(date)) return 'year';
+  return null;
+}
+
+/**
+ * Map MusicBrainz's type vocabulary onto ours.
+ *
+ * Secondary types win over primary, because they are what the listener
+ * actually cares about: "Album + Live" is a live record, and filing it as an
+ * album puts a 2018 concert recording in the feed next to a new studio LP.
+ */
+export function classifyReleaseType(
+  primary: string | null | undefined,
+  secondary: string[] = [],
+): ReleaseDetails['releaseType'] {
+  const sec = secondary.map((s) => s.toLowerCase());
+  if (sec.includes('live')) return 'live';
+  if (sec.includes('compilation')) return 'compilation';
+  // Remix, demo, soundtrack and DJ-mix have no home in the vocabulary and are
+  // not albums in any useful sense. 'other' keeps them filterable.
+  if (sec.some((s) => ['remix', 'demo', 'soundtrack', 'dj-mix', 'mixtape/street'].includes(s))) {
+    return 'other';
+  }
+
+  switch ((primary ?? '').toLowerCase()) {
+    case 'album':
+      return 'album';
+    case 'ep':
+      return 'ep';
+    case 'single':
+      return 'single';
+    case 'broadcast':
+    case 'other':
+      return 'other';
+    default:
+      return 'other';
+  }
+}
+
+/**
+ * Every release-group for one artist.
+ *
+ * Paged, because browse caps at 100 and a long discography exceeds it. Unlike
+ * search, browse paging is stable, so offset is safe here.
+ */
+export async function fetchReleaseGroups(
+  mbid: string,
+  opts: MbClientOptions,
+  maxPages = 10,
+): Promise<ReleaseGroup[]> {
+  const out: ReleaseGroup[] = [];
+  let offset = 0;
+
+  for (let page = 0; page < maxPages; page++) {
+    const json = (await get(
+      `release-group?artist=${mbid}&fmt=json&limit=100&offset=${offset}`,
+      opts,
+    )) as { 'release-groups'?: MbReleaseGroup[]; 'release-group-count'?: number } | null;
+
+    const groups = json?.['release-groups'];
+    if (!groups) break;
+
+    for (const g of groups) {
+      if (!g.id || !g.title) continue;
+      const date = g['first-release-date'] ?? null;
+      out.push({
+        mbid: g.id,
+        title: g.title,
+        firstReleaseDate: date,
+        precision: datePrecision(date),
+        primaryType: g['primary-type'] ?? null,
+        secondaryTypes: g['secondary-types'] ?? [],
+        raw: g,
+      });
+    }
+
+    const total = json?.['release-group-count'] ?? out.length;
+    offset += groups.length;
+    if (groups.length === 0 || out.length >= total) break;
+  }
+
+  return out;
+}
+
+/**
+ * Is this release-group inside the window we care about?
+ *
+ * Year-only dates are deliberately exempt from the upper bound. "2027" cannot
+ * be placed on a two-month timeline, and excluding it would silently drop an
+ * announced record; including it as if it were dated would be a lie. It is
+ * admitted, and its precision travels with it so the UI can say "2027".
+ */
+export function inReleaseWindow(
+  group: Pick<ReleaseGroup, 'firstReleaseDate' | 'precision'>,
+  window: { from: string; to: string },
+): boolean {
+  const { firstReleaseDate: date, precision } = group;
+  if (!date) return false;
+
+  if (precision === 'year') {
+    // Compare years only: a 2027 record is "coming", a 2019 one is history.
+    return date >= window.from.slice(0, 4) && date <= window.to.slice(0, 4);
+  }
+  if (precision === 'month') {
+    return date >= window.from.slice(0, 7) && date <= window.to.slice(0, 7);
+  }
+  return date >= window.from && date <= window.to;
+}
+
+/**
+ * Turn a release-group into the event the ingest job writes.
+ *
+ * `isUpcoming` compares against `today` rather than `new Date()` so the caller
+ * — and the tests — decide what "now" means. A fixture recorded last month
+ * otherwise stops exercising the upcoming path as the clock moves.
+ */
+export function toReleaseEvent(
+  group: ReleaseGroup,
+  artist: RawArtistRef,
+  today: string,
+): NormalizedEvent {
+  const date = group.firstReleaseDate;
+  return {
+    type: 'release',
+    source: 'musicbrainz',
+    sourceEventId: group.mbid,
+    sourceUrl: `https://musicbrainz.org/release-group/${group.mbid}`,
+    artistRef: artist,
+    title: group.title,
+    eventDate: date,
+    // MusicBrainz does not record when a release was announced, only when it
+    // is dated. Inventing one would be a claim we cannot support.
+    announcedAt: null,
+    release: {
+      releaseType: classifyReleaseType(group.primaryType, group.secondaryTypes),
+      // Neither lives on a release-group; both would need a per-release call.
+      coverUrl: null,
+      totalTracks: null,
+      tracklist: null,
+      spotifyAlbumId: null,
+      isUpcoming: Boolean(date && date > today),
+    },
+    payload: group.raw,
+  };
+}
+
 /**
  * The adapter registration.
  *
@@ -271,12 +477,19 @@ export const musicbrainzAdapter: SourceAdapter = {
   },
 
   async fetch(_ctx: FetchContext): Promise<FetchResult> {
-    // Releases land in the next phase. `complete: true` with no events would
-    // claim MusicBrainz said there is nothing, which is not what happened.
+    /*
+     * Releases are fetched per artist by `src/jobs/releases.ts`, which needs
+     * the roster and its MBIDs — neither of which a FetchContext carries.
+     *
+     * `complete: false` rather than `complete: true` with no events: the
+     * latter would claim MusicBrainz said there is nothing, which is not what
+     * happened. The adapter exists so MusicBrainz appears in `adapter_health`
+     * alongside every other source; the job is what actually reads it.
+     */
     return {
       events: [],
       complete: false,
-      error: 'MusicBrainz release fetching is not implemented yet',
+      error: 'MusicBrainz releases are fetched per artist by the release job, not through fetch()',
     };
   },
 };
