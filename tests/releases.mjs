@@ -246,6 +246,121 @@ const cfg = { ...loadConfig(), releaseWindowMonthsBack: 4, releaseWindowMonthsFo
   check(result.written > 0, `releases were written (${result.written})`);
   check(result.upcoming > 0, `an upcoming release was written (${result.upcoming})`);
 
+  const artistCount = Object.keys(fixture.artists).length;
+  check(
+    result.artistsChecked === artistCount,
+    `each artist is checked exactly once (${result.artistsChecked} of ${artistCount})`,
+  );
+
+  /*
+   * The first live sweep reported "970 artists" against a roster of 495,
+   * because the pending query selected every resolved artist rather than only
+   * unswept ones, so the end-of-roster rewind re-read the whole roster. Only
+   * the in-memory `handled` set stopped it looping.
+   *
+   * Counting requests rather than artists is what catches that: `handled`
+   * suppresses the double *count* but not the double *fetch*, so a run that
+   * re-reads the roster still makes twice the calls.
+   */
+  /*
+   * A swept artist must drop out of the pending query.
+   *
+   * The first live sweep reported 970 artists against a roster of 495: the
+   * query selected every resolved artist regardless of whether this run had
+   * already done it, so the end-of-roster rewind re-read the whole roster. An
+   * in-memory guard stopped it looping, but the work was still done twice.
+   *
+   * Asserting on the stamp rather than on request counts, because the
+   * in-memory guard masks the double-fetch inside a single run — it is the
+   * query that has to be right.
+   */
+  const stamped = db
+    .prepare('SELECT COUNT(*) c FROM artists WHERE last_release_check_at IS NOT NULL')
+    .get().c;
+  check(stamped === artistCount, 'every swept artist carries a check stamp');
+
+  /*
+   * Compared against the moment the run began, not "now" — a stamp written
+   * during the run is necessarily older than the current clock, so comparing
+   * against `new Date()` would call every artist stale and prove nothing. The
+   * job's own `startedAt` is the boundary that matters.
+   */
+  const runStart = db
+    .prepare('SELECT MIN(last_release_check_at) m FROM artists WHERE last_release_check_at IS NOT NULL')
+    .get().m;
+  const stillPending = db
+    .prepare(
+      `SELECT COUNT(*) c FROM artists
+        WHERE mbid IS NOT NULL
+          AND (last_release_check_at IS NULL OR last_release_check_at < ?)`,
+    )
+    .get(runStart).c;
+  check(
+    stillPending === 0,
+    'no artist swept this run is still selectable, so the rewind finds nothing to redo',
+    `${stillPending} would be re-swept`,
+  );
+}
+
+console.log('\n# the rewind does not re-read the roster');
+
+{
+  // batchSize 1 forces the loop past the end of the roster, which is what
+  // triggers the rewind at all. At the default of 25 this four-artist fixture
+  // fits in one batch and the path is never entered.
+  const db = seedDb();
+  const { fetch, calls } = fixtureFetch();
+  const artistCount = Object.keys(fixture.artists).length;
+
+  const result = await importReleases({
+    db,
+    config: cfg,
+    contact: 'test',
+    fetchImpl: fetch,
+    sleep: noSleep,
+    today: TODAY,
+    batchSize: 1,
+  });
+
+  check(result.complete === true, 'the job completes when batched one at a time');
+  check(
+    result.artistsChecked === artistCount,
+    `the rewind adds no extra work (${result.artistsChecked} of ${artistCount})`,
+  );
+  check(calls.length === artistCount, `one request per artist (${calls.length} calls)`);
+
+  /*
+   * A later run re-sweeps, and should: releases appear over time, so a weekly
+   * job has to look again. The stale filter scopes to one run — each run takes
+   * its own start timestamp, so last week's stamps are older than this run's
+   * start and the artist is due again.
+   *
+   * Asserted with the stamps pushed back a day rather than by re-running
+   * immediately. ISO timestamps have millisecond resolution, so a second run
+   * starting in the same millisecond as the first run's stamps sees them as
+   * not-yet-stale — which made this check pass alone and fail under suite
+   * load, at 2 calls instead of 4. A flaky test is worse than no test.
+   */
+  const yesterday = new Date(Date.now() - 86_400_000).toISOString();
+  db.prepare('UPDATE artists SET last_release_check_at = ?').run(yesterday);
+
+  const { fetch: again, calls: secondCalls } = fixtureFetch();
+  const second = await importReleases({
+    db,
+    config: cfg,
+    contact: 'test',
+    fetchImpl: again,
+    sleep: noSleep,
+    today: TODAY,
+    batchSize: 1,
+  });
+
+  check(
+    secondCalls.length === artistCount,
+    `a later run sweeps each artist again, exactly once (${secondCalls.length} calls)`,
+  );
+  check(second.written === 0, 'but finds nothing new to write');
+
   const after = releaseStatus(db);
   check(after.releases === result.written, 'the database holds what the job reported writing');
   check(after.checked === Object.keys(fixture.artists).length, 'every artist is stamped as checked');

@@ -212,7 +212,7 @@ shape of data.
 database exists precisely so the screen can be designed against real recorded
 shapes rather than invented ones.
 
-## L11 · MusicBrainz itself sometimes holds a record twice · degrades
+## L11 · MusicBrainz itself sometimes holds a record twice · cosmetic
 
 The release pass dedupes on release-group MBID, which is the right key — but
 MusicBrainz occasionally files one record under **two release-groups**. Seen on
@@ -225,18 +225,19 @@ a7af6ebe…  ENERGY  2026-07-17  Single  Gordo + WhoMadeWho
 
 Identical title, date, type and artist credit. Two ids, so two feed rows.
 
-**Rate: 1 of 6 releases** on a 20-artist sample — too small a sample to design
-around, and the true rate is unknown.
+**Measured on the full sweep: 1 redundant row in 225 (0.4%).** The 20-artist
+sample suggested 1-in-6, which would have justified fixing it immediately; the
+real rate does not. Waiting for the full measurement was the right call.
 
 **What would lift it:** a second-tier collapse on (artist, title, date) after
-the MBID dedup, keeping the earliest-seen row. Cheap, since it is a local query
-over rows we already have. The risk is a genuine same-day double release by one
-artist, which is rare but real — a split single and its parent EP, say.
+the MBID dedup, keeping the earliest-seen row. Cheap — a local query over rows
+we already have. The risk is a genuine same-day double release by one artist,
+rare but real (a split single and its parent EP, say), and at 0.4% that risk
+is larger than the problem.
 
-**Trigger:** measure the rate across the full 495-artist sweep first. If it
-stays near 1-in-6 it is worth fixing before the feed ships, because your own
-rule says volume is the risk. If it is rarer, it can wait behind the feed
-itself. Do not fix it on a sample of one.
+**Trigger:** only if the rate climbs, or if a duplicate appears somewhere it
+actually reads badly — two identical cards adjacent in the feed. Not worth
+pre-empting.
 
 ## L10 · The name-search fallback ignores aliases and renames · degrades
 

@@ -63,22 +63,35 @@ interface PendingArtist {
 }
 
 /**
- * Resolved artists not yet swept this run.
+ * Resolved artists due a sweep.
  *
  * Ordered by id so the cursor means "resume after this one". Artists with no
  * MBID are excluded entirely rather than name-matched: a release attached to
  * the wrong band is worse than a missing one (decision 008).
+ *
+ * `staleBefore` is what makes the rewind cheap. The resolve job's equivalent
+ * query filters on `mbid IS NULL`, so an artist drops out of it the moment it
+ * succeeds; this one had no such filter, so the rewind re-selected the entire
+ * roster and the first full run reported 970 artists checked out of 495. The
+ * `last_release_check_at` stamp is the filter that was missing.
  */
-function pendingArtists(db: DB, afterId: number, limit: number): PendingArtist[] {
+function pendingArtists(
+  db: DB,
+  afterId: number,
+  limit: number,
+  staleBefore: string,
+): PendingArtist[] {
   return db
     .prepare(
       `SELECT id, name, mbid
          FROM artists
-        WHERE mbid IS NOT NULL AND id > ?
+        WHERE mbid IS NOT NULL
+          AND id > ?
+          AND (last_release_check_at IS NULL OR last_release_check_at < ?)
         ORDER BY id
         LIMIT ?`,
     )
-    .all(afterId, limit) as unknown as PendingArtist[];
+    .all(afterId, staleBefore, limit) as unknown as PendingArtist[];
 }
 
 export function releaseStatus(db: DB) {
@@ -115,6 +128,12 @@ export async function importReleases(opts: {
   fetchImpl?: typeof fetch;
   sleep?: (ms: number) => Promise<void>;
   today?: string;
+  /**
+   * Artists per batch. Only worth setting in tests: at the default of 25 a
+   * small fixture fits in a single batch, so the end-of-roster rewind never
+   * runs and the path that produced the 970-of-495 bug is unreachable.
+   */
+  batchSize?: number;
   onProgress?: (p: { artistsChecked: number; written: number }) => void;
 }): Promise<ReleaseProgress> {
   const { db, config } = opts;
@@ -146,6 +165,12 @@ export async function importReleases(opts: {
   let rewound = false;
   const handled = new Set<number>();
   let lastTransientError: string | null = null;
+  /*
+   * Everything stamped before this moment is due a sweep; everything stamped
+   * after it was done by this run. Taken once at the start rather than per
+   * batch, so an artist swept early cannot re-qualify as the clock moves.
+   */
+  const startedAt = new Date().toISOString();
 
   try {
     while (progress.artistsChecked < budget) {
@@ -154,18 +179,22 @@ export async function importReleases(opts: {
         return { ...progress, error: 'stopped' };
       }
 
-      let batch = pendingArtists(db, cursor, Math.min(25, budget - progress.artistsChecked));
+      const take = Math.min(opts.batchSize ?? 25, budget - progress.artistsChecked);
+      let batch = pendingArtists(db, cursor, take, startedAt);
 
       // The cursor only moves forward, so once it passes the last artist the
       // ones skipped this pass are unreachable. Rewind once — see decision 036,
       // where the same bug made the resolve job report complete with a fifth of
       // the roster untouched.
+      //
+      // `handled` still guards the rewind even though the query now excludes
+      // swept artists: an artist whose lookup failed is deliberately left
+      // unstamped so the next *run* retries it, which would otherwise make it
+      // eligible again within this one.
       if (batch.length === 0 && cursor > 0 && !rewound) {
         rewound = true;
         cursor = 0;
-        batch = pendingArtists(db, 0, Math.min(25, budget - progress.artistsChecked)).filter(
-          (a) => !handled.has(a.id),
-        );
+        batch = pendingArtists(db, 0, take, startedAt).filter((a) => !handled.has(a.id));
       }
 
       if (batch.length === 0) {
