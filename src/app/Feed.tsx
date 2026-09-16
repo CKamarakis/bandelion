@@ -22,6 +22,14 @@ import {
   relativeDays,
   releaseTypeLabel,
 } from './feed-format.ts';
+import {
+  byDate,
+  inCategory,
+  inStatus,
+  type CategoryId,
+  type SortId,
+  type StatusId,
+} from './feed-filters.ts';
 
 /*
  * Copy, hoisted so every user-facing string is reviewable in one place against
@@ -35,7 +43,7 @@ const HEADING = 'Releases';
 const EMPTY_NOT_RUN = 'No releases imported yet.';
 const EMPTY_NOT_RUN_HINT = 'Run npm run ingest releases to check your artists.';
 const EMPTY_FILTERED = 'Nothing matches this filter.';
-const UPCOMING_LABEL = 'Announced';
+const UPCOMING_LABEL = 'Coming';
 const RELEASED_LABEL = 'Out now';
 const COUNT_LABEL = (shown: number, total: number) =>
   shown === total ? `${total} release${total === 1 ? '' : 's'}` : `${shown} of ${total}`;
@@ -48,30 +56,83 @@ const COUNT_LABEL = (shown: number, total: number) =>
 const TRUNCATED = (total: number, loaded: number) =>
   `${total} releases · showing the newest ${loaded}`;
 
-/** Filters name what they show. A filter nobody can read is decoration. */
-const FILTERS = [
+const STATUS_LEGEND = 'Show';
+const SORT_LEGEND = 'Sort';
+
+/**
+ * What kind of record, not whether it is out yet.
+ *
+ * "Coming" was a category here and is now a status below, because the two
+ * questions are independent: wanting only albums and wanting only unreleased
+ * things are different filters, and folding them into one row made "albums
+ * that are not out yet" unreachable.
+ *
+ * Compilations count as albums. They are album-length records rather than a
+ * kind of their own, and at four rows out of 225 a separate home would have
+ * been a category nobody filters by.
+ *
+ * "Live recordings" means a released concert recording — a record you can play,
+ * not a ticket. Bandelion has no gigs yet; when it does they are a different
+ * event type entirely, not a category here.
+ */
+const CATEGORIES = [
   { id: 'all', label: 'All' },
-  { id: 'upcoming', label: 'Announced' },
   { id: 'album', label: 'Albums' },
   { id: 'single', label: 'Singles & EPs' },
-  { id: 'other', label: 'Live & other' },
+  { id: 'live', label: 'Live recordings' },
+  { id: 'other', label: 'Other' },
 ] as const;
 
-type FilterId = (typeof FILTERS)[number]['id'];
+/** Whether it is out yet. Independent of category — see inStatus. */
+const STATUSES = [
+  { id: 'all', label: 'All' },
+  { id: 'coming', label: 'Coming' },
+  { id: 'released', label: 'Released' },
+] as const;
 
-function matches(item: FeedItem, filter: FilterId): boolean {
-  switch (filter) {
-    case 'upcoming':
-      return item.isUpcoming;
-    case 'album':
-      return item.releaseType === 'album';
-    case 'single':
-      return item.releaseType === 'single' || item.releaseType === 'ep';
-    case 'other':
-      return ['live', 'compilation', 'other'].includes(item.releaseType);
-    default:
-      return true;
-  }
+/** Newest first by default: what changed recently is what you came to see. */
+const SORTS = [
+  { id: 'desc', label: 'Newest first' },
+  { id: 'asc', label: 'Oldest first' },
+] as const;
+
+
+/** One control group. Every group looks and behaves the same — consistency of
+ *  gesture beats economy of controls. */
+function Controls<T extends string>({
+  legend,
+  options,
+  value,
+  onChange,
+}: {
+  legend: string;
+  options: readonly { id: T; label: string }[];
+  value: T;
+  onChange: (id: T) => void;
+}) {
+  return (
+    <div style={S.controlRow}>
+      <span className="cat" style={S.legend}>
+        {legend}
+      </span>
+      <div style={S.filters} role="group" aria-label={legend}>
+        {options.map((o) => {
+          const active = o.id === value;
+          return (
+            <button
+              key={o.id}
+              type="button"
+              onClick={() => onChange(o.id)}
+              aria-pressed={active}
+              style={{ ...S.filter, ...(active ? S.filterActive : null) }}
+            >
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 export function Feed({
@@ -84,9 +145,19 @@ export function Feed({
   /** Rows in the database, which may exceed the rows fetched. */
   total: number;
 }) {
-  const [filter, setFilter] = useState<FilterId>('all');
+  const [category, setCategory] = useState<CategoryId>('all');
+  const [status, setStatus] = useState<StatusId>('all');
+  const [sort, setSort] = useState<SortId>('desc');
 
-  const shown = useMemo(() => items.filter((i) => matches(i, filter)), [items, filter]);
+  const shown = useMemo(
+    () =>
+      // filter() already returns a new array, so sorting it in place is safe —
+      // but only because of that. Sorting `items` directly would mutate a prop.
+      items
+        .filter((i) => inCategory(i, category) && inStatus(i, status))
+        .sort(byDate(sort)),
+    [items, category, status, sort],
+  );
 
   // Never run vs ran and found nothing are different facts and read
   // differently. Only the first can be fixed by running the job.
@@ -105,27 +176,34 @@ export function Feed({
       <div style={S.headRow}>
         <h2>{HEADING}</h2>
         <span className="cat" style={S.count}>
-          {items.length < total && filter === 'all'
+          {items.length < total && category === 'all' && status === 'all'
             ? TRUNCATED(total, items.length)
             : COUNT_LABEL(shown.length, items.length)}
         </span>
       </div>
 
-      <div style={S.filters} role="group" aria-label="Filter releases">
-        {FILTERS.map((f) => {
-          const active = f.id === filter;
+      {/* Category first, because it is the coarsest cut; then status and sort,
+          which apply within whatever category is showing. */}
+      <div style={S.categoryRow} role="group" aria-label="Release type">
+        {CATEGORIES.map((c) => {
+          const active = c.id === category;
           return (
             <button
-              key={f.id}
+              key={c.id}
               type="button"
-              onClick={() => setFilter(f.id)}
+              onClick={() => setCategory(c.id)}
               aria-pressed={active}
               style={{ ...S.filter, ...(active ? S.filterActive : null) }}
             >
-              {f.label}
+              {c.label}
             </button>
           );
         })}
+      </div>
+
+      <div style={S.controls}>
+        <Controls legend={STATUS_LEGEND} options={STATUSES} value={status} onChange={setStatus} />
+        <Controls legend={SORT_LEGEND} options={SORTS} value={sort} onChange={setSort} />
       </div>
 
       {shown.length === 0 ? (
@@ -195,7 +273,21 @@ const S: Record<string, React.CSSProperties> = {
   },
   count: { color: 'var(--ink)', opacity: 0.7 },
 
-  filters: { display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1rem' },
+  // The category row reads as the primary cut, so it keeps the full-width
+  // treatment and the gap below it.
+  categoryRow: { display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '0.6rem' },
+  // Status and sort sit together on one line at width, stacking when narrow.
+  controls: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '0.6rem 1.4rem',
+    marginBottom: '1rem',
+    paddingBottom: '0.8rem',
+    borderBottom: 'var(--rule-width) solid var(--rule)',
+  },
+  controlRow: { display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' },
+  legend: { fontSize: '0.6rem', opacity: 0.65 },
+  filters: { display: 'flex', flexWrap: 'wrap', gap: '0.4rem' },
   filter: {
     font: 'inherit',
     fontSize: '0.7rem',

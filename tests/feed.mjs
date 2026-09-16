@@ -172,6 +172,87 @@ console.log('\n# the count reports what exists, not what was fetched');
   );
 }
 
+console.log('\n# category and status are independent');
+
+{
+  /*
+   * "Coming" used to be a category alongside Albums, which made "albums that
+   * are not out yet" unreachable — the two questions are independent and now
+   * have their own controls. These assert the filter predicates directly,
+   * since the component itself needs a browser.
+   */
+  const { inCategory, inStatus, byDate } = await import('../src/app/feed-filters.ts');
+
+  const row = (releaseType, isUpcoming, eventDate = '2026-01-01') => ({
+    releaseType,
+    isUpcoming,
+    eventDate,
+  });
+
+  check(inCategory(row('album'), 'album'), 'an album is in Albums');
+  check(
+    inCategory(row('compilation'), 'album'),
+    'a compilation counts as an album — it is an album-length record',
+  );
+  check(inCategory(row('ep'), 'single'), 'an EP sits with singles');
+  check(inCategory(row('single'), 'single'), 'a single sits with singles');
+  check(inCategory(row('live'), 'live'), 'a live recording has its own category');
+  check(!inCategory(row('live'), 'other'), 'a live recording is no longer lumped into Other');
+  check(inCategory(row('other'), 'other'), 'remixes and the rest land in Other');
+  check(inCategory(row('album'), 'all'), 'All admits everything');
+
+  check(inStatus(row('album', true), 'coming'), 'an unreleased record is Coming');
+  check(!inStatus(row('album', false), 'coming'), 'a released record is not Coming');
+  check(inStatus(row('album', false), 'released'), 'a released record is Released');
+  check(inStatus(row('album', true), 'all'), 'All admits both statuses');
+
+  // The combination that was impossible before.
+  const unreleasedAlbum = row('album', true);
+  check(
+    inCategory(unreleasedAlbum, 'album') && inStatus(unreleasedAlbum, 'coming'),
+    'an album that is not out yet matches both Albums and Coming',
+  );
+}
+
+console.log('\n# sorting by date');
+
+{
+  const { byDate } = await import('../src/app/feed-filters.ts');
+  const mk = (eventDate) => ({ eventDate });
+
+  const dates = ['2026-03-01', '2026-01-01', '2026-02-01'].map(mk);
+  const desc = [...dates].sort(byDate('desc')).map((d) => d.eventDate);
+  const asc = [...dates].sort(byDate('asc')).map((d) => d.eventDate);
+
+  check(desc[0] === '2026-03-01', 'newest first puts the latest date on top');
+  check(asc[0] === '2026-01-01', 'oldest first reverses it');
+
+  /*
+   * A partial date sorts against the start of its period: '2027' before
+   * '2027-03-14'. That is the honest position for a record we only know the
+   * year of, and it falls out of ISO strings comparing correctly as text.
+   */
+  const partial = ['2027-03-14', '2027'].map(mk);
+  const partialAsc = [...partial].sort(byDate('asc')).map((d) => d.eventDate);
+  check(
+    partialAsc[0] === '2027',
+    'a year-only date sorts at the start of its year, not the end',
+    partialAsc.join(' '),
+  );
+
+  // An undated row has no place on the timeline, so it sits last either way
+  // rather than pretending to be very old or very new.
+  const withNull = ['2026-01-01', null, '2026-05-01'].map(mk);
+  check(
+    [...withNull].sort(byDate('desc')).at(-1).eventDate === null,
+    'an undated row sorts last when newest-first',
+  );
+  check(
+    [...withNull].sort(byDate('asc')).at(-1).eventDate === null,
+    'an undated row sorts last when oldest-first too',
+  );
+}
+
 console.log(failed ? `\n${failed} check(s) failed` : '\nall feed checks passed');
 // The exit call is the last statement in this file — see decision 031.
 process.exit(failed ? 1 : 0);

@@ -60,7 +60,7 @@ src/jobs/releases.ts release sweep: MusicBrainz release-groups into events
 src/jobs/cli.ts     `npm run ingest`
 src/matcher/        artist-name matching, tiered and deterministic
 src/app/            Next.js routes and UI
-src/app/Feed.tsx    the release feed: filterable list, dates as precise as we know
+src/app/Feed.tsx    the release feed: category tabs, status filter, date sort
 tests/              standalone .mjs suites, auto-enrolled by run.mjs
 tests/fixtures/     recorded upstream responses — never call live APIs in tests
 tests/record-fixture.mjs  hand-run: the one script that does call live Spotify
