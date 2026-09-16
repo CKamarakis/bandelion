@@ -237,3 +237,59 @@ a {
     margin-top: 0;
   }
 }
+
+/* --- Feed dropdowns --------------------------------------------------------
+ *
+ * Native selects, restyled rather than replaced: a custom menu would need
+ * keyboard handling, focus trapping and touch behaviour that the platform
+ * already gets right.
+ *
+ * `appearance: none` strips the rounded chrome — zero border-radius applies
+ * here too — and the arrow is drawn as a hard chevron in the padding, since a
+ * background gradient would be a gradient.
+ */
+.feed-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Sits over the select, so clicks still reach the control beneath it. */
+.feed-select-arrow {
+  position: absolute;
+  right: 0.5rem;
+  font-size: 0.6rem;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.feed-select {
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background-color: var(--white);
+  border: var(--rule-width) solid var(--rule);
+  border-radius: 0;
+  padding: 0.28rem 1.5rem 0.28rem 0.5rem;
+  cursor: pointer;
+
+}
+
+/* Keyboard focus must stay visible; the default ring is the browser's own and
+   disappears once appearance is stripped on some engines. */
+.feed-select:focus-visible {
+  outline: var(--rule-width) solid var(--magenta);
+  outline-offset: 2px;
+}
+
+/* The options themselves render in the OS menu, which cannot be styled far.
+   Setting the colours at least stops a dark-mode browser inverting them. */
+.feed-select option {
+  background: var(--white);
+  color: var(--ink);
+}

@@ -97,9 +97,18 @@ const SORTS = [
 ] as const;
 
 
-/** One control group. Every group looks and behaves the same — consistency of
- *  gesture beats economy of controls. */
-function Controls<T extends string>({
+/**
+ * A secondary control, as a dropdown.
+ *
+ * The category row keeps the button treatment because it is the primary cut.
+ * Status and sort were the same buttons and read as equally important, which
+ * gave the screen three competing rows of them; a select states the current
+ * value in one line and hides the rest until asked.
+ *
+ * The label wraps the select rather than sitting beside it, so clicking the
+ * word focuses the control and there is no `for`/`id` pair to keep in step.
+ */
+function Dropdown<T extends string>({
   legend,
   options,
   value,
@@ -111,27 +120,30 @@ function Controls<T extends string>({
   onChange: (id: T) => void;
 }) {
   return (
-    <div style={S.controlRow}>
+    <label style={S.controlRow}>
       <span className="cat" style={S.legend}>
         {legend}
       </span>
-      <div style={S.filters} role="group" aria-label={legend}>
-        {options.map((o) => {
-          const active = o.id === value;
-          return (
-            <button
-              key={o.id}
-              type="button"
-              onClick={() => onChange(o.id)}
-              aria-pressed={active}
-              style={{ ...S.filter, ...(active ? S.filterActive : null) }}
-            >
+      {/* The arrow is a character in the markup rather than a background
+          image: CSS gradients are banned outright by the design rules, and
+          tests/contrast.mjs enforces that. A glyph also scales with the type. */}
+      <span className="feed-select-wrap">
+        <select
+          className="feed-select"
+          value={value}
+          onChange={(e) => onChange(e.target.value as T)}
+        >
+          {options.map((o) => (
+            <option key={o.id} value={o.id}>
               {o.label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
+            </option>
+          ))}
+        </select>
+        <span className="feed-select-arrow" aria-hidden="true">
+          ▾
+        </span>
+      </span>
+    </label>
   );
 }
 
@@ -202,8 +214,8 @@ export function Feed({
       </div>
 
       <div style={S.controls}>
-        <Controls legend={STATUS_LEGEND} options={STATUSES} value={status} onChange={setStatus} />
-        <Controls legend={SORT_LEGEND} options={SORTS} value={sort} onChange={setSort} />
+        <Dropdown legend={STATUS_LEGEND} options={STATUSES} value={status} onChange={setStatus} />
+        <Dropdown legend={SORT_LEGEND} options={SORTS} value={sort} onChange={setSort} />
       </div>
 
       {shown.length === 0 ? (
@@ -273,20 +285,25 @@ const S: Record<string, React.CSSProperties> = {
   },
   count: { color: 'var(--ink)', opacity: 0.7 },
 
-  // The category row reads as the primary cut, so it keeps the full-width
-  // treatment and the gap below it.
-  categoryRow: { display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '0.6rem' },
-  // Status and sort sit together on one line at width, stacking when narrow.
+  // The category row reads as the primary cut, so it keeps the button
+  // treatment while status and sort become dropdowns below it.
+  categoryRow: { display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '0.5rem' },
+  /*
+   * Secondary controls, pushed right.
+   *
+   * Right-aligned and small on purpose: the category row is the primary cut and
+   * should read first. Three equal-weight button rows made the controls louder
+   * than the list they filter.
+   */
   controls: {
     display: 'flex',
     flexWrap: 'wrap',
-    gap: '0.6rem 1.4rem',
-    marginBottom: '1rem',
-    paddingBottom: '0.8rem',
-    borderBottom: 'var(--rule-width) solid var(--rule)',
+    justifyContent: 'flex-end',
+    gap: '0.4rem 1rem',
+    marginBottom: '0.9rem',
   },
-  controlRow: { display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' },
-  legend: { fontSize: '0.6rem', opacity: 0.65 },
+  controlRow: { display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' },
+  legend: { fontSize: '0.55rem', opacity: 0.6 },
   filters: { display: 'flex', flexWrap: 'wrap', gap: '0.4rem' },
   filter: {
     font: 'inherit',
