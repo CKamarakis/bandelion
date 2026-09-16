@@ -270,6 +270,73 @@ export function followArtist(db: DB, userId: number, artistId: number, source = 
   ).run(userId, artistId, source);
 }
 
+export interface FeedItem {
+  eventId: number;
+  artistId: number;
+  artist: string;
+  title: string;
+  /** May be partial: '2027', '2027-03' or '2027-03-14'. */
+  eventDate: string | null;
+  datePrecision: 'day' | 'month' | 'year';
+  releaseType: string;
+  isUpcoming: boolean;
+  sourceUrl: string | null;
+  firstSeenAt: string;
+}
+
+/**
+ * The feed: one filterable list of everything we know about.
+ *
+ * Sorted newest-first within each of upcoming and released, which is
+ * chronological rather than by urgency. The urgency rule in CLAUDE.md is about
+ * gigs, where the on-sale date is the thing you can miss; a release has no
+ * equivalent deadline, so date order is the honest one until gigs arrive and
+ * the two have to share a sort.
+ *
+ * `datePrecision` travels with every row so the caller can render "2027"
+ * rather than inventing a day it does not know.
+ */
+export function getFeed(
+  db: DB,
+  opts: { limit?: number; type?: 'release' | 'gig' } = {},
+): FeedItem[] {
+  const rows = db
+    .prepare(
+      `SELECT e.id AS eventId, e.artist_id AS artistId, a.name AS artist,
+              e.title, e.event_date AS eventDate, e.source_url AS sourceUrl,
+              e.first_seen_at AS firstSeenAt,
+              rd.release_type AS releaseType,
+              rd.date_precision AS datePrecision,
+              rd.is_upcoming AS isUpcoming
+         FROM events e
+         JOIN artists a ON a.id = e.artist_id
+         LEFT JOIN release_details rd ON rd.event_id = e.id
+        WHERE e.type = COALESCE(?, e.type)
+        ORDER BY rd.is_upcoming DESC,
+                 CASE WHEN rd.is_upcoming = 1 THEN e.event_date END ASC,
+                 CASE WHEN rd.is_upcoming = 0 THEN e.event_date END DESC
+        LIMIT ?`,
+    )
+    .all(opts.type ?? null, opts.limit ?? 200) as unknown as (Omit<
+    FeedItem,
+    'isUpcoming'
+  > & { isUpcoming: number })[];
+
+  return rows.map((r) => ({ ...r, isUpcoming: r.isUpcoming === 1 }));
+}
+
+/** Counts for the feed header. Separate query so the list can be paged later. */
+export function getFeedCounts(db: DB): { total: number; upcoming: number; artists: number } {
+  return db
+    .prepare(
+      `SELECT
+         (SELECT COUNT(*) FROM events WHERE type = 'release') AS total,
+         (SELECT COUNT(*) FROM release_details WHERE is_upcoming = 1) AS upcoming,
+         (SELECT COUNT(DISTINCT artist_id) FROM events WHERE type = 'release') AS artists`,
+    )
+    .get() as { total: number; upcoming: number; artists: number };
+}
+
 export function getRoster(db: DB, userId: number) {
   return db
     .prepare(

@@ -1,0 +1,177 @@
+/**
+ * The feed: its query and its formatting.
+ *
+ * The rule under test is the one the whole project turns on — **never show more
+ * precision than the source gave us**. A card reading "31 Dec 2027" because
+ * MusicBrainz said "2027" is the same bug as "Tickets on sale Friday" when we
+ * failed to parse a status.
+ */
+
+const { openDatabase, upsertArtist, insertReleaseEvent, getFeed, getFeedCounts } = await import(
+  '../src/db/index.ts'
+);
+const { formatEventDate, relativeDays, releaseTypeLabel, catalogueNumber } = await import(
+  '../src/app/feed-format.ts'
+);
+
+let failed = 0;
+const check = (ok, msg, detail) => {
+  if (ok) console.log(`pass  ${msg}`);
+  else {
+    console.error(`FAIL  ${msg}${detail ? `\n      ${detail}` : ''}`);
+    failed++;
+  }
+};
+
+console.log('\n# dates are shown exactly as precisely as we know them');
+
+check(formatEventDate('2027-03-14', 'day') === '14 Mar 2027', 'a full date shows the day');
+check(formatEventDate('2027-03', 'month') === 'Mar 2027', 'a month-precision date shows no day');
+check(formatEventDate('2027', 'year') === '2027', 'a year-precision date shows only the year');
+check(formatEventDate(null, 'day') === 'No date', 'a missing date says so rather than guessing');
+
+// The bug this file exists to prevent, stated as a test.
+for (const [date, precision] of [
+  ['2027', 'year'],
+  ['2027-03', 'month'],
+]) {
+  const out = formatEventDate(date, precision);
+  check(
+    !/\d{1,2} \w{3} \d{4}/.test(out),
+    `a ${precision}-precision date never renders as a full day (${out})`,
+  );
+}
+
+// Leading zeros are a real upstream shape and must not survive to the screen.
+check(formatEventDate('2027-03-04', 'day') === '4 Mar 2027', 'a single-digit day drops its zero');
+
+console.log('\n# relative time is only offered when it is honest');
+
+const TODAY = '2026-09-15';
+check(relativeDays('2026-09-15', 'day', TODAY) === 'Today', 'today reads as Today');
+check(relativeDays('2026-09-16', 'day', TODAY) === 'Tomorrow', 'tomorrow reads as Tomorrow');
+check(relativeDays('2026-09-18', 'day', TODAY) === 'In 3 days', 'a few days out counts days');
+check(relativeDays('2026-10-16', 'day', TODAY) === 'In 4 weeks', 'a month out counts weeks');
+
+/*
+ * The important half: a month- or year-precision date spans weeks or a year,
+ * so counting days from it would invent a day we never had.
+ */
+check(relativeDays('2027', 'year', TODAY) === null, 'a year-only date gets no countdown');
+check(relativeDays('2026-10', 'month', TODAY) === null, 'a month-only date gets no countdown');
+check(relativeDays(null, 'day', TODAY) === null, 'a missing date gets no countdown');
+check(relativeDays('2026-09-01', 'day', TODAY) === null, 'a past date gets no countdown');
+check(relativeDays('2028-01-01', 'day', TODAY) === null, 'a distant date gets no vague countdown');
+
+console.log('\n# labels');
+
+check(releaseTypeLabel('album') === 'Album', 'album');
+check(releaseTypeLabel('ep') === 'EP', 'ep keeps its capitals');
+check(releaseTypeLabel('live') === 'Live', 'live');
+check(releaseTypeLabel('other') === 'Other', 'other');
+check(releaseTypeLabel('nonsense') === 'Other', 'an unknown type falls back rather than crashing');
+check(catalogueNumber(42) === 'BND 0042', 'the catalogue number is padded');
+check(catalogueNumber(12345) === 'BND 12345', 'a long id is not truncated');
+
+console.log('\n# the feed query');
+
+function seed() {
+  const db = openDatabase(':memory:');
+  const artist = (name) => upsertArtist(db, { name, nameNormalized: name.toLowerCase() });
+
+  const a = artist('Boy Harsher');
+  const b = artist('Bonobo');
+  const c = artist('Haken');
+
+  insertReleaseEvent(db, {
+    artistId: a, title: 'GET MEAN', eventDate: '2026-09-18', datePrecision: 'day',
+    sourceEventId: 'rg-upcoming', sourceUrl: null, releaseType: 'album',
+    isUpcoming: true, payload: null,
+  });
+  insertReleaseEvent(db, {
+    artistId: b, title: 'Distance in Static', eventDate: '2026-09-11', datePrecision: 'day',
+    sourceEventId: 'rg-past', sourceUrl: null, releaseType: 'album',
+    isUpcoming: false, payload: null,
+  });
+  insertReleaseEvent(db, {
+    artistId: c, title: 'Someday', eventDate: '2027', datePrecision: 'year',
+    sourceEventId: 'rg-year', sourceUrl: null, releaseType: 'album',
+    isUpcoming: true, payload: null,
+  });
+  return db;
+}
+
+{
+  const db = seed();
+  const feed = getFeed(db, { type: 'release' });
+
+  check(feed.length === 3, `every release is returned (${feed.length})`);
+  check(feed[0].isUpcoming === true, 'upcoming releases sort above released ones');
+  check(
+    feed[feed.length - 1].isUpcoming === false,
+    'released items come last',
+  );
+
+  // Upcoming ascends (soonest first); released descends (newest first).
+  const upcoming = feed.filter((f) => f.isUpcoming).map((f) => f.eventDate);
+  check(
+    upcoming[0] === '2026-09-18' && upcoming[1] === '2027',
+    'upcoming runs soonest-first',
+    upcoming.join(' '),
+  );
+
+  const yearRow = feed.find((f) => f.eventDate === '2027');
+  check(yearRow.datePrecision === 'year', 'precision survives the query');
+  check(
+    formatEventDate(yearRow.eventDate, yearRow.datePrecision) === '2027',
+    'a year-only row renders as a year end to end',
+  );
+
+  const counts = getFeedCounts(db);
+  check(counts.total === 3, 'counts report the total');
+  check(counts.upcoming === 2, 'counts report upcoming separately');
+  check(counts.artists === 3, 'counts report distinct artists');
+}
+
+{
+  const db = openDatabase(':memory:');
+  const feed = getFeed(db, { type: 'release' });
+  check(feed.length === 0, 'an empty database returns an empty feed rather than throwing');
+  check(getFeedCounts(db).total === 0, 'counts on an empty database are zero');
+}
+
+console.log('\n# the count reports what exists, not what was fetched');
+
+{
+  /*
+   * Found by screenshot: the header read "200 releases" against a database
+   * holding 225, because it counted the rows the query returned rather than
+   * the rows that exist. The limit is a page size; the count must not inherit
+   * it, or the screen states a total it never measured.
+   */
+  const db = openDatabase(':memory:');
+  const artistId = upsertArtist(db, { name: 'Prolific', nameNormalized: 'prolific' });
+  for (let i = 0; i < 12; i++) {
+    insertReleaseEvent(db, {
+      artistId, title: `Record ${i}`, eventDate: `2026-0${(i % 9) + 1}-01`,
+      datePrecision: 'day', sourceEventId: `rg-${i}`, sourceUrl: null,
+      releaseType: 'album', isUpcoming: false, payload: null,
+    });
+  }
+
+  const limited = getFeed(db, { type: 'release', limit: 5 });
+  check(limited.length === 5, 'the limit caps the rows fetched');
+  check(
+    getFeedCounts(db).total === 12,
+    'the count still reports every row in the database',
+    `counted ${getFeedCounts(db).total}`,
+  );
+  check(
+    getFeedCounts(db).total !== limited.length,
+    'the count is not the page size — the two must be able to disagree',
+  );
+}
+
+console.log(failed ? `\n${failed} check(s) failed` : '\nall feed checks passed');
+// The exit call is the last statement in this file — see decision 031.
+process.exit(failed ? 1 : 0);

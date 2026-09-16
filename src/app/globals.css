@@ -173,3 +173,67 @@ a {
   outline: 3px solid var(--violet);
   outline-offset: 2px;
 }
+
+/* --- Feed rows -------------------------------------------------------------
+ *
+ * All row layout lives here, not in inline styles. The first version split it
+ * between the two and the inline `display: block` silently beat the media
+ * query's `display: grid`, so the desktop columns vanished while every test
+ * stayed green. Found by screenshot.
+ *
+ * Mobile-first: stacked by default, columnar at 640px. That direction fits the
+ * data — artist names and titles are both long and unpredictable, and a
+ * three-column grid at 390px squeezed "Emma Ruth Rundle" to one word per line.
+ */
+.feed-row {
+  display: block;
+  padding: 0.7rem 0.6rem;
+  border-bottom: var(--rule-width) solid var(--rule);
+}
+
+/* Date and state share a line on narrow screens: both are short, and pairing
+   them keeps the row to three lines rather than five. */
+.feed-date {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.feed-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.feed-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
+}
+
+@media (min-width: 640px) {
+  .feed-row {
+    display: grid;
+    grid-template-columns: 10rem 1fr auto;
+    gap: 0 1rem;
+    align-items: baseline;
+  }
+
+  .feed-date {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+    margin-bottom: 0;
+  }
+
+  .feed-meta {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.15rem;
+    margin-top: 0;
+  }
+}

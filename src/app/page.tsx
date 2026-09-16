@@ -8,12 +8,13 @@
  */
 
 import { loadConfig } from '../config.ts';
-import { loadTokens } from '../db/index.ts';
+import { loadTokens, getFeed, getFeedCounts, type FeedItem } from '../db/index.ts';
 import { LOCAL_USER_ID, db } from '../auth/session.ts';
 import { SPOTIFY_SCOPES } from '../auth/spotify.ts';
 import { rosterStatus } from '../jobs/roster.ts';
 import { RosterImport } from './RosterImport.tsx';
 import { ConnectSpotify } from './ConnectSpotify.tsx';
+import { Feed } from './Feed.tsx';
 
 export const dynamic = 'force-dynamic';
 
@@ -66,6 +67,11 @@ export default async function Home({
   const configured = Boolean(cfg.spotify.clientId && cfg.spotify.clientSecret);
 
   let connected = false;
+  // Read once on the server so the list is in the HTML rather than fetched on
+  // mount. An unreadable database degrades to an empty feed, not a blank page.
+  let feed: FeedItem[] = [];
+  let feedTotal = 0;
+  const today = new Date().toISOString().slice(0, 10);
   // A zeroed status is the honest default: it claims nothing, and the panel
   // renders even when the database cannot be read.
   let roster: ReturnType<typeof rosterStatus> = {
@@ -79,6 +85,8 @@ export default async function Home({
     const database = db();
     connected = loadTokens(database, LOCAL_USER_ID, 'spotify') !== null;
     roster = rosterStatus(database, LOCAL_USER_ID);
+    feed = getFeed(database, { type: 'release' });
+    feedTotal = getFeedCounts(database).total;
   } catch (err) {
     // The page must render even with no database yet. Constraint 2's spirit:
     // one broken dependency degrades a section, it does not blank the screen.
@@ -144,6 +152,10 @@ export default async function Home({
           </>
         )}
       </section>
+
+      {/* The feed only makes sense once an account is connected: before that
+          there is no roster, so an empty list would be an empty promise. */}
+      {connected ? <Feed items={feed} today={today} total={feedTotal} /> : null}
     </main>
   );
 }

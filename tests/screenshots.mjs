@@ -45,7 +45,7 @@ const VIEWPORTS = [
  * state you want to look at.
  */
 const ROUTES = [
-  { name: 'connect', path: '/' },
+  { name: 'connect', path: '/', fold: true },
   { name: 'connect-error', path: '/?auth_error=state_mismatch' },
 ];
 
@@ -213,11 +213,34 @@ for (const route of ROUTES) {
       overflowing: measured.contentRight > vp.width + 1,
     };
 
+    /*
+     * Full-page by default, viewport-only when a route says so.
+     *
+     * The feed is 225 rows and captures at ~14,500px tall, which is the right
+     * shot for spotting overflow and the wrong one for reviewing type: at any
+     * readable zoom the whole page is a smear. A `fold: true` route also gets
+     * a shot clipped to the viewport, which is what a person actually sees
+     * first.
+     */
     const file = `${route.name}-${vp.name}.png`;
     const shot = await send('Page.captureScreenshot', {
       format: 'png',
       captureBeyondViewport: true,
     });
+
+    if (route.fold) {
+      const folded = await send('Page.captureScreenshot', {
+        format: 'png',
+        clip: { x: 0, y: 0, width: vp.width, height: vp.height, scale: 1 },
+      });
+      if (folded.data) {
+        writeFileSync(
+          join(outDir, `${route.name}-${vp.name}-fold.png`),
+          Buffer.from(folded.data, 'base64'),
+        );
+        made++;
+      }
+    }
 
     if (shot.data) {
       writeFileSync(join(outDir, file), Buffer.from(shot.data, 'base64'));

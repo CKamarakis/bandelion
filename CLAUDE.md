@@ -60,14 +60,15 @@ src/jobs/releases.ts release sweep: MusicBrainz release-groups into events
 src/jobs/cli.ts     `npm run ingest`
 src/matcher/        artist-name matching, tiered and deterministic
 src/app/            Next.js routes and UI
+src/app/Feed.tsx    the release feed: filterable list, dates as precise as we know
 tests/              standalone .mjs suites, auto-enrolled by run.mjs
 tests/fixtures/     recorded upstream responses — never call live APIs in tests
 tests/record-fixture.mjs  hand-run: the one script that does call live Spotify
 tests/seed.mjs      hand-run: builds data/seed.db so screens work without OAuth
 ```
 
-Not built yet: the feed itself, and every source adapter other than Spotify
-and MusicBrainz. `LIMITS.md` tracks what is deferred and
+Not built yet: gigs, and every source adapter other than Spotify and
+MusicBrainz. `LIMITS.md` tracks what is deferred and
 what would lift each limit — the improvement queue for after the happy path
 works; `tests/docs.mjs` keeps its shape honest. Releases come from MusicBrainz rather than
 Spotify (decisions 032/033/039) — see
