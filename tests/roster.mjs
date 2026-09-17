@@ -453,6 +453,34 @@ const THREE_PAGES = {
   await importRoster({ db, userId: 1, getAccessToken: token, fetchImpl: stubSpotify(THREE_PAGES).impl });
   check(rosterStatus(db, 1).complete === true, 'status reports complete after a full run');
 
+  /*
+   * Liked artists must not inflate the roster count.
+   *
+   * user_artists holds both lists, and this counter is displayed against the
+   * roster job's total, which counts follows only. Unfiltered, the screen read
+   * "1556 of 625 imported" on a real database. Every existing test above has
+   * followed artists only, so none of them could see it.
+   */
+  const { setArtistList, upsertArtist } = await import('../src/db/index.ts');
+  const before = rosterStatus(db, 1).imported;
+
+  const likedOnly = upsertArtist(db, {
+    name: 'Liked Only',
+    nameNormalized: 'liked only',
+    externalId: { source: 'spotify', id: 'liked-only-1' },
+  });
+  setArtistList(db, 1, likedOnly, { liked: true });
+
+  check(
+    rosterStatus(db, 1).imported === before,
+    'a liked-only artist does not count towards the roster',
+    `${before} -> ${rosterStatus(db, 1).imported}`,
+  );
+  check(
+    rosterStatus(db, 1).imported <= (rosterStatus(db, 1).total ?? Infinity),
+    'the imported count never exceeds the total it is shown against',
+  );
+
   db.close();
 }
 

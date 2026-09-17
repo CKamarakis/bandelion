@@ -208,8 +208,17 @@ export async function importRoster(opts: {
  */
 export function rosterStatus(db: DB, userId: number) {
   const job = loadJob(db, JOB_NAME);
+  /*
+   * `followed = 1`, not every row in the table.
+   *
+   * user_artists holds both lists now, so an unfiltered count is the size of
+   * the roster plus the liked artists — and it is compared against the roster
+   * job's own total, which counts only follows. On a real database that read
+   * "1556 of 625 imported": a denominator smaller than its numerator, which is
+   * the progress bar lying about work it never did.
+   */
   const imported = db
-    .prepare('SELECT COUNT(*) AS n FROM user_artists WHERE user_id = ?')
+    .prepare('SELECT COUNT(*) AS n FROM user_artists WHERE user_id = ? AND followed = 1')
     .get(userId) as { n: number };
 
   return {

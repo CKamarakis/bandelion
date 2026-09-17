@@ -19,9 +19,16 @@ const TOKEN_URL = 'https://accounts.spotify.com/api/token';
  * `user-follow-read` is the roster. `user-top-read` is the fallback for the
  * case Spotify documents but does not explain: /me/following returns only
  * artists followed explicitly, and plenty of people mostly follow via playlists.
+ * `user-library-read` is Liked Songs, which is a second list of artists and not
+ * reachable any other way: it has no playlist id, so /me/tracks is the only
+ * door (spotify/web-api#1417).
  * No write scopes: Bandelion never modifies a Spotify account.
+ *
+ * Adding a scope invalidates nothing, but an existing token does not gain it:
+ * whoever connected before this line changed must reconnect once, and the
+ * 403 from /me/tracks is what tells them so.
  */
-export const SPOTIFY_SCOPES = ['user-follow-read', 'user-top-read'] as const;
+export const SPOTIFY_SCOPES = ['user-follow-read', 'user-top-read', 'user-library-read'] as const;
 
 export interface PkcePair {
   verifier: string;

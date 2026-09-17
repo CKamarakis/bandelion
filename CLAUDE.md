@@ -28,7 +28,7 @@ npm run build
 npm start              # serve the production build
 npm test               # whole suite
 npm run verify         # build + test — run before committing
-npm run ingest         # roster import; also `resolve` (MBIDs) and `releases`
+npm run ingest         # roster import; also `liked`, `resolve` (MBIDs), `releases`
 npm run seed           # build a seeded database, so screens work without OAuth
 npm run eval:matcher   # artist-name matcher eval set, prints a score
 npm run fixtures:record # capture a live upstream response into tests/fixtures/
@@ -46,7 +46,7 @@ Written as phases land. What exists today:
 ```
 src/adapters/       one file per source, all implementing SourceAdapter
 src/adapters/types.ts   the contract every adapter implements
-src/adapters/spotify.ts the roster source: followed artists, paged and resumable
+src/adapters/spotify.ts two artist lists: followed artists and liked-song artists
 src/adapters/musicbrainz.ts identity by Spotify-URL join, links, and release-groups
 src/auth/           OAuth: PKCE, token exchange, encryption at rest
 src/auth/crypto.ts  AES-256-GCM for tokens; the DB never holds plaintext
@@ -55,6 +55,7 @@ src/config-env.ts   .env loading for entry points Next does not start
 src/db/             schema, migrations, queries
 src/jobs/           checkpointed ingest jobs
 src/jobs/roster.ts  the Spotify roster import: resumable, never deletes
+src/jobs/liked.ts   the liked-songs import: artists credited on saved tracks
 src/jobs/resolve.ts MBID resolution: exact join first, review queue second
 src/jobs/releases.ts release sweep: MusicBrainz release-groups into events
 src/jobs/cli.ts     `npm run ingest`
@@ -62,6 +63,8 @@ src/matcher/        artist-name matching, tiered and deterministic
 src/app/            Next.js routes and UI
 src/app/Feed.tsx    the release feed: category tabs, status filter, date sort
 tests/              standalone .mjs suites, auto-enrolled by run.mjs
+tests/liked.mjs     liked-songs paging and artist extraction, against a fixture
+tests/liked-db.mjs  the list flags, and the real schema.sql-then-migrate path
 tests/fixtures/     recorded upstream responses — never call live APIs in tests
 tests/record-fixture.mjs  hand-run: the one script that does call live Spotify
 tests/seed.mjs      hand-run: builds data/seed.db so screens work without OAuth
@@ -136,6 +139,22 @@ would change it.**
 > is added, it has to *prove* it beats the deterministic tiers. Would change if
 > the eval score plateaus somewhere useless.
 
+> **Artists are artists; the list is provenance.**
+> Followed artists and liked-song artists are one `artists` table and one
+> `user_artists` row per artist, carrying a `followed` and a `liked` flag. Not
+> one row per source: measured on a real library, **477 of 1,408 liked artists
+> are also followed**, so the overlap is the normal case, and a row per source
+> would make every feed query need `DISTINCT` to avoid showing those twice.
+> A third list (Trias) is a third flag. Would change past four or five lists,
+> where a join table starts earning its keep.
+
+> **Liked artists arrive without images, and that is not worth fixing.**
+> `/me/tracks` nests only artist id and name. The batch `GET /artists?ids=` that
+> would have filled in images for 1,400 artists in 28 calls is **gone** —
+> measured 403 on an allowlisted token — so the alternative is one call per
+> artist. Type carries the hierarchy here anyway. Would change if Spotify
+> restores a batch artist endpoint.
+
 > **Volume is the risk, not sparsity.**
 > A 4-month release window across thousands of artists produces a lot of items.
 > Singles are the bulk of the noise. Dismiss and sub-filters are load-bearing,
@@ -162,6 +181,19 @@ would change it.**
 - `GET /artists` (batch) was **removed** in Feb 2026. Fetch individually via
   `GET /artists/{id}`. The local cache is therefore load-bearing, not an
   optimisation. `/me/following` and `/me/top/artists` survived.
+
+  Re-verified 2026-09-17 with a live call on an allowlisted token: `/me` 200,
+  `GET /artists/{id}` 200, `GET /artists?ids=` **403**. The [reference page for
+  Get Several Artists](https://developer.spotify.com/documentation/web-api/reference/get-multiple-artists)
+  is still published and its "Deprecated" labels sit on *fields*, not on the
+  endpoint — so the docs read as though batch still works. It does not. Trust
+  the 403 over the page.
+
+- Separately, `genres`, `popularity` and `followers` are **deprecated fields**
+  and already return empty/null on live responses (measured the same day:
+  Pitbull came back with `genres: []` and `popularity: null`). `images` is
+  unaffected. `RosterEntry` still carries genres and popularity; nothing reads
+  them, and nothing should start.
 
 **Self-hosting is the answer to this**, not a workaround for it: each person
 runs their own instance with their own Spotify app, is their own owner, and is

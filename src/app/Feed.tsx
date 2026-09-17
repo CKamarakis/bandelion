@@ -25,9 +25,11 @@ import {
 import {
   byDate,
   inCategory,
+  inSource,
   inStatus,
   type CategoryId,
   type SortId,
+  type SourceId,
   type StatusId,
 } from './feed-filters.ts';
 
@@ -57,7 +59,15 @@ const TRUNCATED = (total: number, loaded: number) =>
   `${total} releases · showing the newest ${loaded}`;
 
 const STATUS_LEGEND = 'Show';
+const SOURCE_LEGEND = 'From';
 const SORT_LEGEND = 'Sort';
+/*
+ * Says where the artist came from, not that you liked this record. "Liked" on
+ * a release you have never heard would claim the second.
+ */
+const LIKED_MARKER = 'From liked songs';
+/* Both filters can empty the list, and the two reasons are different. */
+const EMPTY_FILTERED_SOURCE = 'No releases from artists on that list yet.';
 
 /**
  * What kind of record, not whether it is out yet.
@@ -88,6 +98,23 @@ const STATUSES = [
   { id: 'all', label: 'All' },
   { id: 'coming', label: 'Coming' },
   { id: 'released', label: 'Released' },
+] as const;
+
+/**
+ * Which list the artist is on.
+ *
+ * Not tabs. The screen already asks two filter questions with these controls,
+ * and a tab strip would be a third gesture for the same kind of choice — the
+ * design rules put consistency of gesture above economy of controls.
+ *
+ * "Followed" and "Liked" overlap rather than partition: an artist can be both,
+ * so the counts on these two do not add up to the total, and the labels must
+ * not imply they do.
+ */
+const SOURCES = [
+  { id: 'all', label: 'All artists' },
+  { id: 'followed', label: 'Followed' },
+  { id: 'liked', label: 'Liked songs' },
 ] as const;
 
 /** Newest first by default: what changed recently is what you came to see. */
@@ -159,6 +186,7 @@ export function Feed({
 }) {
   const [category, setCategory] = useState<CategoryId>('all');
   const [status, setStatus] = useState<StatusId>('all');
+  const [source, setSource] = useState<SourceId>('all');
   const [sort, setSort] = useState<SortId>('desc');
 
   const shown = useMemo(
@@ -166,9 +194,9 @@ export function Feed({
       // filter() already returns a new array, so sorting it in place is safe —
       // but only because of that. Sorting `items` directly would mutate a prop.
       items
-        .filter((i) => inCategory(i, category) && inStatus(i, status))
+        .filter((i) => inCategory(i, category) && inStatus(i, status) && inSource(i, source))
         .sort(byDate(sort)),
-    [items, category, status, sort],
+    [items, category, status, source, sort],
   );
 
   // Never run vs ran and found nothing are different facts and read
@@ -188,7 +216,7 @@ export function Feed({
       <div style={S.headRow}>
         <h2>{HEADING}</h2>
         <span className="cat" style={S.count}>
-          {items.length < total && category === 'all' && status === 'all'
+          {items.length < total && category === 'all' && status === 'all' && source === 'all'
             ? TRUNCATED(total, items.length)
             : COUNT_LABEL(shown.length, items.length)}
         </span>
@@ -215,11 +243,23 @@ export function Feed({
 
       <div style={S.controls}>
         <Dropdown legend={STATUS_LEGEND} options={STATUSES} value={status} onChange={setStatus} />
+        <Dropdown legend={SOURCE_LEGEND} options={SOURCES} value={source} onChange={setSource} />
         <Dropdown legend={SORT_LEGEND} options={SORTS} value={sort} onChange={setSort} />
       </div>
 
       {shown.length === 0 ? (
-        <p style={S.empty}>{EMPTY_FILTERED}</p>
+        /*
+         * Two different facts. Narrowing to a list that has no releases yet is
+         * not the same as a filter combination matching nothing: the first is
+         * answered by running the release sweep, the second by changing the
+         * filter. Saying "nothing matches" to someone whose liked artists have
+         * simply never been swept sends them to the wrong fix.
+         */
+        <p style={S.empty}>
+          {source !== 'all' && category === 'all' && status === 'all'
+            ? EMPTY_FILTERED_SOURCE
+            : EMPTY_FILTERED}
+        </p>
       ) : (
         <ol style={S.list}>
           {shown.map((item) => (
@@ -261,6 +301,18 @@ function FeedRow({ item, today }: { item: FeedItem; today: string }) {
         <span className="cat" style={S.type}>
           {releaseTypeLabel(item.releaseType)}
         </span>
+        {/*
+          Provenance, only when it says something. A row you follow is the
+          default case and carries no marker: a label repeating identically on
+          most rows is texture, not information. "Liked" marks an artist you do
+          NOT follow — the reason an unfamiliar name is in your feed — and the
+          overlap is left unmarked because it is already in the followed set.
+        */}
+        {!item.followed && item.liked ? (
+          <span className="cat" style={S.provenance}>
+            {LIKED_MARKER}
+          </span>
+        ) : null}
         <span className="cat" style={S.catalogue}>
           {catalogueNumber(item.eventId)}
         </span>
@@ -333,6 +385,17 @@ const S: Record<string, React.CSSProperties> = {
 
   type: { fontSize: '0.6rem' },
   catalogue: { fontSize: '0.6rem', opacity: 0.6, fontVariantNumeric: 'tabular-nums' },
+  /*
+   * A hard-ruled box rather than a colour: the design rules put state on
+   * border plus shape plus label, and this must stay legible on both the white
+   * and dandelion row backgrounds. No radius, no fill.
+   */
+  provenance: {
+    fontSize: '0.6rem',
+    border: '1px solid currentColor',
+    padding: '0.05rem 0.3rem',
+    opacity: 0.75,
+  },
 
   empty: { margin: '0.5rem 0 0' },
   emptyHint: { margin: '0.25rem 0 0', opacity: 0.7, fontSize: '0.85rem' },

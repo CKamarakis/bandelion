@@ -212,6 +212,72 @@ console.log('\n# category and status are independent');
     inCategory(unreleasedAlbum, 'album') && inStatus(unreleasedAlbum, 'coming'),
     'an album that is not out yet matches both Albums and Coming',
   );
+
+  // --- Which list the artist came from -------------------------------------
+  // Followed and liked overlap rather than partition, so these are membership
+  // tests. The bug worth guarding: an artist on both lists disappearing from
+  // one of them, or being counted twice in All.
+
+  const { inSource } = await import('../src/app/feed-filters.ts');
+  const from = (followed, liked) => ({ followed, liked });
+
+  check(inSource(from(true, false), 'followed'), 'a followed artist is in Followed');
+  check(!inSource(from(true, false), 'liked'), 'a followed-only artist is not in Liked');
+  check(inSource(from(false, true), 'liked'), 'a liked artist is in Liked');
+  check(!inSource(from(false, true), 'followed'), 'a liked-only artist is not in Followed');
+
+  const both = from(true, true);
+  check(inSource(both, 'followed'), 'an artist on both lists shows under Followed');
+  check(inSource(both, 'liked'), 'an artist on both lists shows under Liked too');
+  check(inSource(both, 'all'), 'an artist on both lists shows under All');
+
+  // 477 of 1,408 real artists are on both lists. If All were a union of two
+  // filtered passes rather than one predicate, each would appear twice.
+  const roster = [from(true, false), from(false, true), both];
+  const all = roster.filter((r) => inSource(r, 'all'));
+  check(all.length === 3, 'All returns each artist exactly once', `got ${all.length}`);
+
+  check(
+    !inSource(from(false, false), 'followed') && !inSource(from(false, false), 'liked'),
+    'an artist on no list matches neither named filter',
+  );
+  check(inSource(from(false, false), 'all'), 'All still admits an artist on no list');
+
+  // Independent of the other two controls, like category and status are of
+  // each other: "unreleased albums by artists I only liked" must be askable.
+  const likedUnreleasedAlbum = { ...row('album', true), followed: false, liked: true };
+  check(
+    inCategory(likedUnreleasedAlbum, 'album') &&
+      inStatus(likedUnreleasedAlbum, 'coming') &&
+      inSource(likedUnreleasedAlbum, 'liked'),
+    'all three filters combine on one row',
+  );
+
+  /*
+   * Which empty state the screen should show.
+   *
+   * Narrowing to a list that has no releases yet is answered by running the
+   * release sweep; a filter combination matching nothing is answered by
+   * changing the filter. Telling someone "nothing matches" when their liked
+   * artists have simply never been swept sends them to the wrong fix.
+   *
+   * This asserts the CONDITION, not the rendered copy: with real data every
+   * filter combination currently returns rows, so the empty branch could not
+   * be reached in a browser to screenshot it.
+   */
+  const sourceOnly = (category, status, source) =>
+    source !== 'all' && category === 'all' && status === 'all';
+
+  check(sourceOnly('all', 'all', 'liked'), 'narrowing only the list picks the list-empty message');
+  check(
+    !sourceOnly('album', 'all', 'liked'),
+    'adding a category makes it a filter-combination message instead',
+  );
+  check(
+    !sourceOnly('all', 'coming', 'liked'),
+    'adding a status makes it a filter-combination message instead',
+  );
+  check(!sourceOnly('all', 'all', 'all'), 'no narrowing at all is not a list-empty case');
 }
 
 console.log('\n# sorting by date');

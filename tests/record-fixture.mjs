@@ -9,6 +9,7 @@
  * Usage:
  *   npm run fixtures:record -- albums <artistId> [<artistId>...]
  *   npm run fixtures:record -- following
+ *   npm run fixtures:record -- liked
  *   npm run fixtures:record -- roster-sample [count]
  *   npm run fixtures:record -- mbid
  *   npm run fixtures:record -- releases
@@ -48,6 +49,7 @@ if (!mode) {
     'Usage:\n' +
       '  npm run fixtures:record -- albums <artistId> [<artistId>...]\n' +
       '  npm run fixtures:record -- following\n' +
+      '  npm run fixtures:record -- liked          (Liked Songs, trimmed by shape)\n' +
       '  npm run fixtures:record -- roster-sample [count]\n' +
       '  npm run fixtures:record -- mbid            (MusicBrainz identity, no Spotify token)\n' +
       '  npm run fixtures:record -- releases        (MusicBrainz release-groups)',
@@ -299,6 +301,172 @@ try {
   if (mode === 'following') {
     const data = await get(token, `${API}/me/following?type=artist&limit=50`);
     write('spotify-following-live.json', data);
+  } else if (mode === 'liked') {
+    /*
+     * Liked Songs, trimmed to the shapes the extraction branches on.
+     *
+     * Chosen, not sampled, for the same reason the `releases` mode is: a page
+     * of 50 ordinary solo tracks would exercise one branch and prove nothing
+     * about the other three. Scans several pages looking for one of each:
+     *
+     *  - a solo track: one artist, album artist identical
+     *  - a collaboration: two or more track artists
+     *  - a compilation: an album artist crediting nobody who plays here
+     *    ("Various Artists", or a label, or a DJ) — the case the drop rule is for
+     *  - an album-artist mismatch: album credited to someone who does perform,
+     *    alongside a guest who does not appear on the album credit
+     *
+     * The names are then replaced before writing. This repository is public,
+     * and a fixture is the shape of Spotify's response, not a record of what
+     * anyone listens to: the structure is what the tests read, so keeping the
+     * real titles would publish a personal library to prove nothing.
+     */
+    const wanted = {
+      solo: (t) => t.artists?.length === 1 && t.album?.artists?.length === 1,
+      collaboration: (t) => (t.artists?.length ?? 0) >= 2,
+      compilation: (t) => {
+        const performing = new Set((t.artists ?? []).map((a) => a.id));
+        return (t.album?.artists ?? []).some((a) => !performing.has(a.id));
+      },
+      mismatch: (t) => {
+        const albumIds = new Set((t.album?.artists ?? []).map((a) => a.id));
+        return (
+          (t.artists?.length ?? 0) >= 2 && (t.artists ?? []).some((a) => !albumIds.has(a.id))
+        );
+      },
+    };
+
+    const picked = {};
+    let url = `${API}/me/tracks?limit=50`;
+    let scanned = 0;
+    let total = null;
+
+    // Cap the scan: a library with no compilations should not page all 42.
+    for (let page = 0; page < 6 && url; page++) {
+      const data = await get(token, url);
+      total = data.total ?? total;
+
+      for (const item of data.items ?? []) {
+        if (!item?.track) continue;
+        scanned++;
+        for (const [shape, matches] of Object.entries(wanted)) {
+          if (picked[shape]) continue;
+          if (!matches(item.track)) continue;
+          /*
+           * One track per shape, and never the same track twice.
+           *
+           * The shapes overlap — a collaboration whose album credits only one
+           * of the performers satisfies both `collaboration` and `mismatch` —
+           * so without this the fixture stores one track under two keys and
+           * the second shape is never independently covered. It looked like
+           * four cases and was three.
+           */
+          if (Object.values(picked).some((p) => p.track.id === item.track.id)) continue;
+          picked[shape] = item;
+        }
+      }
+
+      if (Object.keys(picked).length === Object.keys(wanted).length) break;
+      url = data.next;
+      await new Promise((r) => setTimeout(r, 120));
+    }
+
+    const missing = Object.keys(wanted).filter((s) => !picked[s]);
+    for (const shape of missing) {
+      console.log(`  note: no ${shape} track found in ${scanned} scanned`);
+    }
+    for (const [shape, item] of Object.entries(picked)) {
+      const names = (item.track.artists ?? []).map((a) => a.name).join(', ');
+      const album = (item.track.album?.artists ?? []).map((a) => a.name).join(', ');
+      console.log(`  ${shape}: "${item.track.name}" by ${names} [album: ${album}]`);
+    }
+
+    /*
+     * Replace every name and id with an invented one, consistently.
+     *
+     * Consistently is the load-bearing word: the same artist must keep the
+     * same substitute everywhere, or the fixture stops exercising what it was
+     * recorded for. The compilation case depends on an album artist NOT being
+     * among the track artists, and the mismatch case on one who is — both are
+     * comparisons between ids, so remapping each id to exactly one placeholder
+     * preserves the relationships while losing the identities.
+     *
+     * "Various Artists" keeps its real name. It is Spotify's own placeholder
+     * rather than anyone's listening, and a test asserts on that exact string.
+     */
+    const anonymise = () => {
+      const artistIds = new Map();
+      const artistNames = new Map();
+      let nextArtist = 0;
+
+      const fakeArtist = (a) => {
+        if (!a?.id) return a;
+        if (!artistIds.has(a.id)) {
+          const n = ++nextArtist;
+          artistIds.set(a.id, `artist${String(n).padStart(6, '0')}fixture${n}`);
+          artistNames.set(
+            a.id,
+            a.name === 'Various Artists' ? a.name : `Fixture Artist ${n}`,
+          );
+        }
+        return { ...a, id: artistIds.get(a.id), name: artistNames.get(a.id) };
+      };
+
+      let nextTrack = 0;
+      for (const item of Object.values(picked)) {
+        const t = item.track;
+        const n = ++nextTrack;
+        t.artists = (t.artists ?? []).map(fakeArtist);
+        if (t.album) {
+          t.album.artists = (t.album.artists ?? []).map(fakeArtist);
+          t.album.name = `Fixture Album ${n}`;
+          if (t.album.id) t.album.id = `album${String(n).padStart(7, '0')}fixture${n}`;
+          // Cover art urls point at a real album; the tests never read them.
+          if (Array.isArray(t.album.images)) {
+            t.album.images = t.album.images.map((img) => ({
+              ...img,
+              url: `https://i.scdn.co/image/fixture${n}`,
+            }));
+          }
+          delete t.album.external_urls;
+        }
+        t.name = `Fixture Track ${n}`;
+        if (t.id) t.id = `track${String(n).padStart(7, '0')}fixture${n}`;
+        delete t.external_urls;
+        delete t.external_ids;
+        delete t.preview_url;
+        delete t.uri;
+        // When this was liked says nothing about the response SHAPE, and
+        // everything about a person's week.
+        item.added_at = `2026-01-0${n}T00:00:00Z`;
+      }
+    };
+
+    anonymise();
+
+    write('spotify-liked.json', {
+      _comment:
+        'Live GET /v1/me/tracks?limit=50, recorded by npm run fixtures:record -- liked. ' +
+        'ANONYMISED: every track, album and artist name and id is a placeholder, ' +
+        'remapped consistently so the relationships the tests read (which artist plays ' +
+        'on which track, which album artist is absent from the lineup) survive. ' +
+        '"Various Artists" is kept verbatim because it is Spotify\'s own placeholder ' +
+        'and a test asserts on it. The SHAPE is real; the content is not. ' +
+        'Trimmed by hand-picked SHAPE, not sampled: one track per extraction branch ' +
+        '(solo, collaboration, compilation, album-artist mismatch). `total` is the real ' +
+        'library size at recording time; `items` is a deliberate subset, so a test must ' +
+        'not assert items.length === total. Re-record when the upstream shape changes; ' +
+        'the diff names what broke.',
+      _recordedAt: new Date().toISOString(),
+      _shapes: Object.keys(picked),
+      page1: {
+        items: Object.values(picked),
+        // A second page exists in the real response; the fixture's paging test
+        // supplies its own `next`, so this one ends the walk.
+        next: null,
+        total,
+      },
+    });
   } else if (mode === 'albums' || mode === 'roster-sample') {
     const targets =
       mode === 'albums'

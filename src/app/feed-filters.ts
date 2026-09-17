@@ -9,6 +9,7 @@
 
 export type CategoryId = 'all' | 'album' | 'single' | 'live' | 'other';
 export type StatusId = 'all' | 'coming' | 'released';
+export type SourceId = 'all' | 'followed' | 'liked';
 export type SortId = 'desc' | 'asc';
 
 /** The shape these predicates actually need. Keeps the tests honest about it. */
@@ -16,6 +17,8 @@ interface Filterable {
   releaseType?: string;
   isUpcoming?: boolean;
   eventDate?: string | null;
+  followed?: boolean;
+  liked?: boolean;
 }
 
 /**
@@ -54,6 +57,25 @@ export function inCategory(item: Filterable, category: CategoryId): boolean {
 export function inStatus(item: Filterable, status: StatusId): boolean {
   if (status === 'coming') return Boolean(item.isUpcoming);
   if (status === 'released') return !item.isUpcoming;
+  return true;
+}
+
+/**
+ * Which list the artist came from.
+ *
+ * Both flags can be true at once — 477 of 1,408 liked artists are also
+ * followed — so these are membership tests, not a partition. "Followed" means
+ * *is followed*, whether or not it is also liked; filtering to one list never
+ * hides a row from the other.
+ *
+ * Independent of category and status for the same reason those are independent
+ * of each other: "unreleased albums by artists I only liked" is a question
+ * someone can ask, and folding any two of these into one control makes it
+ * unaskable.
+ */
+export function inSource(item: Filterable, source: SourceId): boolean {
+  if (source === 'followed') return Boolean(item.followed);
+  if (source === 'liked') return Boolean(item.liked);
   return true;
 }
 

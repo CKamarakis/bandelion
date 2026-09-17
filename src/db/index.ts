@@ -66,6 +66,31 @@ const MIGRATIONS: { id: number; describe: string; sql: string[] }[] = [
       `ALTER TABLE artists ADD COLUMN last_release_check_at TEXT`,
     ],
   },
+  {
+    id: 2,
+    describe: 'per-list flags on user_artists, so one artist can be in both',
+    sql: [
+      /*
+       * Liked Songs is a second list of artists, and an artist can be in both.
+       * The old single `source` column could not say so: `INSERT OR IGNORE`
+       * against PK (user_id, artist_id) keeps whichever list arrived first and
+       * silently discards the second — for 477 of 1,408 artists, measured.
+       *
+       * Flags rather than a wider primary key: widening it means a full table
+       * rebuild (SQLite cannot alter a PK in place), and it would put one row
+       * per source in a table every feed query joins, so each of those queries
+       * would need DISTINCT or start double-counting. Two columns and an index
+       * do the same work additively.
+       */
+      `ALTER TABLE user_artists ADD COLUMN followed INTEGER NOT NULL DEFAULT 0`,
+      `ALTER TABLE user_artists ADD COLUMN liked INTEGER NOT NULL DEFAULT 0`,
+      // Every existing row came from the roster import, which is the only
+      // writer that has ever run. Backfill rather than assume a default: the
+      // flags must describe the rows that are already there.
+      `UPDATE user_artists SET followed = 1 WHERE source = 'spotify'`,
+      `CREATE INDEX IF NOT EXISTS idx_user_artists_lists ON user_artists(user_id, followed, liked)`,
+    ],
+  },
 ];
 
 /** Bring an existing database up to the current schema version. */
@@ -80,9 +105,22 @@ function migrate(db: DB): void {
       try {
         db.exec(statement);
       } catch (err) {
-        // A fresh database built from schema.sql may already have the column.
-        // That is success, not a conflict; anything else is a real failure.
-        if (!/duplicate column name/i.test(String(err))) throw err;
+        const message = String(err);
+        /*
+         * Two survivable cases, both meaning "the schema already says this":
+         *
+         *  - duplicate column: a fresh database built from schema.sql already
+         *    has it, and a new install runs both.
+         *  - no such table: the statement targets a table this database does
+         *    not have. openDatabase always runs schema.sql first so production
+         *    never sees it, but a caller migrating a partial database should
+         *    get a skipped statement rather than a crash on startup.
+         *
+         * Anything else is a real failure and must not be swallowed.
+         */
+        const benign =
+          /duplicate column name/i.test(message) || /no such table/i.test(message);
+        if (!benign) throw err;
       }
     }
     db.exec(`PRAGMA user_version = ${migration.id}`);
@@ -263,11 +301,44 @@ export function linkExternalId(
   ).run(artistId, source, externalId);
 }
 
-export function followArtist(db: DB, userId: number, artistId: number, source = 'spotify'): void {
+/**
+ * Put an artist on a list, without taking them off any other.
+ *
+ * The `OR` in the upsert is the whole point: the liked import must not clear
+ * `followed`, and a later roster import must not clear `liked`. Written as a
+ * plain INSERT OR IGNORE it silently keeps whichever list ran first — which is
+ * the bug this table's flags exist to fix, so it would be an easy one to
+ * reintroduce.
+ *
+ * Never unsets. Leaving a list is not observable from a partial import, for
+ * the same reason `roster.ts` never deletes: an interrupted run would look
+ * exactly like an unfollow. Whatever handles that has to see a complete list
+ * first.
+ */
+export function setArtistList(
+  db: DB,
+  userId: number,
+  artistId: number,
+  lists: { followed?: boolean; liked?: boolean },
+): void {
+  const followed = lists.followed ? 1 : 0;
+  const liked = lists.liked ? 1 : 0;
+  // `source` records which list introduced the artist; ON CONFLICT leaves it.
+  const source = lists.followed ? 'spotify' : 'liked';
+
   db.prepare(
-    `INSERT OR IGNORE INTO user_artists (user_id, artist_id, followed_at, source)
-     VALUES (?, ?, datetime('now'), ?)`,
-  ).run(userId, artistId, source);
+    `INSERT INTO user_artists (user_id, artist_id, followed_at, source, followed, liked)
+     VALUES (?, ?, datetime('now'), ?, ?, ?)
+     ON CONFLICT (user_id, artist_id) DO UPDATE SET
+       followed = MAX(user_artists.followed, excluded.followed),
+       liked    = MAX(user_artists.liked,    excluded.liked)`,
+  ).run(userId, artistId, source, followed, liked);
+}
+
+/** The roster import's entry point. Kept so its call sites read unchanged. */
+export function followArtist(db: DB, userId: number, artistId: number, source = 'spotify'): void {
+  if (source !== 'spotify') throw new Error(`unknown roster source: ${source}`);
+  setArtistList(db, userId, artistId, { followed: true });
 }
 
 export interface FeedItem {
@@ -282,6 +353,9 @@ export interface FeedItem {
   isUpcoming: boolean;
   sourceUrl: string | null;
   firstSeenAt: string;
+  /** Which list this artist is on. Both can be true; see user_artists. */
+  followed: boolean;
+  liked: boolean;
 }
 
 /**
@@ -307,10 +381,18 @@ export function getFeed(
               e.first_seen_at AS firstSeenAt,
               rd.release_type AS releaseType,
               rd.date_precision AS datePrecision,
-              rd.is_upcoming AS isUpcoming
+              rd.is_upcoming AS isUpcoming,
+              COALESCE(ua.followed, 0) AS followed,
+              COALESCE(ua.liked, 0) AS liked
          FROM events e
          JOIN artists a ON a.id = e.artist_id
          LEFT JOIN release_details rd ON rd.event_id = e.id
+         -- LEFT JOIN, and one row per artist: the flags live on a single
+         -- user_artists row, so an artist on both lists cannot duplicate the
+         -- event here. An artist on no list still shows: releases are read per
+         -- artist, and dropping one because a list row is missing would empty
+         -- the feed for a reason no screen could explain.
+         LEFT JOIN user_artists ua ON ua.artist_id = e.artist_id
         WHERE e.type = COALESCE(?, e.type)
         ORDER BY rd.is_upcoming DESC,
                  CASE WHEN rd.is_upcoming = 1 THEN e.event_date END ASC,
@@ -319,10 +401,15 @@ export function getFeed(
     )
     .all(opts.type ?? null, opts.limit ?? 200) as unknown as (Omit<
     FeedItem,
-    'isUpcoming'
-  > & { isUpcoming: number })[];
+    'isUpcoming' | 'followed' | 'liked'
+  > & { isUpcoming: number; followed: number; liked: number })[];
 
-  return rows.map((r) => ({ ...r, isUpcoming: r.isUpcoming === 1 }));
+  return rows.map((r) => ({
+    ...r,
+    isUpcoming: r.isUpcoming === 1,
+    followed: r.followed === 1,
+    liked: r.liked === 1,
+  }));
 }
 
 /** Counts for the feed header. Separate query so the list can be paged later. */

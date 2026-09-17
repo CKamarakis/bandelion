@@ -171,6 +171,165 @@ export async function fetchFollowedArtists(opts: {
   return { artists, complete: false, error: `stopped after ${maxPages} pages` };
 }
 
+// ─── Liked songs ────────────────────────────────────────────────────────────
+
+/**
+ * Liked Songs is a second list of artists, and /me/tracks is the only door.
+ *
+ * It has no playlist id, so `GET /playlists/{id}` cannot reach it
+ * (spotify/web-api#1417), and /me/tracks takes no `fields` parameter, so the
+ * response cannot be slimmed either. 50 per page is the cap; a 2,000-song
+ * library is ~42 calls and there is no cheaper shape available.
+ *
+ * Artist ids and names arrive nested in the track objects, so this needs no
+ * per-artist follow-up — which matters more than usual here, because the batch
+ * `GET /artists?ids=` is gone (measured: 403 on an allowlisted token) and the
+ * fallback would be one call per artist.
+ */
+
+/** Spotify's cap for /me/tracks. Same 50 as /me/following. */
+const LIKED_PAGE_LIMIT = 50;
+
+export const FIRST_LIKED_PAGE = `${API}/me/tracks?limit=${LIKED_PAGE_LIMIT}`;
+
+/** An artist as it appears nested in a track: id and name, nothing more. */
+interface SimplifiedArtist {
+  id?: string;
+  name?: string;
+}
+
+interface SpotifyTrack {
+  id?: string;
+  name?: string;
+  artists?: SimplifiedArtist[];
+  album?: { artists?: SimplifiedArtist[] };
+}
+
+export interface LikedArtistRef {
+  name: string;
+  externalId: string;
+}
+
+export interface LikedPage {
+  artists: LikedArtistRef[];
+  /** Tracks read on this page, whether or not they yielded a new artist. */
+  tracksSeen: number;
+  /**
+   * Album-artist credits dropped because they perform no track here.
+   * Counted rather than discarded silently: a number that turns out large
+   * means the rule is wrong, and a silent drop would never reveal that.
+   */
+  dropped: number;
+  next: string | null;
+  total: number | null;
+  complete: boolean;
+  error?: string;
+}
+
+/**
+ * The artists credited on one track.
+ *
+ * Track artists always count: every name on a song you liked is an artist you
+ * liked. Album artists count only when they also perform a track here, which
+ * is the ordinary case for a normal album and excludes the ones that are not
+ * acts at all — "Various Artists" on a compilation, a label or a curator on a
+ * DJ mix. Those cannot be defined as an artist, so they are dropped.
+ *
+ * Doing it by intersection rather than by blocklist means there is no id to
+ * maintain, and a curator nobody has heard of is handled the same as the one
+ * famous placeholder.
+ */
+export function artistsOnTrack(track: SpotifyTrack): {
+  artists: LikedArtistRef[];
+  dropped: number;
+} {
+  const artists: LikedArtistRef[] = [];
+  const performing = new Set<string>();
+
+  for (const artist of track.artists ?? []) {
+    if (!artist?.id || !artist?.name) continue;
+    performing.add(artist.id);
+    artists.push({ name: artist.name, externalId: artist.id });
+  }
+
+  let dropped = 0;
+  for (const artist of track.album?.artists ?? []) {
+    if (!artist?.id || !artist?.name) continue;
+    if (performing.has(artist.id)) continue;
+    dropped++;
+  }
+
+  return { artists, dropped };
+}
+
+/**
+ * One page of liked songs.
+ *
+ * Same contract as `fetchRosterPage`: never throws, reports `complete: false`
+ * with the error rather than an empty-looking success. A confidently empty
+ * library is the bug class this whole adapter is written against.
+ */
+export async function fetchLikedPage(opts: {
+  accessToken: string;
+  /** Omit to start at the beginning. */
+  url?: string;
+  fetchImpl?: typeof fetch;
+  signal?: AbortSignal;
+}): Promise<LikedPage> {
+  const doFetch = opts.fetchImpl ?? fetch;
+  const empty = { artists: [], tracksSeen: 0, dropped: 0, next: null, total: null };
+
+  try {
+    const res = await doFetch(opts.url ?? FIRST_LIKED_PAGE, {
+      headers: { Authorization: `Bearer ${opts.accessToken}` },
+      signal: opts.signal,
+    });
+
+    if (!res.ok) {
+      return { ...empty, complete: false, error: await describeApiError(res) };
+    }
+
+    const json = (await res.json()) as {
+      items?: { track?: SpotifyTrack }[];
+      next?: string | null;
+      total?: number;
+    };
+
+    if (!json?.items) {
+      return {
+        ...empty,
+        complete: false,
+        error: 'unexpected response shape from /me/tracks (no items)',
+      };
+    }
+
+    const artists: LikedArtistRef[] = [];
+    let dropped = 0;
+    let tracksSeen = 0;
+
+    for (const item of json.items) {
+      // A removed or unavailable track arrives as a null `track`. Not an
+      // error, just nothing to read.
+      if (!item?.track) continue;
+      tracksSeen++;
+      const credited = artistsOnTrack(item.track);
+      artists.push(...credited.artists);
+      dropped += credited.dropped;
+    }
+
+    return {
+      artists,
+      tracksSeen,
+      dropped,
+      next: json.next ?? null,
+      total: typeof json.total === 'number' ? json.total : null,
+      complete: true,
+    };
+  } catch (err) {
+    return { ...empty, complete: false, error: errorMessage(err) };
+  }
+}
+
 function toRosterEntry(item: SpotifyArtist): RosterEntry {
   return {
     name: item.name,

@@ -63,13 +63,27 @@ CREATE TABLE IF NOT EXISTS artist_links (
   PRIMARY KEY (artist_id, kind, url)
 );
 
+-- One row per artist on your radar, with a flag per list they arrived from.
+--
+-- Artists are artists: the list is provenance, not identity. Flags rather than
+-- one row per source because the overlap is the normal case, not an edge case
+-- (measured: 477 of 1,408 liked artists are also followed). A row per source
+-- would need DISTINCT on every feed query to avoid showing those twice.
+--
+-- `source` is the original single-valued column, kept for the record of which
+-- list first introduced an artist. Nothing queries it; the flags do that.
 CREATE TABLE IF NOT EXISTS user_artists (
   user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   artist_id    INTEGER NOT NULL REFERENCES artists(id) ON DELETE CASCADE,
   followed_at  TEXT,
   source       TEXT NOT NULL DEFAULT 'spotify',
+  followed     INTEGER NOT NULL DEFAULT 0,  -- in /me/following
+  liked        INTEGER NOT NULL DEFAULT 0,  -- has a track in /me/tracks
   PRIMARY KEY (user_id, artist_id)
 );
+-- The index on (user_id, followed, liked) is created by migration 2, not here.
+-- This file runs BEFORE migrations on every open, so an index naming a column
+-- that an existing database has not been migrated to yet fails the startup.
 
 -- One events table, discriminated by type. The feed is the product; releases
 -- and gigs are event kinds flowing into it.

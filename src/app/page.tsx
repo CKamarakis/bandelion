@@ -27,15 +27,26 @@ export const dynamic = 'force-dynamic';
  * scopes is honest about exactly what the grant covers.
  */
 const TITLE = 'Bandelion';
-const TAGLINE = 'Releases and gigs from the artists you follow.';
+/*
+ * "Follow and like" rather than "follow": the roster is now two lists, and a
+ * tagline naming only one of them describes a feed the app no longer shows.
+ */
+const TAGLINE = 'Releases and gigs from the artists you follow and like.';
 const CONNECT_HEADING = 'Connect Spotify to start';
 const CONNECT_BODY =
-  'Bandelion reads the artists you follow, then checks for new releases and gigs in your city.';
+  'Bandelion reads the artists you follow and the artists on your liked songs, ' +
+  'then checks for new releases and gigs in your city.';
 // The connect button's own label lives in ConnectSpotify.tsx, with the states
 // it swaps between.
 const SCOPE_NOTE = 'Read-only access. Bandelion never changes anything on your Spotify account.';
 
 const CONNECTED_HEADING = 'Spotify connected';
+/*
+ * Names what this button does, not what Bandelion reads overall: the liked-
+ * songs import is a separate run (`npm run ingest liked`) and this control does
+ * not start it. Saying "and your liked songs" here would promise work this
+ * button never performs.
+ */
 const CONNECTED_BODY = 'Import reads the artists you follow. It resumes if you stop it.';
 const DISCONNECT_CTA = 'Disconnect';
 

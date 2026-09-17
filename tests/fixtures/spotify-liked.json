@@ -1,0 +1,308 @@
+{
+  "_comment": "Live GET /v1/me/tracks?limit=50, recorded by npm run fixtures:record -- liked. ANONYMISED: every track, album and artist name and id is a placeholder, remapped consistently so the relationships the tests read (which artist plays on which track, which album artist is absent from the lineup) survive. \"Various Artists\" is kept verbatim because it is Spotify's own placeholder and a test asserts on it. The SHAPE is real; the content is not. Trimmed by hand-picked SHAPE, not sampled: one track per extraction branch (solo, collaboration, compilation, album-artist mismatch). `total` is the real library size at recording time; `items` is a deliberate subset, so a test must not assert items.length === total. Re-record when the upstream shape changes; the diff names what broke.",
+  "_recordedAt": "2026-09-17T20:12:22.217Z",
+  "_shapes": [
+    "collaboration",
+    "solo",
+    "mismatch",
+    "compilation"
+  ],
+  "page1": {
+    "items": [
+      {
+        "added_at": "2026-01-01T00:00:00Z",
+        "track": {
+          "album": {
+            "album_type": "album",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/4k1ELeJKT1ISyDv8JivPpB"
+                },
+                "href": "https://api.spotify.com/v1/artists/4k1ELeJKT1ISyDv8JivPpB",
+                "id": "artist000001fixture1",
+                "name": "Fixture Artist 1",
+                "type": "artist",
+                "uri": "spotify:artist:4k1ELeJKT1ISyDv8JivPpB"
+              }
+            ],
+            "href": "https://api.spotify.com/v1/albums/4qhJwKBr2ksxAUFjfJd3rb",
+            "id": "album0000001fixture1",
+            "images": [
+              {
+                "height": 640,
+                "width": 640,
+                "url": "https://i.scdn.co/image/fixture1"
+              },
+              {
+                "height": 300,
+                "width": 300,
+                "url": "https://i.scdn.co/image/fixture1"
+              },
+              {
+                "height": 64,
+                "width": 64,
+                "url": "https://i.scdn.co/image/fixture1"
+              }
+            ],
+            "is_playable": true,
+            "name": "Fixture Album 1",
+            "release_date": "1994-04-04",
+            "release_date_precision": "day",
+            "total_tracks": 13,
+            "type": "album",
+            "uri": "spotify:album:4qhJwKBr2ksxAUFjfJd3rb"
+          },
+          "artists": [
+            {
+              "external_urls": {
+                "spotify": "https://open.spotify.com/artist/4k1ELeJKT1ISyDv8JivPpB"
+              },
+              "href": "https://api.spotify.com/v1/artists/4k1ELeJKT1ISyDv8JivPpB",
+              "id": "artist000001fixture1",
+              "name": "Fixture Artist 1",
+              "type": "artist",
+              "uri": "spotify:artist:4k1ELeJKT1ISyDv8JivPpB"
+            },
+            {
+              "external_urls": {
+                "spotify": "https://open.spotify.com/artist/5rIXueJu7zVE2gDZjUM6g8"
+              },
+              "href": "https://api.spotify.com/v1/artists/5rIXueJu7zVE2gDZjUM6g8",
+              "id": "artist000002fixture2",
+              "name": "Fixture Artist 2",
+              "type": "artist",
+              "uri": "spotify:artist:5rIXueJu7zVE2gDZjUM6g8"
+            }
+          ],
+          "disc_number": 1,
+          "duration_ms": 400733,
+          "explicit": false,
+          "href": "https://api.spotify.com/v1/tracks/68k8LJZSquZeUFIkicIPTI",
+          "id": "track0000001fixture1",
+          "is_local": false,
+          "is_playable": true,
+          "name": "Fixture Track 1",
+          "track_number": 3,
+          "type": "track"
+        }
+      },
+      {
+        "added_at": "2026-01-02T00:00:00Z",
+        "track": {
+          "album": {
+            "album_type": "single",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/2mTXtWA6MHFws93KAA5rVt"
+                },
+                "href": "https://api.spotify.com/v1/artists/2mTXtWA6MHFws93KAA5rVt",
+                "id": "artist000003fixture3",
+                "name": "Fixture Artist 3",
+                "type": "artist",
+                "uri": "spotify:artist:2mTXtWA6MHFws93KAA5rVt"
+              }
+            ],
+            "href": "https://api.spotify.com/v1/albums/21ULE4Z6qTMbm7PMl078QX",
+            "id": "album0000002fixture2",
+            "images": [
+              {
+                "height": 640,
+                "width": 640,
+                "url": "https://i.scdn.co/image/fixture2"
+              },
+              {
+                "height": 300,
+                "width": 300,
+                "url": "https://i.scdn.co/image/fixture2"
+              },
+              {
+                "height": 64,
+                "width": 64,
+                "url": "https://i.scdn.co/image/fixture2"
+              }
+            ],
+            "is_playable": true,
+            "name": "Fixture Album 2",
+            "release_date": "2017-04-13",
+            "release_date_precision": "day",
+            "total_tracks": 1,
+            "type": "album",
+            "uri": "spotify:album:21ULE4Z6qTMbm7PMl078QX"
+          },
+          "artists": [
+            {
+              "external_urls": {
+                "spotify": "https://open.spotify.com/artist/2mTXtWA6MHFws93KAA5rVt"
+              },
+              "href": "https://api.spotify.com/v1/artists/2mTXtWA6MHFws93KAA5rVt",
+              "id": "artist000003fixture3",
+              "name": "Fixture Artist 3",
+              "type": "artist",
+              "uri": "spotify:artist:2mTXtWA6MHFws93KAA5rVt"
+            }
+          ],
+          "disc_number": 1,
+          "duration_ms": 153402,
+          "explicit": false,
+          "href": "https://api.spotify.com/v1/tracks/33BOXEIuoffRZwY5puVwsS",
+          "id": "track0000002fixture2",
+          "is_local": false,
+          "is_playable": true,
+          "name": "Fixture Track 2",
+          "track_number": 1,
+          "type": "track"
+        }
+      },
+      {
+        "added_at": "2026-01-03T00:00:00Z",
+        "track": {
+          "album": {
+            "album_type": "single",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/4E2rKHVDssGJm2SCDOMMJB"
+                },
+                "href": "https://api.spotify.com/v1/artists/4E2rKHVDssGJm2SCDOMMJB",
+                "id": "artist000004fixture4",
+                "name": "Fixture Artist 4",
+                "type": "artist",
+                "uri": "spotify:artist:4E2rKHVDssGJm2SCDOMMJB"
+              }
+            ],
+            "href": "https://api.spotify.com/v1/albums/0MndM4dEwGOjtuKE1aP2Tb",
+            "id": "album0000003fixture3",
+            "images": [
+              {
+                "height": 640,
+                "width": 640,
+                "url": "https://i.scdn.co/image/fixture3"
+              },
+              {
+                "height": 300,
+                "width": 300,
+                "url": "https://i.scdn.co/image/fixture3"
+              },
+              {
+                "height": 64,
+                "width": 64,
+                "url": "https://i.scdn.co/image/fixture3"
+              }
+            ],
+            "is_playable": true,
+            "name": "Fixture Album 3",
+            "release_date": "2022-08-05",
+            "release_date_precision": "day",
+            "total_tracks": 5,
+            "type": "album",
+            "uri": "spotify:album:0MndM4dEwGOjtuKE1aP2Tb"
+          },
+          "artists": [
+            {
+              "external_urls": {
+                "spotify": "https://open.spotify.com/artist/4E2rKHVDssGJm2SCDOMMJB"
+              },
+              "href": "https://api.spotify.com/v1/artists/4E2rKHVDssGJm2SCDOMMJB",
+              "id": "artist000004fixture4",
+              "name": "Fixture Artist 4",
+              "type": "artist",
+              "uri": "spotify:artist:4E2rKHVDssGJm2SCDOMMJB"
+            },
+            {
+              "external_urls": {
+                "spotify": "https://open.spotify.com/artist/2OaHYHb2XcFPvqL3VsyPzU"
+              },
+              "href": "https://api.spotify.com/v1/artists/2OaHYHb2XcFPvqL3VsyPzU",
+              "id": "artist000005fixture5",
+              "name": "Fixture Artist 5",
+              "type": "artist",
+              "uri": "spotify:artist:2OaHYHb2XcFPvqL3VsyPzU"
+            }
+          ],
+          "disc_number": 1,
+          "duration_ms": 180076,
+          "explicit": true,
+          "href": "https://api.spotify.com/v1/tracks/2aOG6jVZnTqZwEhjGTcFMM",
+          "id": "track0000003fixture3",
+          "is_local": false,
+          "is_playable": true,
+          "name": "Fixture Track 3",
+          "track_number": 1,
+          "type": "track"
+        }
+      },
+      {
+        "added_at": "2026-01-04T00:00:00Z",
+        "track": {
+          "album": {
+            "album_type": "compilation",
+            "artists": [
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/0LyfQWJT6nXafLPZqxe9Of"
+                },
+                "href": "https://api.spotify.com/v1/artists/0LyfQWJT6nXafLPZqxe9Of",
+                "id": "artist000007fixture7",
+                "name": "Various Artists",
+                "type": "artist",
+                "uri": "spotify:artist:0LyfQWJT6nXafLPZqxe9Of"
+              }
+            ],
+            "href": "https://api.spotify.com/v1/albums/2c4fU9gAt1pV4ASJECJoYX",
+            "id": "album0000004fixture4",
+            "images": [
+              {
+                "height": 640,
+                "width": 640,
+                "url": "https://i.scdn.co/image/fixture4"
+              },
+              {
+                "height": 300,
+                "width": 300,
+                "url": "https://i.scdn.co/image/fixture4"
+              },
+              {
+                "height": 64,
+                "width": 64,
+                "url": "https://i.scdn.co/image/fixture4"
+              }
+            ],
+            "is_playable": true,
+            "name": "Fixture Album 4",
+            "release_date": "2011-10-07",
+            "release_date_precision": "day",
+            "total_tracks": 68,
+            "type": "album",
+            "uri": "spotify:album:2c4fU9gAt1pV4ASJECJoYX"
+          },
+          "artists": [
+            {
+              "external_urls": {
+                "spotify": "https://open.spotify.com/artist/5WWSL6rElJeUk3Uc1S2RyD"
+              },
+              "href": "https://api.spotify.com/v1/artists/5WWSL6rElJeUk3Uc1S2RyD",
+              "id": "artist000006fixture6",
+              "name": "Fixture Artist 6",
+              "type": "artist",
+              "uri": "spotify:artist:5WWSL6rElJeUk3Uc1S2RyD"
+            }
+          ],
+          "disc_number": 1,
+          "duration_ms": 194226,
+          "explicit": false,
+          "href": "https://api.spotify.com/v1/tracks/5bzuQPsEqTyx4STVopRV4w",
+          "id": "track0000004fixture4",
+          "is_local": false,
+          "is_playable": true,
+          "name": "Fixture Track 4",
+          "track_number": 5,
+          "type": "track"
+        }
+      }
+    ],
+    "next": null,
+    "total": 2081
+  }
+}

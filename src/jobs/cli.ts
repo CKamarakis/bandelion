@@ -75,10 +75,30 @@ if (command === 'resolve') {
       'Safe to stop with Ctrl-C; it resumes.\n',
   );
 
+  /*
+   * An optional bite size: `npm run ingest resolve 60`.
+   *
+   * At ~8 seconds an artist, resolving a large new list is hours. Sampling
+   * first tells you the hit rate for THIS set of artists before committing to
+   * all of them — the liked-songs tail (one-off features, remixers) resolves
+   * very differently from a followed roster, and neither of us could predict
+   * which without measuring.
+   */
+  const limitArg = process.argv[3];
+  const maxArtists = limitArg === undefined ? undefined : Number(limitArg);
+  if (maxArtists !== undefined && (!Number.isFinite(maxArtists) || maxArtists < 1)) {
+    console.error(`Not an artist count: "${limitArg}". Usage: npm run ingest resolve [count]`);
+    process.exit(2);
+  }
+  if (maxArtists !== undefined) {
+    console.log(`sampling ${maxArtists} artist(s) — about ${Math.ceil((maxArtists * 8) / 60)} minute(s).\n`);
+  }
+
   const result = await resolveArtists({
     db,
     contact: `Bandelion/0.1 ( ${cfg.musicbrainzContact} )`,
     signal: controller.signal,
+    maxArtists,
     onProgress: ({ attempted, resolved }) => {
       if (attempted % 25 === 0) console.log(`  ${attempted} attempted, ${resolved} resolved`);
     },
@@ -172,8 +192,62 @@ if (command === 'releases') {
   process.exit(result.complete ? 0 : 1);
 }
 
+if (command === 'liked') {
+  const { importLiked, likedStatus } = await import('./liked.ts');
+
+  const before = likedStatus(db, LOCAL_USER_ID);
+  console.log(
+    `liked: ${before.imported} artist(s) from saved tracks, status ${before.status}`,
+  );
+
+  try {
+    const result = await importLiked({
+      db,
+      userId: LOCAL_USER_ID,
+      getAccessToken: () => getAccessToken(db),
+      signal: controller.signal,
+      onPage: ({ tracks, total, artists }) => {
+        const of = total === null ? '' : `/${total}`;
+        console.log(`  ${tracks}${of} track(s), ${artists} artist(s)`);
+      },
+    });
+
+    const after = likedStatus(db, LOCAL_USER_ID);
+    /*
+     * Tracks read, not "artists written": the write count sums per page, and
+     * an artist credited on tracks 40 pages apart is written twice. Reporting
+     * that number next to the distinct total read as though 600 artists had
+     * gone missing.
+     */
+    console.log(`\nread ${result.tracksRead} saved track(s).`);
+    // The overlap is the number that explains why the two lists are not
+    // disjoint, and it is the one people are surprised by.
+    console.log(`${after.imported} liked artist(s) total; ${after.alsoFollowed} you also follow.`);
+    if (result.dropped > 0) {
+      console.log(
+        `${result.dropped} album credit(s) skipped: compilations and DJ mixes credit an ` +
+          '"artist" who performs nothing here.',
+      );
+    }
+    if (!result.complete) {
+      console.log(result.error ? `stopped: ${result.error}` : 'stopped early. Run again to resume.');
+    }
+    process.exit(result.complete ? 0 : 1);
+  } catch (err) {
+    if (err instanceof NotConnectedError) {
+      console.error(
+        'No Spotify account is connected. Open the app and connect one first.',
+      );
+      process.exit(2);
+    }
+    throw err;
+  }
+}
+
 if (command !== 'roster') {
-  console.error(`Unknown command "${command}". Use: roster (default), resolve, or releases.`);
+  console.error(
+    `Unknown command "${command}". Use: roster (default), liked, resolve, or releases.`,
+  );
   process.exit(2);
 }
 

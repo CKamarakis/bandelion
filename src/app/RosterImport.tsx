@@ -77,7 +77,11 @@ export function RosterImport({ initial }: { initial: Status }) {
   return (
     <div>
       <dl style={S.meta}>
-        <dt style={S.key}>Artists</dt>
+        {/* "Followed", not "Artists": the database also holds artists from
+            liked songs, and this count deliberately excludes them. An
+            unqualified label next to a followed-only number invites the reader
+            to compare it against a total that means something else. */}
+        <dt style={S.key}>Followed</dt>
         <dd style={S.val}>
           {/* Counts what is in the database. Never a guess, never a percentage
               of a total we were not given. */}
