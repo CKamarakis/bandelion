@@ -63,7 +63,11 @@ src/jobs/covers.ts  cover art pass: stamps checked, so a coverless release is as
 src/jobs/cli.ts     `npm run ingest`
 src/matcher/        artist-name matching, tiered and deterministic
 src/app/            Next.js routes and UI
-src/app/Feed.tsx    the release feed: category tabs, status filter, date sort
+src/app/Feed.tsx    the release feed: cards, month sections, filters, pagination
+src/app/feed-filters.ts the filter predicates, month grouping and page windowing
+src/app/feed-format.ts dates at the precision we actually have, and no more
+src/app/InfoNote.tsx a note behind an icon, for text that is read once
+public/            the mark and its favicons; the only static assets
 tests/              standalone .mjs suites, auto-enrolled by run.mjs
 tests/liked.mjs     liked-songs paging and artist extraction, against a fixture
 tests/liked-db.mjs  the list flags, and the real schema.sql-then-migrate path
@@ -350,6 +354,27 @@ Every line came from something that went wrong or right in a real session.
   looked at the right thing.
 - **Do not trust a passing suite over my screenshot.**
 - **One test run, not two.** Capture once.
+
+### Taking a screenshot without fooling yourself
+
+Three separate times this went wrong in one session, each time producing a
+screenshot of something other than the current build:
+
+- **Stop the server before `npm run build`.** Building over a running server
+  corrupts `.next` and the page renders with no CSS at all.
+- **Kill by port, not by task.** A dead server can keep port 3000, so the next
+  one silently takes 3001 and the screenshot captures the old build.
+- **Wait for something new, not for a 200.** Poll for a string that only the
+  new build contains. "The server answered" is not "the server answered with
+  your change".
+
+### An inline style beats a stylesheet rule
+
+Regardless of order or specificity. A `margin: 0` in a component silently
+cancelled a `margin-top` in `globals.css` and the gap measured 0px while both
+files looked right. The same thing happened earlier with `display: block`
+beating a media query. When a CSS change does not take, look for an inline
+style on the same element before doubting the selector.
 
 ### How a round of changes should go
 

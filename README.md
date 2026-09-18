@@ -177,6 +177,7 @@ Honest list, because finding these yourself is worse.
 |---|---|
 | `CLAUDE.md` | How the project is built and why. Read first. |
 | `PALETTE.md` | Every colour, what it is for, and the measured contrast. |
+| `HANDOVER.md` | Where the current branch stands, and what to pick up next. |
 | `LIMITS.md` | What is deferred, and what would lift each limit. |
 | `VENUES.md` | The Berlin venues the gig sources will target. |
 | `TESTING.md` | Each test suite and the bug that caused it. |
