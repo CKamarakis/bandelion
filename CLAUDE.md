@@ -28,7 +28,7 @@ npm run build
 npm start              # serve the production build
 npm test               # whole suite
 npm run verify         # build + test — run before committing
-npm run ingest         # roster import; also `liked`, `resolve` (MBIDs), `releases`
+npm run ingest         # roster; also `liked`, `resolve` (MBIDs), `releases`, `covers`
 npm run seed           # build a seeded database, so screens work without OAuth
 npm run eval:matcher   # artist-name matcher eval set, prints a score
 npm run fixtures:record # capture a live upstream response into tests/fixtures/
@@ -48,6 +48,7 @@ src/adapters/       one file per source, all implementing SourceAdapter
 src/adapters/types.ts   the contract every adapter implements
 src/adapters/spotify.ts two artist lists: followed artists and liked-song artists
 src/adapters/musicbrainz.ts identity by Spotify-URL join, links, and release-groups
+src/adapters/coverart.ts sleeve images from the Cover Art Archive, by release-group MBID
 src/auth/           OAuth: PKCE, token exchange, encryption at rest
 src/auth/crypto.ts  AES-256-GCM for tokens; the DB never holds plaintext
 src/config.ts       every per-instance value, read from env
@@ -58,6 +59,7 @@ src/jobs/roster.ts  the Spotify roster import: resumable, never deletes
 src/jobs/liked.ts   the liked-songs import: artists credited on saved tracks
 src/jobs/resolve.ts MBID resolution: exact join first, review queue second
 src/jobs/releases.ts release sweep: MusicBrainz release-groups into events
+src/jobs/covers.ts  cover art pass: stamps checked, so a coverless release is asked once
 src/jobs/cli.ts     `npm run ingest`
 src/matcher/        artist-name matching, tiered and deterministic
 src/app/            Next.js routes and UI
