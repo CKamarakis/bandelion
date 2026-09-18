@@ -558,7 +558,8 @@ export function Feed({
 }
 
 function FeedRow({ item, today }: { item: FeedItem; today: string }) {
-  const when = formatEventDate(item.eventDate, item.datePrecision);
+  // No year on the card: the month band above the grid already says it.
+  const when = formatEventDate(item.eventDate, item.datePrecision, true);
   const soon = item.isUpcoming ? relativeDays(item.eventDate, item.datePrecision, today) : null;
 
   return (

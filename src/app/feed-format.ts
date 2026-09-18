@@ -63,14 +63,28 @@ export function monthFilterLabel(group: string): string {
   return /^\d{4}$/.test(group) ? `${group}, month unknown` : group;
 }
 
-export function formatEventDate(date: string | null, precision: DatePrecision): string {
+export function formatEventDate(
+  date: string | null,
+  precision: DatePrecision,
+  /*
+   * Drop the year. For the card, where the month band above already says which
+   * year this is and repeating it on every row is noise.
+   *
+   * A year-precision release keeps its year regardless: '2027' with the year
+   * removed is nothing at all, and a blank where a date belongs reads as
+   * missing data rather than as imprecise data. Measured on a real database,
+   * 19 of 600 releases are year-only.
+   */
+  omitYear = false,
+): string {
   if (!date) return 'No date';
 
   const [y, m, d] = date.split('-');
   if (precision === 'year' || !m) return y;
+
   const month = MONTHS[Number(m) - 1] ?? m;
-  if (precision === 'month' || !d) return `${month} ${y}`;
-  return `${Number(d)} ${month} ${y}`;
+  if (precision === 'month' || !d) return omitYear ? month : `${month} ${y}`;
+  return omitYear ? `${Number(d)} ${month}` : `${Number(d)} ${month} ${y}`;
 }
 
 /**

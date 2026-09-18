@@ -632,15 +632,24 @@ a {
 .feed-artistlink {
   display: inline-block;
   align-self: flex-start;
-  color: inherit;
+  /*
+   * True black rather than --ink: a filled block sitting on a dandelion card
+   * needs the harder edge, and the dandelion type on it measures 13.98:1
+   * against 9:1 on the olive.
+   */
+  background: #000000;
+  color: var(--dandelion);
   text-decoration: none;
-  padding: 0 10px;
-  margin: 0 -10px;
+  padding: 2px 8px;
+  /* Pulled back out of the layout so the block does not shift the name away
+     from the title beneath it. */
+  margin: 0 -8px;
 }
 
+/* Inverted on hover, so the state change is ground rather than hue alone. */
 .feed-artistlink:hover {
-  background: var(--ink);
-  color: var(--dandelion);
+  background: var(--dandelion);
+  color: #000000;
 }
 
 .feed-artistlink:focus-visible {

@@ -125,12 +125,10 @@ export default async function Home({
   return (
     <main style={S.page}>
       <header style={S.masthead}>
-        <div style={S.catRow}>
-          <span className="cat">BND 0001</span>
-          <span className="cat">{cfg.city.toUpperCase()}</span>
-        </div>
         {/*
-          The mark sits with the wordmark, not above it.
+          The mark sits with the wordmark, not above it, and the catalogue
+          labels stack to their right on the same row: the masthead is wide
+          enough that giving them a line of their own wasted one.
 
           alt is empty and the image is decorative: the h1 beside it already
           says "Bandelion", so a screen reader announcing the logo would read
@@ -147,6 +145,11 @@ export default async function Home({
             aria-hidden="true"
           />
           <h1 style={S.title}>{TITLE}</h1>
+          {/* Catalogue number over city, both right-aligned, top of the row. */}
+          <div style={S.catStack}>
+            <span className="cat">BND 0001</span>
+            <span className="cat">{cfg.city.toUpperCase()}</span>
+          </div>
         </div>
         <p style={S.tagline}>{TAGLINE}</p>
       </header>
@@ -252,7 +255,17 @@ const S: Record<string, React.CSSProperties> = {
     minHeight: '100vh',
   },
   masthead: { paddingBottom: '20px' },
+  // Logo and wordmark centred on each other; the catalogue stack pushed right
+  // and pinned to the top of the row, where a specimen label belongs.
   titleRow: { display: 'flex', alignItems: 'center', gap: '18px' },
+  catStack: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: '2px',
+    marginLeft: 'auto',
+    alignSelf: 'flex-start',
+  },
   /*
    * The mark, on its own black ground. No border: the artwork is already a
    * black circle, so a rule around it would draw a box around a circle.
@@ -268,7 +281,6 @@ const S: Record<string, React.CSSProperties> = {
    */
   title: { fontSize: 'clamp(2rem, 6vw, 3.25rem)', lineHeight: 0.9 },
   rule: { height: '6px', background: 'var(--ink)', border: 'none', margin: '0' },
-  catRow: { display: 'flex', justifyContent: 'space-between', marginBottom: '14px' },
   // No ch cap: the tagline is one line at 960px and wraps only if the viewport
   // cannot hold it. A measure limit here broke it in two with room to spare.
   tagline: { margin: '18px 0 0', fontSize: '0.95rem' },

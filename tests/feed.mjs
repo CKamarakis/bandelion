@@ -45,6 +45,26 @@ for (const [date, precision] of [
 // Leading zeros are a real upstream shape and must not survive to the screen.
 check(formatEventDate('2027-03-04', 'day') === '4 Mar 2027', 'a single-digit day drops its zero');
 
+// --- Without the year, for the card -----------------------------------------
+// The month band above the grid already says which year it is.
+
+check(formatEventDate('2027-03-14', 'day', true) === '14 Mar', 'the card drops the year');
+check(formatEventDate('2027-03', 'month', true) === 'Mar', 'a month-precision date drops it too');
+/*
+ * The case that makes this more than a formatting flag: a year-only release
+ * with the year removed is nothing at all, and a blank where a date belongs
+ * reads as missing data rather than as imprecise data. 19 of 600 releases in a
+ * real database are year-only.
+ */
+check(
+  formatEventDate('2027', 'year', true) === '2027',
+  'a year-precision date keeps its year even when the year is omitted',
+);
+check(
+  formatEventDate(null, 'day', true) === 'No date',
+  'a missing date still says so',
+);
+
 console.log('\n# relative time is only offered when it is honest');
 
 const TODAY = '2026-09-15';
