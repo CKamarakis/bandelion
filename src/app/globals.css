@@ -279,6 +279,67 @@ a {
   outline-offset: 2px;
 }
 
+/*
+ * Square icon buttons. Glyph only, so the label lives in `title` and
+ * `aria-label`: a symbol on its own is silent to a screen reader and ambiguous
+ * to a first-time reader, and the hard box is what marks it as pressable.
+ */
+.feed-iconbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  background: var(--white);
+  color: var(--ink);
+  border: var(--rule-width) solid var(--ink);
+  cursor: pointer;
+}
+
+.feed-iconbtn:hover {
+  background: var(--ink);
+  color: var(--dandelion);
+}
+
+.feed-iconbtn:focus-visible {
+  outline: 3px solid var(--violet);
+  outline-offset: 2px;
+}
+
+/*
+ * The week shortcuts. Pressed state is ground plus weight, not hue alone:
+ * an unpressed button is ink on white, a pressed one inverts.
+ */
+.feed-weekbtn {
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.8rem;
+  background: var(--white);
+  color: var(--ink);
+  border: var(--rule-width) solid var(--ink);
+  cursor: pointer;
+}
+
+.feed-weekbtn:hover {
+  background: var(--dandelion);
+}
+
+.feed-weekbtn.is-on {
+  background: var(--ink);
+  color: var(--dandelion);
+}
+
+.feed-weekbtn:focus-visible {
+  outline: 3px solid var(--violet);
+  outline-offset: 2px;
+}
+
 .block-yellow .btn-danger:hover,
 .btn-danger:hover {
   background: var(--white);

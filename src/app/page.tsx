@@ -216,7 +216,14 @@ const S: Record<string, React.CSSProperties> = {
     maxWidth: '960px',
     margin: '0 auto',
     padding: '48px 32px 96px',
-    background: 'var(--white)',
+    /*
+     * 85% white, so the stripes show faintly through the sheet.
+     *
+     * rgba on the background, NOT `opacity`: opacity fades the element and
+     * everything inside it, so the type would drop to 85% too and the measured
+     * 12:1 contrast with it. This tints only the surface.
+     */
+    background: 'rgba(255, 255, 255, 0.85)',
     borderLeft: 'var(--rule-width) solid var(--ink)',
     borderRight: 'var(--rule-width) solid var(--ink)',
     minHeight: '100vh',
@@ -244,9 +251,15 @@ const S: Record<string, React.CSSProperties> = {
   noticeLabel: { flexShrink: 0 },
   noticeText: { minWidth: 0, overflowWrap: 'anywhere' },
   // Yellow is flyer stock: a surface black type sits on, measured at ~9:1.
-  panel: { padding: '30px 26px 34px' },
-  // Full width of the panel, wrapping only when it genuinely does not fit.
-  body: { margin: '14px 0 24px' },
+  // Even padding so the block reads as one printed panel rather than a column
+  // that happens to be yellow.
+  panel: { padding: '28px' },
+  /*
+   * Full width of the panel, wrapping only when it genuinely does not fit.
+   * 20px below rather than 24: the heading, the sentence and the buttons are
+   * one sequence, and the space between them should be even.
+   */
+  body: { margin: '16px 0 20px' },
   note: { margin: '20px 0 0', fontSize: '0.8rem' },
   // The two panel actions sit on one row. `wrap` so a narrow viewport stacks
   // them rather than pushing one off the edge.

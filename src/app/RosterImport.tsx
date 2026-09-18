@@ -36,7 +36,9 @@ interface Status {
 }
 
 const FOLLOWED_LABEL = 'Followed';
-const LIKED_LABEL = 'Liked songs';
+/* "Liked", not "Liked songs": the number beside it counts artists, and the
+   sentence already says which songs they came from. */
+const LIKED_LABEL = 'Liked';
 
 export function RosterImport({
   initial,
@@ -147,8 +149,26 @@ export function RosterImport({
 }
 
 const S: Record<string, React.CSSProperties> = {
-  meta: { display: 'flex', flexWrap: 'wrap', gap: '10px', margin: '0 0 18px', fontSize: '0.8rem' },
-  key: { margin: 0, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em' },
+  /*
+   * 14px above, none below: the counts follow the buttons that produce them,
+   * and the panel's own padding closes the block. Written as `0 0 18px` it had
+   * a bottom margin and no top, so the text sat against the buttons.
+   */
+  meta: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '6px 16px',
+    margin: '14px 0 0',
+    fontSize: '0.8rem',
+  },
+  // A small gap before the value it labels, a larger one before the next pair,
+  // so "FOLLOWED 625 of 625" reads as one unit rather than four loose words.
+  key: {
+    margin: '0 -10px 0 0',
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.12em',
+  },
   val: { margin: 0 },
   error: {
     margin: '0 0 18px',

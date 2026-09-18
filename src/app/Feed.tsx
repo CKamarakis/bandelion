@@ -29,10 +29,12 @@ import {
   inCategory,
   inSource,
   inStatus,
+  inWeek,
   type CategoryId,
   type SortId,
   type SourceId,
   type StatusId,
+  type WeekId,
 } from './feed-filters.ts';
 
 /*
@@ -69,8 +71,21 @@ const PAGE_SIZE = 100;
 
 const MONTH_LEGEND = 'Month';
 const ALL_MONTHS = 'All months';
-const COLLAPSE_ALL = 'Collapse all';
-const EXPAND_ALL = 'Expand all';
+const COLLAPSE_ALL = 'Collapse all months';
+const EXPAND_ALL = 'Expand all months';
+const CLEAR_FILTERS = 'Clear all filters';
+const WEEK_GROUP_LABEL = 'Jump to a week';
+
+/*
+ * Calendar weeks, Monday to Sunday. The labels say which week without saying
+ * which number: "week 38" is precise and means nothing to a reader deciding
+ * whether to click.
+ */
+const WEEKS = [
+  { id: 'last', label: 'Last week' },
+  { id: 'this', label: 'This week' },
+  { id: 'next', label: 'Next week' },
+] as const;
 /* Names what it counts, per the rule against a bare "12". */
 const RELEASE_COUNT = (n: number) => `${n} release${n === 1 ? '' : 's'}`;
 const PAGER_LABEL = 'Pages';
@@ -206,6 +221,7 @@ export function Feed({
   const [source, setSource] = useState<SourceId>('all');
   const [sort, setSort] = useState<SortId>('desc');
   const [month, setMonth] = useState<string>('all');
+  const [week, setWeek] = useState<WeekId | 'all'>('all');
   const [page, setPage] = useState(0);
   /*
    * Only the collapsed months are tracked, so a month that appears later (a
@@ -219,9 +235,15 @@ export function Feed({
       // filter() already returns a new array, so sorting it in place is safe —
       // but only because of that. Sorting `items` directly would mutate a prop.
       items
-        .filter((i) => inCategory(i, category) && inStatus(i, status) && inSource(i, source))
+        .filter(
+          (i) =>
+            inCategory(i, category) &&
+            inStatus(i, status) &&
+            inSource(i, source) &&
+            inWeek(i, week, today),
+        )
         .sort(byDate(sort)),
-    [items, category, status, source, sort],
+    [items, category, status, source, week, today, sort],
   );
 
   /*
@@ -291,6 +313,22 @@ export function Feed({
   const allCollapsed =
     monthsAvailable.length > 0 && monthsAvailable.every((m) => collapsed.has(m));
 
+  /*
+   * Sort is deliberately not a filter: it changes the order, not what is in
+   * the list, so clearing filters should not silently reverse the feed.
+   */
+  const anyFilterSet =
+    category !== 'all' || status !== 'all' || source !== 'all' || month !== 'all' || week !== 'all';
+
+  function clearFilters() {
+    setCategory('all');
+    setStatus('all');
+    setSource('all');
+    setMonth('all');
+    setWeek('all');
+    setPage(0);
+  }
+
   function toggleMonth(name: string) {
     setCollapsed((previous) => {
       const next = new Set(previous);
@@ -357,13 +395,62 @@ export function Feed({
         />
         <Dropdown legend={SORT_LEGEND} options={SORTS} value={sort} onChange={setSort} />
 
-        {/* Collapse-all sits with the controls because it is one: it changes
-            what you can see, not what the data is. */}
-        {groups.length > 1 ? (
-          <button type="button" className="feed-textbtn" onClick={toggleAll} style={S.collapseAll}>
-            {allCollapsed ? EXPAND_ALL : COLLAPSE_ALL}
-          </button>
-        ) : null}
+        {/*
+          Icon buttons, pushed right. No label, so each carries its meaning in
+          `title` and `aria-label` rather than only in a glyph: a symbol alone
+          is unreadable to a screen reader and ambiguous to everyone else on
+          first encounter.
+        */}
+        <div style={S.iconGroup}>
+          {anyFilterSet ? (
+            <button
+              type="button"
+              className="feed-iconbtn"
+              onClick={clearFilters}
+              title={CLEAR_FILTERS}
+              aria-label={CLEAR_FILTERS}
+            >
+              <span aria-hidden="true">✕</span>
+            </button>
+          ) : null}
+
+          {groups.length > 1 ? (
+            <button
+              type="button"
+              className="feed-iconbtn"
+              onClick={toggleAll}
+              title={allCollapsed ? EXPAND_ALL : COLLAPSE_ALL}
+              aria-label={allCollapsed ? EXPAND_ALL : COLLAPSE_ALL}
+              aria-pressed={allCollapsed}
+            >
+              <span aria-hidden="true">{allCollapsed ? '⊞' : '⊟'}</span>
+            </button>
+          ) : null}
+        </div>
+      </div>
+
+      {/*
+        Quick weeks, as toggles rather than a sixth dropdown.
+
+        They answer a different question from the filters above: not "which of
+        these do I want" but "take me to now". Pressing one again clears it,
+        so the control is its own undo.
+      */}
+      <div style={S.weekRow} role="group" aria-label={WEEK_GROUP_LABEL}>
+        {WEEKS.map((w) => {
+          const active = week === w.id;
+          return (
+            <button
+              key={w.id}
+              type="button"
+              className={`feed-weekbtn${active ? ' is-on' : ''}`}
+              aria-pressed={active}
+              onClick={() => setWeek(active ? 'all' : w.id)}
+            >
+              {w.label}
+            </button>
+          );
+        })}
       </div>
 
       {inMonth.length === 0 ? (
@@ -604,11 +691,16 @@ const S: Record<string, React.CSSProperties> = {
    * a scan down the list reads the bands as structure rather than as entries.
    * Zero radius and a hard edge, like everything else here.
    */
-  monthSection: { marginBottom: '0.5rem' },
+  // 36px between sections, so a month change reads as a break rather than as
+  // another row. The grid's own 20px padding sits inside this.
+  monthSection: { marginBottom: '36px' },
   // Monospace so the glyph does not shift the heading when + becomes –.
   bandGlyph: { fontFamily: 'monospace', width: '1ch', display: 'inline-block' },
   bandCount: { marginLeft: 'auto', opacity: 0.75, fontWeight: 400 },
-  collapseAll: { alignSelf: 'flex-end' },
+  // Pushed to the far right of the control row, away from the dropdowns: they
+  // narrow the list, these act on the whole view.
+  iconGroup: { display: 'flex', gap: '0.4rem', marginLeft: 'auto', alignSelf: 'flex-end' },
+  weekRow: { display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.25rem' },
   pager: {
     display: 'flex',
     alignItems: 'center',

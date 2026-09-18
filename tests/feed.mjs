@@ -423,6 +423,66 @@ console.log('\n# category and status are independent');
     !spotifyArtistUrl('x').includes('/artists/'),
     'the path is /artist/, singular: /artists/ is the API, not the web player',
   );
+
+  // --- Calendar weeks, Monday to Sunday -------------------------------------
+  //
+  // Not "the last seven days": a release on Sunday belongs to the week that is
+  // ending, and counting back from today would file it with next Tuesday.
+
+  const { weekStart, weekStartFrom, inWeek } = await import('../src/app/feed-filters.ts');
+  const d = (iso) => new Date(`${iso}T00:00:00Z`);
+
+  // 2026-09-18 is a Friday. Its week runs Mon 14th to Sun 20th.
+  check(weekStart(d('2026-09-18')) === '2026-09-14', 'a Friday belongs to the Monday before it');
+  check(weekStart(d('2026-09-14')) === '2026-09-14', 'a Monday is its own week start');
+  check(
+    weekStart(d('2026-09-20')) === '2026-09-14',
+    'a Sunday belongs to the week that is ending, not the one starting',
+  );
+  check(weekStart(d('2026-09-21')) === '2026-09-21', 'the next Monday starts a new week');
+
+  check(weekStartFrom('2026-09-18', 0) === '2026-09-14', 'this week');
+  check(weekStartFrom('2026-09-18', -1) === '2026-09-07', 'last week');
+  check(weekStartFrom('2026-09-18', 1) === '2026-09-21', 'next week');
+
+  // Across a month boundary, where naive date maths goes wrong.
+  check(weekStartFrom('2026-10-01', -1) === '2026-09-21', 'last week can be in the previous month');
+  // And across a year boundary.
+  check(weekStartFrom('2027-01-01', -1) === '2026-12-21', 'last week can be in the previous year');
+
+  const day = (eventDate) => ({ eventDate, datePrecision: 'day' });
+  const today = '2026-09-18';
+
+  check(inWeek(day('2026-09-14'), 'this', today), 'Monday is in this week');
+  check(inWeek(day('2026-09-20'), 'this', today), 'Sunday is in this week');
+  check(!inWeek(day('2026-09-21'), 'this', today), 'the following Monday is not');
+  check(!inWeek(day('2026-09-13'), 'this', today), 'the previous Sunday is not');
+  check(inWeek(day('2026-09-13'), 'last', today), 'the previous Sunday is in last week');
+  check(inWeek(day('2026-09-21'), 'next', today), 'the following Monday is in next week');
+  check(inWeek(day('2026-09-27'), 'next', today), 'the following Sunday is in next week');
+  check(!inWeek(day('2026-09-28'), 'next', today), 'two Mondays out is not next week');
+
+  /*
+   * The honesty case. Half of all MusicBrainz dates carry no day, and a
+   * month-precision release cannot be placed in one of its four or five weeks
+   * without inventing the precision formatEventDate exists to refuse.
+   */
+  check(
+    !inWeek({ eventDate: '2026-09', datePrecision: 'month' }, 'this', today),
+    'a month-precision release is in no week',
+  );
+  check(
+    !inWeek({ eventDate: '2026', datePrecision: 'year' }, 'this', today),
+    'a year-precision release is in no week',
+  );
+  check(
+    !inWeek({ eventDate: null, datePrecision: 'day' }, 'this', today),
+    'an undated release is in no week',
+  );
+  check(
+    inWeek({ eventDate: '2026', datePrecision: 'year' }, 'all', today),
+    'All admits everything, including undated rows',
+  );
 }
 
 console.log('\n# sorting by date');

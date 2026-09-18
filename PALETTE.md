@@ -55,6 +55,26 @@ Computed from the declared values, not eyeballed.
 | `--spotify-green` on `--dandelion` | 1.28:1 | the button needs its ink border to exist at all |
 | white on `--spotify-green` | 1.92:1 | **fails**, which is why that button sets black |
 
+### Through the 85% sheet
+
+The page sheet is `rgba(255,255,255,0.85)`, so the stripes show faintly
+through it and body text sits on the blend rather than on pure white. Measured
+against the darkest and most saturated parts of the pattern:
+
+| Ink over the sheet, above | Ratio |
+|---|---|
+| black | 9.23:1 |
+| magenta | 10.19:1 |
+| violet | 9.96:1 |
+
+(The effective grounds are blends, not palette colours, so their hex values are
+deliberately not listed: a hex in this file is a colour that ships.)
+
+Worst case 9.23:1 against 13.03:1 on pure white: still AAA, which is what made
+the translucency safe to ship. It is set with `rgba` on the background and
+never with `opacity`, because `opacity` fades the element and everything inside
+it, taking the type down with the surface.
+
 ---
 
 ## Rules that come with them

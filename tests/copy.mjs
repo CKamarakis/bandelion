@@ -60,6 +60,18 @@ function userStrings(src) {
     // real prose that happens to contain a number.
     if (/^[Mm][\d\s.,-]/.test(s) && /[CcSsQqTtAaLlHhVvZz]/.test(s)) continue;
     if (/^[\w-]+(\s+[\w-]+)*$/.test(s) && /^(ui-|sans|serif|monospace)/.test(s)) continue;
+    /*
+     * Code caught between two adjacent literals, not a string.
+     *
+     * `a !== 'all' || b !== 'all'` gives this scanner ` || b !== ` as its
+     * match, because the regex pairs the closing quote of one literal with the
+     * opening quote of the next. That read as copy containing an exclamation
+     * mark and failed rule 3 on four correct comparisons.
+     *
+     * Operators never appear in user-facing prose, so their presence is the
+     * tell. Checked before the string is recorded rather than excused later.
+     */
+    if (/(\|\||&&|!==|===|[!<>]=|\?\?)/.test(s)) continue;
     found.push(s);
   }
   return found;

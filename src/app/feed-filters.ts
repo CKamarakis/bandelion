@@ -79,6 +79,58 @@ export function inSource(item: Filterable, source: SourceId): boolean {
   return true;
 }
 
+export type WeekId = 'last' | 'this' | 'next';
+
+/**
+ * The Monday that starts the calendar week containing `date`.
+ *
+ * Monday, not "seven days ago": a release on Sunday belongs to the week that
+ * is ending, and counting back from today would put it in the same bucket as
+ * next Tuesday. ISO weeks are what people mean by "this week".
+ *
+ * Works in UTC throughout. The dates we hold are plain 'YYYY-MM-DD' strings
+ * with no timezone, so parsing them as local time would shift a release across
+ * a day boundary for anyone east or west of UTC, and across a WEEK boundary
+ * for a release dated Sunday or Monday.
+ */
+export function weekStart(date: Date): string {
+  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  // getUTCDay: 0 is Sunday. Shift so Monday is 0 and Sunday is 6.
+  const offset = (d.getUTCDay() + 6) % 7;
+  d.setUTCDate(d.getUTCDate() - offset);
+  return d.toISOString().slice(0, 10);
+}
+
+/** The Monday of the week `weeks` away from the one containing `today`. */
+export function weekStartFrom(today: string, weeks: number): string {
+  const base = new Date(`${weekStart(new Date(`${today}T00:00:00Z`))}T00:00:00Z`);
+  base.setUTCDate(base.getUTCDate() + weeks * 7);
+  return base.toISOString().slice(0, 10);
+}
+
+/**
+ * Whether a release falls in the given calendar week.
+ *
+ * A date without a day is never in a week. Half of all MusicBrainz dates carry
+ * no day, and placing '2026-09' in a week would mean choosing one of four or
+ * five, which is exactly the invented precision `formatEventDate` refuses.
+ */
+export function inWeek(
+  item: { eventDate?: string | null; datePrecision?: string },
+  week: WeekId | 'all',
+  today: string,
+): boolean {
+  if (week === 'all') return true;
+  if (!item.eventDate || item.datePrecision !== 'day') return false;
+
+  const offset = week === 'last' ? -1 : week === 'next' ? 1 : 0;
+  const start = weekStartFrom(today, offset);
+  const end = weekStartFrom(today, offset + 1);
+
+  // Half-open: the next Monday belongs to the next week, not this one.
+  return item.eventDate >= start && item.eventDate < end;
+}
+
 /**
  * Split a sorted list into month groups, preserving order.
  *
