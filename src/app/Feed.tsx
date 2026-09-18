@@ -82,9 +82,9 @@ const WEEK_GROUP_LABEL = 'Jump to a week';
  * whether to click.
  */
 const WEEKS = [
-  { id: 'last', label: 'Last week' },
-  { id: 'this', label: 'This week' },
-  { id: 'next', label: 'Next week' },
+  { id: 'last', label: 'Last Week' },
+  { id: 'this', label: 'This Week' },
+  { id: 'next', label: 'Next Week' },
 ] as const;
 /* Names what it counts, per the rule against a bare "12". */
 const RELEASE_COUNT = (n: number) => `${n} release${n === 1 ? '' : 's'}`;
@@ -402,30 +402,28 @@ export function Feed({
           first encounter.
         */}
         <div style={S.iconGroup}>
-          {anyFilterSet ? (
-            <button
-              type="button"
-              className="feed-iconbtn"
-              onClick={clearFilters}
-              title={CLEAR_FILTERS}
-              aria-label={CLEAR_FILTERS}
-            >
-              <span aria-hidden="true">✕</span>
-            </button>
-          ) : null}
+          <button
+            type="button"
+            className="feed-iconbtn"
+            onClick={clearFilters}
+            disabled={!anyFilterSet}
+            title={CLEAR_FILTERS}
+            aria-label={CLEAR_FILTERS}
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
 
-          {groups.length > 1 ? (
-            <button
-              type="button"
-              className="feed-iconbtn"
-              onClick={toggleAll}
-              title={allCollapsed ? EXPAND_ALL : COLLAPSE_ALL}
-              aria-label={allCollapsed ? EXPAND_ALL : COLLAPSE_ALL}
-              aria-pressed={allCollapsed}
-            >
-              <span aria-hidden="true">{allCollapsed ? '⊞' : '⊟'}</span>
-            </button>
-          ) : null}
+          <button
+            type="button"
+            className="feed-iconbtn"
+            onClick={toggleAll}
+            disabled={groups.length < 2}
+            title={allCollapsed ? EXPAND_ALL : COLLAPSE_ALL}
+            aria-label={allCollapsed ? EXPAND_ALL : COLLAPSE_ALL}
+            aria-pressed={allCollapsed}
+          >
+            <span aria-hidden="true">{allCollapsed ? '⊞' : '⊟'}</span>
+          </button>
         </div>
       </div>
 
@@ -666,9 +664,15 @@ const S: Record<string, React.CSSProperties> = {
   },
   filterActive: { background: 'var(--ink)', color: 'var(--white)' },
 
-  // No borderTop: .feed-grid draws its own frame, and a second rule here put a
-  // 4px line under every month heading.
-  list: { listStyle: 'none', margin: 0, padding: 0 },
+  /*
+   * No borderTop: .feed-grid draws its own frame, and a second rule here put a
+   * 4px line under every month heading.
+   *
+   * marginTop is set here rather than in .feed-grid because an inline style
+   * beats a stylesheet rule regardless of order: `margin: 0` here silently
+   * cancelled the 20px the CSS asked for, and the measured gap was 0px.
+   */
+  list: { listStyle: 'none', margin: '20px 0 0', padding: 0 },
 
   // Date and metadata share a line: both are short, and pairing them keeps the
   // row to two lines rather than four.
@@ -700,7 +704,9 @@ const S: Record<string, React.CSSProperties> = {
   // Pushed to the far right of the control row, away from the dropdowns: they
   // narrow the list, these act on the whole view.
   iconGroup: { display: 'flex', gap: '0.4rem', marginLeft: 'auto', alignSelf: 'flex-end' },
-  weekRow: { display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.25rem' },
+  // No flex gap: the buttons carry their own right margin, so spacing stays
+  // even whether or not the row wraps.
+  weekRow: { display: 'flex', flexWrap: 'wrap', marginBottom: '1.25rem' },
   pager: {
     display: 'flex',
     alignItems: 'center',

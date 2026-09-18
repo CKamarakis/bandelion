@@ -293,15 +293,24 @@ a {
   font: inherit;
   font-size: 1rem;
   line-height: 1;
-  background: var(--white);
-  color: var(--ink);
+  background: var(--ink);
+  color: var(--white);
   border: var(--rule-width) solid var(--ink);
   cursor: pointer;
 }
 
-.feed-iconbtn:hover {
-  background: var(--ink);
-  color: var(--dandelion);
+/*
+ * Both buttons are always present, never conditional.
+ *
+ * Clear-filters used to render only when a filter was set, so the collapse
+ * button moved sideways the moment you touched a dropdown: controls that
+ * appear and vanish make the row a moving target. It is disabled instead when
+ * there is nothing to clear, which says the same thing without relocating its
+ * neighbour.
+ */
+.feed-iconbtn:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 .feed-iconbtn:focus-visible {
@@ -310,29 +319,40 @@ a {
 }
 
 /*
- * The week shortcuts. Pressed state is ground plus weight, not hue alone:
- * an unpressed button is ink on white, a pressed one inverts.
+ * The week shortcuts: clickable text, not buttons in boxes.
+ *
+ * Bold 14px in sentence case rather than the tracked uppercase used for
+ * labels elsewhere, because these are things you press, not headings.
+ *
+ * All three are ink. Colouring them by week was tried and measured: dandelion
+ * text lands at 1.06:1 on the page ground and magenta at 2.70:1, so the yellow
+ * one would have been invisible and the magenta unreadable. The yellow is
+ * flyer stock, not a text colour.
+ *
+ * The pressed state is an underline plus weight of ground, never hue alone.
  */
 .feed-weekbtn {
   font: inherit;
-  font-size: 0.7rem;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 0.4rem 0.8rem;
-  background: var(--white);
+  padding: 0.2rem 0;
+  margin-right: 1.25rem;
+  background: none;
   color: var(--ink);
-  border: var(--rule-width) solid var(--ink);
+  border: none;
   cursor: pointer;
 }
 
 .feed-weekbtn:hover {
-  background: var(--dandelion);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 2px;
 }
 
 .feed-weekbtn.is-on {
-  background: var(--ink);
-  color: var(--dandelion);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 3px;
 }
 
 .feed-weekbtn:focus-visible {
@@ -388,7 +408,8 @@ a {
   display: grid;
   grid-template-columns: 1fr;
   gap: 20px;
-  padding: 20px 0;
+  /* The 20px below the month bar is set inline in Feed.tsx, because the
+     element carries an inline `margin` that would override anything here. */
 }
 
 @media (min-width: 560px) {
