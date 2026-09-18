@@ -28,6 +28,29 @@ const MONTHS = [
  * The shorter forms are the point, not a fallback: a card reading "2027" tells
  * the reader we know the year and not the day, which is true and useful.
  */
+const MONTHS_LONG = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+/**
+ * The band a row sits under in the list: 'SEPTEMBER 2026'.
+ *
+ * Returns null when the row cannot be placed in a month. A year-only release
+ * genuinely has no month, and inventing one to give it a heading would be the
+ * same lie `formatEventDate` exists to prevent — so those group under their
+ * year, and an undated row under nothing at all.
+ */
+export function monthGroup(date: string | null, precision: DatePrecision): string | null {
+  if (!date) return null;
+
+  const [y, m] = date.split('-');
+  if (precision === 'year' || !m) return y ?? null;
+
+  const month = MONTHS_LONG[Number(m) - 1];
+  return month ? `${month} ${y}` : (y ?? null);
+}
+
 export function formatEventDate(date: string | null, precision: DatePrecision): string {
   if (!date) return 'No date';
 

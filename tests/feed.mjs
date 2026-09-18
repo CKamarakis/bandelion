@@ -70,6 +70,23 @@ check(releaseTypeLabel('ep') === 'EP', 'ep keeps its capitals');
 check(releaseTypeLabel('live') === 'Live', 'live');
 check(releaseTypeLabel('other') === 'Other', 'other');
 check(releaseTypeLabel('nonsense') === 'Other', 'an unknown type falls back rather than crashing');
+{
+  // Month bands. The rule that matters: never invent a month the data does
+  // not have, which is the same rule formatEventDate follows.
+  const { monthGroup } = await import('../src/app/feed-format.ts');
+
+  check(monthGroup('2026-09-18', 'day') === 'September 2026', 'a full date groups by month');
+  check(monthGroup('2026-09', 'month') === 'September 2026', 'a month-precision date groups the same');
+  check(monthGroup('2026', 'year') === '2026', 'a year-only date groups by year, not a guessed month');
+  check(monthGroup(null, 'day') === null, 'an undated row groups under nothing');
+  check(
+    monthGroup('2026-09-18', 'year') === '2026',
+    'precision wins over the string: a year-precision row never claims a month',
+  );
+  check(monthGroup('2026-12-31', 'day') === 'December 2026', 'December does not fall off the end');
+  check(monthGroup('2026-01-01', 'day') === 'January 2026', 'January is not off by one');
+}
+
 check(catalogueNumber(42) === 'BND 0042', 'the catalogue number is padded');
 check(catalogueNumber(12345) === 'BND 12345', 'a long id is not truncated');
 

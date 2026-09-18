@@ -163,6 +163,26 @@ a {
   color: var(--ink);
 }
 
+/*
+ * Disconnect: ink block, white label.
+ *
+ * Sits beside the green import button on the dandelion panel. The weight is
+ * deliberate rather than a warning colour, because the action is reversible
+ * (reconnecting is the same two clicks) and magenta here would rank it above
+ * the import, which is the thing you actually came to press.
+ */
+.btn-danger {
+  background: var(--ink);
+  color: var(--white);
+  border-color: var(--ink);
+}
+
+.block-yellow .btn-danger:hover,
+.btn-danger:hover {
+  background: var(--white);
+  color: var(--ink);
+}
+
 .btn-secondary:hover {
   background: var(--dandelion);
   color: var(--ink);

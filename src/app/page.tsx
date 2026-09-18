@@ -10,7 +10,6 @@
 import { loadConfig } from '../config.ts';
 import { loadTokens, getFeed, getFeedCounts, type FeedItem } from '../db/index.ts';
 import { LOCAL_USER_ID, db } from '../auth/session.ts';
-import { SPOTIFY_SCOPES } from '../auth/spotify.ts';
 import { rosterStatus } from '../jobs/roster.ts';
 import { RosterImport } from './RosterImport.tsx';
 import { ConnectSpotify } from './ConnectSpotify.tsx';
@@ -143,16 +142,19 @@ export default async function Home({
           <>
             <h2>{CONNECTED_HEADING}</h2>
             <p style={S.body}>{CONNECTED_BODY}</p>
-            <RosterImport initial={roster} />
-            <dl style={S.meta}>
-              <dt style={S.metaKey}>Scope</dt>
-              <dd style={S.metaVal}>{SPOTIFY_SCOPES.join(' · ')}</dd>
-            </dl>
-            <form action="/api/auth/disconnect" method="post">
-              <button type="submit" className="btn btn-secondary">
-                {DISCONNECT_CTA}
-              </button>
-            </form>
+            {/* Both panel actions on one row: importing and disconnecting are
+                the only two things this panel does, and stacking them made the
+                second look like a consequence of the first. */}
+            <RosterImport
+              initial={roster}
+              action={
+                <form action="/api/auth/disconnect" method="post">
+                  <button type="submit" className="btn btn-danger">
+                    {DISCONNECT_CTA}
+                  </button>
+                </form>
+              }
+            />
           </>
         ) : (
           <>
@@ -187,11 +189,13 @@ const S: Record<string, React.CSSProperties> = {
   // No overflow-x guard here on purpose: hiding overflow hides the bug too.
   // tests/screenshots.mjs measures scrollWidth against the viewport and fails
   // the run instead, so real overflow surfaces rather than being clipped.
-  page: { maxWidth: '760px', margin: '0 auto', padding: '48px 24px 96px' },
+  page: { maxWidth: '960px', margin: '0 auto', padding: '48px 24px 96px' },
   masthead: { paddingBottom: '20px' },
   rule: { height: '6px', background: 'var(--ink)', border: 'none', margin: '0' },
   catRow: { display: 'flex', justifyContent: 'space-between', marginBottom: '14px' },
-  tagline: { margin: '18px 0 0', fontSize: '0.95rem', maxWidth: '46ch' },
+  // No ch cap: the tagline is one line at 960px and wraps only if the viewport
+  // cannot hold it. A measure limit here broke it in two with room to spare.
+  tagline: { margin: '18px 0 0', fontSize: '0.95rem' },
   notice: {
     // Wraps instead of overflowing: at 390px the label sits above the message.
     display: 'flex',
@@ -210,8 +214,12 @@ const S: Record<string, React.CSSProperties> = {
   noticeText: { minWidth: 0, overflowWrap: 'anywhere' },
   // Yellow is flyer stock: a surface black type sits on, measured at ~9:1.
   panel: { padding: '30px 26px 34px' },
-  body: { margin: '14px 0 24px', maxWidth: '52ch' },
-  note: { margin: '20px 0 0', fontSize: '0.8rem', maxWidth: '52ch' },
+  // Full width of the panel, wrapping only when it genuinely does not fit.
+  body: { margin: '14px 0 24px' },
+  note: { margin: '20px 0 0', fontSize: '0.8rem' },
+  // The two panel actions sit on one row. `wrap` so a narrow viewport stacks
+  // them rather than pushing one off the edge.
+  actions: { display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' },
   // Top margin because this row follows the import button: without it the
   // metadata reads as a caption on the button rather than its own line.
   meta: {

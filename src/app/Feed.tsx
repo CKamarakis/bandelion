@@ -14,11 +14,11 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import type { FeedItem } from '../db/index.ts';
 import {
-  catalogueNumber,
   formatEventDate,
+  monthGroup,
   relativeDays,
   releaseTypeLabel,
 } from './feed-format.ts';
@@ -58,7 +58,9 @@ const COUNT_LABEL = (shown: number, total: number) =>
 const TRUNCATED = (total: number, loaded: number) =>
   `${total} releases · showing the newest ${loaded}`;
 
-const STATUS_LEGEND = 'Show';
+const TYPE_LEGEND = 'Type';
+/* "Status", not "Show": every one of these controls shows something. */
+const STATUS_LEGEND = 'Status';
 const SOURCE_LEGEND = 'From';
 const SORT_LEGEND = 'Sort';
 /*
@@ -222,26 +224,12 @@ export function Feed({
         </span>
       </div>
 
-      {/* Category first, because it is the coarsest cut; then status and sort,
-          which apply within whatever category is showing. */}
-      <div style={S.categoryRow} role="group" aria-label="Release type">
-        {CATEGORIES.map((c) => {
-          const active = c.id === category;
-          return (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => setCategory(c.id)}
-              aria-pressed={active}
-              style={{ ...S.filter, ...(active ? S.filterActive : null) }}
-            >
-              {c.label}
-            </button>
-          );
-        })}
-      </div>
-
+      {/* One row of four dropdowns, left aligned, coarsest cut first. The
+          category filter was a row of buttons and read as a different kind of
+          control from the three beside it; the design rules put consistency of
+          gesture above economy of controls, and four selects is one gesture. */}
       <div style={S.controls}>
+        <Dropdown legend={TYPE_LEGEND} options={CATEGORIES} value={category} onChange={setCategory} />
         <Dropdown legend={STATUS_LEGEND} options={STATUSES} value={status} onChange={setStatus} />
         <Dropdown legend={SOURCE_LEGEND} options={SOURCES} value={source} onChange={setSource} />
         <Dropdown legend={SORT_LEGEND} options={SORTS} value={sort} onChange={setSort} />
@@ -262,9 +250,33 @@ export function Feed({
         </p>
       ) : (
         <ol style={S.list}>
-          {shown.map((item) => (
-            <FeedRow key={item.eventId} item={item} today={today} />
-          ))}
+          {shown.map((item, i) => {
+            /*
+             * A month band whenever the month changes.
+             *
+             * Computed against the PREVIOUS row rather than from a grouped
+             * data structure, so it follows whatever the sort and filters
+             * produced: reverse the sort and the bands reverse with it,
+             * because the question "has the month changed since the last row"
+             * is true in either direction.
+             */
+            const band = monthGroup(item.eventDate, item.datePrecision);
+            const previous = i === 0 ? null : shown[i - 1];
+            const previousBand = previous
+              ? monthGroup(previous.eventDate, previous.datePrecision)
+              : null;
+
+            return (
+              <Fragment key={item.eventId}>
+                {band && band !== previousBand ? (
+                  <li style={S.monthBand} aria-hidden="true">
+                    {band}
+                  </li>
+                ) : null}
+                <FeedRow item={item} today={today} />
+              </Fragment>
+            );
+          })}
         </ol>
       )}
     </section>
@@ -313,9 +325,6 @@ function FeedRow({ item, today }: { item: FeedItem; today: string }) {
             {LIKED_MARKER}
           </span>
         ) : null}
-        <span className="cat" style={S.catalogue}>
-          {catalogueNumber(item.eventId)}
-        </span>
       </div>
     </li>
   );
@@ -350,11 +359,16 @@ const S: Record<string, React.CSSProperties> = {
   controls: {
     display: 'flex',
     flexWrap: 'wrap',
-    justifyContent: 'flex-end',
-    gap: '0.4rem 1rem',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+    gap: '0.5rem 1rem',
     marginBottom: '0.9rem',
   },
-  controlRow: { display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' },
+  // Label above its control: four side-by-side pairs with the label to the
+  // left doubles the row's width and makes the eye alternate between reading a
+  // word and reading a value. Stacked, the labels form one line and the
+  // controls another.
+  controlRow: { display: 'flex', flexDirection: 'column', gap: '0.25rem', cursor: 'pointer' },
   legend: { fontSize: '0.55rem', opacity: 0.6 },
   filters: { display: 'flex', flexWrap: 'wrap', gap: '0.4rem' },
   filter: {
@@ -384,12 +398,27 @@ const S: Record<string, React.CSSProperties> = {
   title: { opacity: 0.85, overflowWrap: 'anywhere' },
 
   type: { fontSize: '0.6rem' },
-  catalogue: { fontSize: '0.6rem', opacity: 0.6, fontVariantNumeric: 'tabular-nums' },
   /*
    * A hard-ruled box rather than a colour: the design rules put state on
    * border plus shape plus label, and this must stay legible on both the white
    * and dandelion row backgrounds. No radius, no fill.
    */
+  /*
+   * The month band. Ink block, dandelion type: the inverse of a yellow row, so
+   * a scan down the list reads the bands as structure rather than as entries.
+   * Zero radius and a hard edge, like everything else here.
+   */
+  monthBand: {
+    listStyle: 'none',
+    background: 'var(--ink)',
+    color: 'var(--dandelion)',
+    padding: '0.45rem 0.75rem',
+    fontSize: '0.7rem',
+    fontWeight: 700,
+    letterSpacing: '0.18em',
+    textTransform: 'uppercase',
+    borderTop: '2px solid var(--ink)',
+  },
   provenance: {
     fontSize: '0.6rem',
     border: '1px solid currentColor',

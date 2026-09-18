@@ -251,8 +251,12 @@ venues and catalogue numbers. So:
 
 - **The data is the ornament.** Do not decorate the feed. Set the dates, venue
   names and metadata in heavy type at real scale and let density carry the look.
-- **Catalogue numbering, shown.** Every event carries an ID; display it
-  (`BND 0417`). Honest — we have the IDs anyway — and exactly the reference.
+- **Catalogue numbering, but not on every row.** The FAC-number idea is right
+  for the page as an object (the header carries `BND 0001`), and wrong repeated
+  down a 200-row feed: `BND 0504` beside every release is a number nobody reads,
+  competing with the date and the artist for the same glance. `catalogueNumber`
+  still exists and still has its tests. Would change if an event ID ever became
+  something you need to quote.
 - **Information as texture.** Dense condensed or monospaced metadata blocks,
   hard rules between them.
 - **The grid is visible.** Hard rules, boxes, obvious columns. Not hidden.

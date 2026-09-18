@@ -35,7 +35,14 @@ interface Status {
   complete: boolean;
 }
 
-export function RosterImport({ initial }: { initial: Status }) {
+export function RosterImport({
+  initial,
+  action,
+}: {
+  initial: Status;
+  /** Rendered beside the import button, so the panel's actions share a row. */
+  action?: React.ReactNode;
+}) {
   const [state, setState] = useState<Status>(initial);
   const [busy, setBusy] = useState(false);
 
@@ -98,9 +105,14 @@ export function RosterImport({ initial }: { initial: Status }) {
         </p>
       ) : null}
 
-      <button type="button" className="btn" onClick={start} disabled={running}>
-        {running ? `${IMPORTING}…` : cta}
-      </button>
+      {/* `action` is whatever else belongs on this row, passed in by the page
+          so the panel owns its layout and this component owns its button. */}
+      <div style={S.actions}>
+        <button type="button" className="btn btn-spotify" onClick={start} disabled={running}>
+          {running ? `${IMPORTING}…` : cta}
+        </button>
+        {action}
+      </div>
     </div>
   );
 }
@@ -118,4 +130,5 @@ const S: Record<string, React.CSSProperties> = {
     maxWidth: '52ch',
   },
   errorLabel: { fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' },
+  actions: { display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' },
 };
