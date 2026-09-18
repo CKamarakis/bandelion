@@ -373,6 +373,12 @@ export interface FeedItem {
   liked: boolean;
   /** Sleeve art, when the Cover Art Archive had any. Usually null. */
   coverUrl: string | null;
+  /**
+   * The artist's own Spotify id, for linking out. Nullable by type because an
+   * artist matched by name from a future source may not have one, even though
+   * every artist in the database today does.
+   */
+  spotifyArtistId: string | null;
 }
 
 /**
@@ -400,6 +406,8 @@ export function getFeed(
               rd.date_precision AS datePrecision,
               rd.is_upcoming AS isUpcoming,
               rd.cover_url AS coverUrl,
+              (SELECT external_id FROM artist_external_ids
+                WHERE artist_id = e.artist_id AND source = 'spotify') AS spotifyArtistId,
               COALESCE(ua.followed, 0) AS followed,
               COALESCE(ua.liked, 0) AS liked
          FROM events e

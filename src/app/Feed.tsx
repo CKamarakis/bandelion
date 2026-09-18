@@ -459,19 +459,6 @@ function FeedRow({ item, today }: { item: FeedItem; today: string }) {
     <li
       className={`feed-row${item.isUpcoming ? ' block-yellow' : ''}`}
     >
-      <div className="feed-date">
-        <span style={S.date}>{when}</span>
-        {/* State is label plus position, never colour alone. */}
-        <span className="cat" style={S.state}>
-          {item.isUpcoming ? UPCOMING_LABEL : RELEASED_LABEL}
-        </span>
-        {soon ? (
-          <span className="cat" style={S.soon}>
-            {soon}
-          </span>
-        ) : null}
-      </div>
-
       {/*
         The sleeve, or the striped block standing in for one.
 
@@ -487,7 +474,28 @@ function FeedRow({ item, today }: { item: FeedItem; today: string }) {
       )}
 
       <div className="feed-main">
-        <span style={S.artist}>{item.artist}</span>
+        {/*
+          The artist name opens their Spotify page.
+
+          Underlined rather than coloured, because colour must never be the
+          only signal. Not the release title: we hold a Spotify id for the
+          ARTIST, and releases come from MusicBrainz, so a title link would
+          have to guess at an album id we never fetched. Linking the one thing
+          we can actually resolve beats linking both and being wrong about one.
+        */}
+        {item.spotifyArtistId ? (
+          <a
+            className="feed-artistlink"
+            href={`https://open.spotify.com/artist/${item.spotifyArtistId}`}
+            target="_blank"
+            rel="noreferrer noopener"
+            style={S.artist}
+          >
+            {item.artist}
+          </a>
+        ) : (
+          <span style={S.artist}>{item.artist}</span>
+        )}
         <span style={S.title}>{item.title}</span>
       </div>
 
@@ -495,6 +503,22 @@ function FeedRow({ item, today }: { item: FeedItem; today: string }) {
         <span className="cat" style={S.type}>
           {releaseTypeLabel(item.releaseType)}
         </span>
+      </div>
+
+      {/* The date last, as the card's footer. It is the thing you scan for
+          once you know what the record is, and at the bottom it sits on one
+          line across a row of cards. */}
+      <div className="feed-date">
+        <span style={S.date}>{when}</span>
+        {/* State is label plus position, never colour alone. */}
+        <span className="cat" style={S.state}>
+          {item.isUpcoming ? UPCOMING_LABEL : RELEASED_LABEL}
+        </span>
+        {soon ? (
+          <span className="cat" style={S.soon}>
+            {soon}
+          </span>
+        ) : null}
       </div>
     </li>
   );

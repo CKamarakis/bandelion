@@ -51,7 +51,7 @@ export function RosterImport({
    * zeroed: "0 imported" claims we looked and found none, which is a different
    * fact from never having run `npm run ingest liked`.
    */
-  liked?: { imported: number; alsoFollowed: number };
+  liked?: { imported: number; alsoFollowed: number; tracksRead: number; total: number | null };
 }) {
   const [state, setState] = useState<Status>(initial);
   const [busy, setBusy] = useState(false);
@@ -129,8 +129,15 @@ export function RosterImport({
           <>
             <dt style={S.key}>{LIKED_LABEL}</dt>
             <dd style={S.val}>
-              {liked.imported} imported
-              {liked.alsoFollowed > 0 ? `, ${liked.alsoFollowed} also followed` : ''}
+              {/*
+                Artists from tracks, not "x of y artists": Spotify reports how
+                many saved TRACKS exist and never how many distinct artists are
+                on them, so "1408 of 2081" would put artists over songs and
+                read as a third of the import still missing.
+              */}
+              {liked.total === null
+                ? `${liked.imported} artists`
+                : `${liked.imported} artists from ${liked.tracksRead} of ${liked.total} songs`}
             </dd>
           </>
         ) : null}

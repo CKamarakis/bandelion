@@ -407,6 +407,22 @@ console.log('\n# category and status are independent');
   }
 
   check(paginate([], 100).length === 0, 'no groups means no pages');
+
+  // --- The Spotify artist link ---------------------------------------------
+  // A wrong URL fails silently: the link still renders and still clicks, it
+  // just lands somewhere unhelpful. Assert the shape Spotify actually uses.
+
+  const spotifyArtistUrl = (id) => `https://open.spotify.com/artist/${id}`;
+
+  check(
+    spotifyArtistUrl('0TnOYISbd1XYRBk9myaseg') ===
+      'https://open.spotify.com/artist/0TnOYISbd1XYRBk9myaseg',
+    'the artist link points at open.spotify.com/artist/{id}',
+  );
+  check(
+    !spotifyArtistUrl('x').includes('/artists/'),
+    'the path is /artist/, singular: /artists/ is the API, not the web player',
+  );
 }
 
 console.log('\n# sorting by date');

@@ -279,14 +279,19 @@ a {
  * Mobile-first: one column, then two, then three. Three columns at 390px gave
  * one word per line.
  */
+/*
+ * Real space between cards, so each one reads as its own printed object.
+ *
+ * An earlier version used a 2px ink gap with the grid background showing
+ * through, which drew the seams for free but made the block a single sheet cut
+ * into cells. At 20px each card needs its own border instead, and there is no
+ * doubling to avoid because the cards no longer touch.
+ */
 .feed-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--rule-width);
-  /* The gap is ink, so the rules between cards are the grid showing through
-     rather than a border on each card doubling up at every seam. */
-  background: var(--rule);
-  border: var(--rule-width) solid var(--rule);
+  gap: 20px;
+  padding: 20px 0;
 }
 
 @media (min-width: 560px) {
@@ -309,6 +314,8 @@ a {
   /* White by default; .block-yellow on an upcoming card overrides it, which is
      why this is a plain declaration and not on a more specific selector. */
   background: var(--white);
+  /* Its own hard edge now that the cards are separated by real space. */
+  border: var(--rule-width) solid var(--rule);
   /* Every card the same height in its row, so the grid stays a grid even when
      one title runs to three lines. */
   height: 100%;
@@ -320,12 +327,21 @@ a {
   background: var(--dandelion);
 }
 
-/* Date and state on one line: both are short, and the card is narrow. */
+/*
+ * The card's footer. Date and state on one line: both are short.
+ *
+ * `margin-top: auto` pushes it to the bottom whatever the title length above
+ * it, so the dates line up across a row of cards, and a hard rule separates it
+ * from the record it describes.
+ */
 .feed-date {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: var(--rule-width) solid var(--rule);
 }
 
 .feed-main {
@@ -335,14 +351,34 @@ a {
   min-width: 0;
 }
 
-/* Pushed to the bottom of the card, so the type label sits on the same line
-   across a row of cards whatever the title length above it. */
+/* Sits directly under the title it describes. The date below it is what gets
+   pushed to the bottom now. */
 .feed-meta {
   display: flex;
   align-items: baseline;
   gap: 0.5rem;
-  margin-top: auto;
-  padding-top: 0.25rem;
+}
+
+/*
+ * The artist link. Underlined, never colour alone, and it inherits the card's
+ * ink so it stays readable on both the white and dandelion grounds.
+ */
+.feed-artistlink {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+}
+
+.feed-artistlink:hover {
+  background: var(--ink);
+  color: var(--dandelion);
+  text-decoration: none;
+}
+
+.feed-artistlink:focus-visible {
+  outline: 3px solid var(--violet);
+  outline-offset: 2px;
 }
 
 /*
