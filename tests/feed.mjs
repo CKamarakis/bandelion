@@ -85,6 +85,18 @@ check(releaseTypeLabel('nonsense') === 'Other', 'an unknown type falls back rath
   );
   check(monthGroup('2026-12-31', 'day') === 'December 2026', 'December does not fall off the end');
   check(monthGroup('2026-01-01', 'day') === 'January 2026', 'January is not off by one');
+
+  // A year-only group reads fine in the list, where it sits in date order, and
+  // as a broken entry in a dropdown beside "November 2026".
+  const { monthFilterLabel } = await import('../src/app/feed-format.ts');
+  check(
+    monthFilterLabel('2026') === '2026, month unknown',
+    'a year-only group says why it has no month in the filter',
+  );
+  check(
+    monthFilterLabel('November 2026') === 'November 2026',
+    'a real month is unchanged in the filter',
+  );
 }
 
 check(catalogueNumber(42) === 'BND 0042', 'the catalogue number is padded');
@@ -295,6 +307,106 @@ console.log('\n# category and status are independent');
     'adding a status makes it a filter-combination message instead',
   );
   check(!sourceOnly('all', 'all', 'all'), 'no narrowing at all is not a list-empty case');
+
+  // --- Month grouping, which the sections and pagination both read ----------
+
+  const { groupByMonth } = await import('../src/app/feed-filters.ts');
+  const m = (month) => ({ month });
+  const key = (x) => x.month;
+
+  {
+    const groups = groupByMonth(
+      [m('Nov'), m('Nov'), m('Oct'), m('Sep'), m('Sep'), m('Sep')],
+      key,
+    );
+    check(groups.length === 3, 'consecutive months collapse into one group each', `${groups.length}`);
+    check(
+      groups.map((g) => `${g.month}:${g.items.length}`).join(' ') === 'Nov:2 Oct:1 Sep:3',
+      'each group keeps its own rows in order',
+      groups.map((g) => `${g.month}:${g.items.length}`).join(' '),
+    );
+  }
+
+  check(groupByMonth([], key).length === 0, 'an empty list produces no groups');
+
+  {
+    // Order is preserved, never sorted: the caller already sorted, and
+    // re-ordering here would silently override the sort control.
+    const groups = groupByMonth([m('Jan'), m('Dec'), m('Jan')], key);
+    check(
+      groups.length === 3,
+      'a month that recurs after a gap is a second section, not a merge',
+      `${groups.length}`,
+    );
+  }
+
+  {
+    const groups = groupByMonth([m(null), m(null), m('Sep')], key);
+    check(groups.length === 2, 'undated rows group together');
+    check(groups[0].month === null, 'the undated group keeps a null month');
+  }
+
+  // --- Paging whole months --------------------------------------------------
+  // Mirrors the packing in Feed.tsx: months are never split across a page.
+
+  const paginate = (groups, size) => {
+    const out = [];
+    let current = [];
+    let count = 0;
+    for (const g of groups) {
+      current.push(g);
+      count += g.items.length;
+      if (count >= size) {
+        out.push(current);
+        current = [];
+        count = 0;
+      }
+    }
+    if (current.length > 0) out.push(current);
+    return out;
+  };
+
+  const rows = (n) => Array.from({ length: n }, () => ({}));
+
+  {
+    const pages = paginate(
+      [{ month: 'A', items: rows(60) }, { month: 'B', items: rows(50) }, { month: 'C', items: rows(40) }],
+      100,
+    );
+    check(pages.length === 2, 'a page breaks once it reaches the size', `${pages.length}`);
+    check(
+      pages[0].reduce((n, g) => n + g.items.length, 0) === 110,
+      'the first page fills past the size rather than stopping short',
+      `${pages[0].reduce((n, g) => n + g.items.length, 0)} rows`,
+    );
+  }
+
+  {
+    /*
+     * The bug this replaced: breaking before the overflow gave a 30-row first
+     * page (6 + 24) because the next month held 88. Overshooting a full page
+     * beats shipping a third of one.
+     */
+    const pages = paginate(
+      [{ month: 'Nov', items: rows(6) }, { month: 'Oct', items: rows(24) }, { month: 'Sep', items: rows(88) }],
+      100,
+    );
+    check(
+      pages[0].reduce((n, g) => n + g.items.length, 0) === 118,
+      'a short first page absorbs the next month rather than breaking early',
+      `${pages[0].reduce((n, g) => n + g.items.length, 0)} rows`,
+    );
+    check(pages.length === 1, 'and everything fits in one page here', `${pages.length}`);
+  }
+
+  {
+    // A month bigger than a page is never cut in half.
+    const pages = paginate([{ month: 'Big', items: rows(250) }], 100);
+    check(pages.length === 1, 'a month larger than a page is its own page, not split');
+    check(pages[0][0].items.length === 250, 'and keeps all of its rows');
+  }
+
+  check(paginate([], 100).length === 0, 'no groups means no pages');
 }
 
 console.log('\n# sorting by date');

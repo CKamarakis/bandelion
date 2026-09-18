@@ -51,6 +51,18 @@ export function monthGroup(date: string | null, precision: DatePrecision): strin
   return month ? `${month} ${y}` : (y ?? null);
 }
 
+/**
+ * How a month group is labelled in the filter, as opposed to in the list.
+ *
+ * A year-only group is '2026' in the list, where it sits in date order among
+ * the months and reads correctly. In a dropdown beside 'November 2026' it
+ * reads as a broken entry, so it says what it actually is: releases we know
+ * the year of and not the month.
+ */
+export function monthFilterLabel(group: string): string {
+  return /^\d{4}$/.test(group) ? `${group}, month unknown` : group;
+}
+
 export function formatEventDate(date: string | null, precision: DatePrecision): string {
   if (!date) return 'No date';
 

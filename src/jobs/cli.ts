@@ -192,6 +192,64 @@ if (command === 'releases') {
   process.exit(result.complete ? 0 : 1);
 }
 
+if (command === 'covers') {
+  const { importCovers, coverStatus } = await import('./covers.ts');
+
+  if (!cfg.musicbrainzContact) {
+    console.error(
+      'MUSICBRAINZ_CONTACT is not set.\n' +
+        'The Cover Art Archive wants a real contact address in the User-Agent, ' +
+        'same as MusicBrainz; see .env.example.',
+    );
+    process.exit(2);
+  }
+
+  const before = coverStatus(db);
+  if (before.releases === 0) {
+    console.error('No releases yet. Run `npm run ingest releases` first.');
+    process.exit(2);
+  }
+
+  console.log(
+    `covers: ${before.withCover} of ${before.checked} checked have art, ` +
+      `${before.releases} release(s) total`,
+  );
+  const remaining = before.releases - before.checked;
+  if (remaining === 0) {
+    console.log('nothing to do.');
+    process.exit(0);
+  }
+  console.log(`about ${Math.ceil((remaining * 1.2) / 60)} minute(s) for ${remaining} release(s).\n`);
+
+  const result = await importCovers({
+    db,
+    contact: `Bandelion/0.1 ( ${cfg.musicbrainzContact} )`,
+    signal: controller.signal,
+    onProgress: ({ checked, found }) => {
+      if (checked % 25 === 0) console.log(`  ${checked} checked, ${found} with art`);
+    },
+  });
+
+  console.log(`\n${result.found} cover(s) found from ${result.checked} release(s) checked.`);
+  /*
+   * Absent is reported as its own number, not folded into failures. Most of a
+   * back catalogue genuinely has no art in the archive, and calling that a
+   * failure would make a working source look broken.
+   */
+  if (result.absent > 0) {
+    console.log(`${result.absent} release(s) have no art in the archive.`);
+  }
+  if (result.transientFailures > 0) {
+    console.log(
+      `${result.transientFailures} could not be reached and will be retried on the next run.`,
+    );
+  }
+  if (!result.complete) {
+    console.log(result.error ? `stopped: ${result.error}` : 'stopped early. Run again to resume.');
+  }
+  process.exit(result.complete ? 0 : 1);
+}
+
 if (command === 'liked') {
   const { importLiked, likedStatus } = await import('./liked.ts');
 
@@ -246,7 +304,7 @@ if (command === 'liked') {
 
 if (command !== 'roster') {
   console.error(
-    `Unknown command "${command}". Use: roster (default), liked, resolve, or releases.`,
+    `Unknown command "${command}". Use: roster (default), liked, resolve, releases, or covers.`,
   );
   process.exit(2);
 }

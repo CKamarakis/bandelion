@@ -114,6 +114,10 @@ CREATE TABLE IF NOT EXISTS release_details (
   tracklist_json    TEXT,
   spotify_album_id  TEXT,
   is_upcoming       INTEGER NOT NULL DEFAULT 0,
+  -- When the Cover Art Archive was asked. Separates "has no cover" from "not
+  -- asked yet": most of a back catalogue has no art, and without this every
+  -- sweep would re-request all of them.
+  cover_checked_at  TEXT,
   -- 'day' | 'month' | 'year'. Half of all upstream dates carry no day, and a
   -- year-only release must not be shown as though we knew the day.
   date_precision    TEXT NOT NULL DEFAULT 'day'

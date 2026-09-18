@@ -80,6 +80,36 @@ export function inSource(item: Filterable, source: SourceId): boolean {
 }
 
 /**
+ * Split a sorted list into month groups, preserving order.
+ *
+ * Grouping rather than a per-row comparison because three things now need the
+ * same answer: the collapsible sections, the month filter's options, and
+ * pagination, which pages whole months rather than slicing one in half. Doing
+ * it three times from three places is how they drift apart.
+ *
+ * `key` is supplied so this file does not import the formatter: the caller
+ * decides what a month is called, this decides where the boundaries are.
+ */
+export function groupByMonth<T>(
+  items: T[],
+  key: (item: T) => string | null,
+): { month: string | null; items: T[] }[] {
+  const groups: { month: string | null; items: T[] }[] = [];
+
+  for (const item of items) {
+    const month = key(item);
+    const last = groups[groups.length - 1];
+    // Compare against the previous group only, never a lookup: a month that
+    // recurs after a gap is a second section, which is what the sort produced
+    // and what the reader sees.
+    if (last && last.month === month) last.items.push(item);
+    else groups.push({ month, items: [item] });
+  }
+
+  return groups;
+}
+
+/**
  * Sort by date, with partial dates ordered sensibly.
  *
  * String comparison, because ISO dates sort correctly as text and a partial

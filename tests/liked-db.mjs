@@ -71,8 +71,13 @@ const root = join(import.meta.dirname, '..');
   const liked = db.prepare('SELECT COUNT(*) n FROM user_artists WHERE liked = 1').get().n;
   check(liked === 0, 'nothing is marked liked by the migration', `got ${liked}`);
 
-  const version = db.prepare('PRAGMA user_version').get().user_version;
-  check(Number(version) === 2, 'user_version reaches 2', `got ${version}`);
+  /*
+   * At least 2, not exactly 2: this asserts that the flags migration ran, and
+   * hardcoding the number makes every later migration fail a test about
+   * something else. It failed exactly that way when migration 3 landed.
+   */
+  const version = Number(db.prepare('PRAGMA user_version').get().user_version);
+  check(version >= 2, 'user_version is at or past the flags migration', `got ${version}`);
 
   // Running it twice must be a no-op, because openDatabase migrates on every
   // start and a self-hoster restarts the container often.

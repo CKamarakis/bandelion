@@ -91,6 +91,21 @@ const MIGRATIONS: { id: number; describe: string; sql: string[] }[] = [
       `CREATE INDEX IF NOT EXISTS idx_user_artists_lists ON user_artists(user_id, followed, liked)`,
     ],
   },
+  {
+    id: 3,
+    describe: 'when a release was checked for cover art',
+    sql: [
+      /*
+       * `cover_url IS NULL` cannot mean "no art" and "not looked yet" at once.
+       *
+       * Most of a back catalogue has no cover in the archive, so without this
+       * stamp every sweep would re-request every coverless release forever, at
+       * one request a second. The timestamp separates a checked absence from
+       * an unchecked one, exactly as `last_release_check_at` does for artists.
+       */
+      `ALTER TABLE release_details ADD COLUMN cover_checked_at TEXT`,
+    ],
+  },
 ];
 
 /** Bring an existing database up to the current schema version. */
@@ -356,6 +371,8 @@ export interface FeedItem {
   /** Which list this artist is on. Both can be true; see user_artists. */
   followed: boolean;
   liked: boolean;
+  /** Sleeve art, when the Cover Art Archive had any. Usually null. */
+  coverUrl: string | null;
 }
 
 /**
@@ -382,6 +399,7 @@ export function getFeed(
               rd.release_type AS releaseType,
               rd.date_precision AS datePrecision,
               rd.is_upcoming AS isUpcoming,
+              rd.cover_url AS coverUrl,
               COALESCE(ua.followed, 0) AS followed,
               COALESCE(ua.liked, 0) AS liked
          FROM events e
@@ -553,6 +571,22 @@ export function insertReleaseEvent(db: DB, row: ReleaseEventRow): number {
 }
 
 /** Stamp when an artist was last swept, so tiered polling can skip it later. */
+/**
+ * Record the answer the Cover Art Archive gave, including "none".
+ *
+ * `cover_checked_at` is stamped either way. A null url with a stamp means the
+ * archive has no art for this release, which is a fact worth keeping: without
+ * the stamp the next run would ask again, and most of a back catalogue has no
+ * cover.
+ */
+export function setCoverArt(db: DB, eventId: number, url: string | null): void {
+  db.prepare(
+    `UPDATE release_details
+        SET cover_url = ?, cover_checked_at = datetime('now')
+      WHERE event_id = ?`,
+  ).run(url, eventId);
+}
+
 export function markReleaseCheck(db: DB, artistId: number, when = new Date()): void {
   db.prepare('UPDATE artists SET last_release_check_at = ? WHERE id = ?').run(
     when.toISOString(),

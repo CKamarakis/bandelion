@@ -35,13 +35,23 @@ interface Status {
   complete: boolean;
 }
 
+const FOLLOWED_LABEL = 'Followed';
+const LIKED_LABEL = 'Liked songs';
+
 export function RosterImport({
   initial,
   action,
+  liked,
 }: {
   initial: Status;
   /** Rendered beside the import button, so the panel's actions share a row. */
   action?: React.ReactNode;
+  /**
+   * Liked-song artist counts, when that import has run. Absent rather than
+   * zeroed: "0 imported" claims we looked and found none, which is a different
+   * fact from never having run `npm run ingest liked`.
+   */
+  liked?: { imported: number; alsoFollowed: number };
 }) {
   const [state, setState] = useState<Status>(initial);
   const [busy, setBusy] = useState(false);
@@ -83,20 +93,6 @@ export function RosterImport({
 
   return (
     <div>
-      <dl style={S.meta}>
-        {/* "Followed", not "Artists": the database also holds artists from
-            liked songs, and this count deliberately excludes them. An
-            unqualified label next to a followed-only number invites the reader
-            to compare it against a total that means something else. */}
-        <dt style={S.key}>Followed</dt>
-        <dd style={S.val}>
-          {/* Counts what is in the database. Never a guess, never a percentage
-              of a total we were not given. */}
-          {state.total === null
-            ? `${state.imported} imported`
-            : `${state.imported} of ${state.total} imported`}
-        </dd>
-      </dl>
 
       {state.lastError && !running ? (
         <p style={S.error}>
@@ -113,6 +109,32 @@ export function RosterImport({
         </button>
         {action}
       </div>
+
+      {/*
+        Counts under the buttons, not above them: the panel's job is the two
+        actions, and the numbers are what those actions produced.
+
+        Both lists, because showing only one next to a button labelled "check
+        for new artists" implies that button is the only way artists arrive.
+        Never a total we were not given: `total` is null until Spotify says.
+      */}
+      <dl style={S.meta}>
+        <dt style={S.key}>{FOLLOWED_LABEL}</dt>
+        <dd style={S.val}>
+          {state.total === null
+            ? `${state.imported} imported`
+            : `${state.imported} of ${state.total} imported`}
+        </dd>
+        {liked ? (
+          <>
+            <dt style={S.key}>{LIKED_LABEL}</dt>
+            <dd style={S.val}>
+              {liked.imported} imported
+              {liked.alsoFollowed > 0 ? `, ${liked.alsoFollowed} also followed` : ''}
+            </dd>
+          </>
+        ) : null}
+      </dl>
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { loadConfig } from '../config.ts';
 import { loadTokens, getFeed, getFeedCounts, type FeedItem } from '../db/index.ts';
 import { LOCAL_USER_ID, db } from '../auth/session.ts';
 import { rosterStatus } from '../jobs/roster.ts';
+import { likedStatus } from '../jobs/liked.ts';
 import { RosterImport } from './RosterImport.tsx';
 import { ConnectSpotify } from './ConnectSpotify.tsx';
 import { Feed } from './Feed.tsx';
@@ -91,12 +92,25 @@ export default async function Home({
     lastError: null,
     complete: false,
   };
+  // Undefined until read: absent means the liked import has never run, which
+  // the panel says differently from "none found".
+  let liked: ReturnType<typeof likedStatus> | undefined;
   try {
     const database = db();
     connected = loadTokens(database, LOCAL_USER_ID, 'spotify') !== null;
     roster = rosterStatus(database, LOCAL_USER_ID);
-    feed = getFeed(database, { type: 'release' });
+    /*
+     * The whole feed, not the newest 200.
+     *
+     * The list pages client-side, so every row has to be here for a later page
+     * to exist. The cap is a guard against a runaway query rather than a page
+     * size: a personal instance measured 599 releases across 1,556 artists, so
+     * 5,000 is years of headroom, and the row count is what the header reports
+     * if it is ever hit.
+     */
+    feed = getFeed(database, { type: 'release', limit: 5000 });
     feedTotal = getFeedCounts(database).total;
+    liked = likedStatus(database, LOCAL_USER_ID);
   } catch (err) {
     // The page must render even with no database yet. Constraint 2's spirit:
     // one broken dependency degrades a section, it does not blank the screen.
@@ -147,6 +161,7 @@ export default async function Home({
                 second look like a consequence of the first. */}
             <RosterImport
               initial={roster}
+              liked={liked?.imported ? liked : undefined}
               action={
                 <form action="/api/auth/disconnect" method="post">
                   <button type="submit" className="btn btn-danger">

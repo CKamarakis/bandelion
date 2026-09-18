@@ -18,12 +18,14 @@ import { Fragment, useMemo, useState } from 'react';
 import type { FeedItem } from '../db/index.ts';
 import {
   formatEventDate,
+  monthFilterLabel,
   monthGroup,
   relativeDays,
   releaseTypeLabel,
 } from './feed-format.ts';
 import {
   byDate,
+  groupByMonth,
   inCategory,
   inSource,
   inStatus,
@@ -58,16 +60,29 @@ const COUNT_LABEL = (shown: number, total: number) =>
 const TRUNCATED = (total: number, loaded: number) =>
   `${total} releases · showing the newest ${loaded}`;
 
+/*
+ * 100 a page. Months are packed whole, so a page holds the months that fit
+ * rather than exactly 100 rows: splitting October across a page break would
+ * defeat the sections.
+ */
+const PAGE_SIZE = 100;
+
+const MONTH_LEGEND = 'Month';
+const ALL_MONTHS = 'All months';
+const COLLAPSE_ALL = 'Collapse all';
+const EXPAND_ALL = 'Expand all';
+/* Names what it counts, per the rule against a bare "12". */
+const RELEASE_COUNT = (n: number) => `${n} release${n === 1 ? '' : 's'}`;
+const PAGER_LABEL = 'Pages';
+const PREV_PAGE = 'Previous';
+const NEXT_PAGE = 'Next';
+const PAGE_STATE = (current: number, of: number) => `Page ${current} of ${of}`;
+
 const TYPE_LEGEND = 'Type';
 /* "Status", not "Show": every one of these controls shows something. */
 const STATUS_LEGEND = 'Status';
 const SOURCE_LEGEND = 'From';
 const SORT_LEGEND = 'Sort';
-/*
- * Says where the artist came from, not that you liked this record. "Liked" on
- * a release you have never heard would claim the second.
- */
-const LIKED_MARKER = 'From liked songs';
 /* Both filters can empty the list, and the two reasons are different. */
 const EMPTY_FILTERED_SOURCE = 'No releases from artists on that list yet.';
 
@@ -190,6 +205,14 @@ export function Feed({
   const [status, setStatus] = useState<StatusId>('all');
   const [source, setSource] = useState<SourceId>('all');
   const [sort, setSort] = useState<SortId>('desc');
+  const [month, setMonth] = useState<string>('all');
+  const [page, setPage] = useState(0);
+  /*
+   * Only the collapsed months are tracked, so a month that appears later (a
+   * filter change, a new import) is open by default. Tracking the open ones
+   * instead would hide anything this set had never heard of.
+   */
+  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set());
 
   const shown = useMemo(
     () =>
@@ -200,6 +223,91 @@ export function Feed({
         .sort(byDate(sort)),
     [items, category, status, source, sort],
   );
+
+  /*
+   * Months, in the order the sort produced. Computed before the month filter
+   * so the dropdown always offers every month the other filters left, rather
+   * than only the one already selected.
+   */
+  const monthsAvailable = useMemo(
+    () =>
+      groupByMonth(shown, (i) => monthGroup(i.eventDate, i.datePrecision))
+        .map((g) => g.month)
+        .filter((m): m is string => m !== null),
+    [shown],
+  );
+
+  const inMonth = useMemo(
+    () =>
+      month === 'all'
+        ? shown
+        : shown.filter((i) => monthGroup(i.eventDate, i.datePrecision) === month),
+    [shown, month],
+  );
+
+  const groups = useMemo(
+    () => groupByMonth(inMonth, (i) => monthGroup(i.eventDate, i.datePrecision)),
+    [inMonth],
+  );
+
+  /*
+   * Pages of whole months.
+   *
+   * A page break inside a month would put half of October under a "next page"
+   * button, which is what the sections exist to prevent. Months are therefore
+   * packed whole, and a month bigger than a page is its own page.
+   *
+   * The break happens once a page has *reached* the size, not when the next
+   * month would exceed it. Breaking early left a page holding November (6) and
+   * October (24) and then starting a new page for September (88) -- 30 rows
+   * where 100 were asked for. Overshooting a short page is better than
+   * shipping a third of one.
+   */
+  const pages = useMemo(() => {
+    const out: (typeof groups)[] = [];
+    let current: typeof groups = [];
+    let count = 0;
+
+    for (const group of groups) {
+      current.push(group);
+      count += group.items.length;
+
+      if (count >= PAGE_SIZE) {
+        out.push(current);
+        current = [];
+        count = 0;
+      }
+    }
+    if (current.length > 0) out.push(current);
+    return out;
+  }, [groups]);
+
+  // Clamp rather than reset: changing a filter should not silently jump you to
+  // page 1 when the page you were on still exists.
+  const pageCount = Math.max(1, pages.length);
+  const currentPage = Math.min(page, pageCount - 1);
+  const visible = pages[currentPage] ?? [];
+
+  const allCollapsed =
+    monthsAvailable.length > 0 && monthsAvailable.every((m) => collapsed.has(m));
+
+  function toggleMonth(name: string) {
+    setCollapsed((previous) => {
+      const next = new Set(previous);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  }
+
+  /*
+   * Collapse-all acts on every month the filters left, not just this page:
+   * collapsing what you can see and leaving the next page expanded would make
+   * the control mean something different depending on where you were standing.
+   */
+  function toggleAll() {
+    setCollapsed(allCollapsed ? new Set() : new Set(monthsAvailable));
+  }
 
   // Never run vs ran and found nothing are different facts and read
   // differently. Only the first can be fixed by running the job.
@@ -218,9 +326,13 @@ export function Feed({
       <div style={S.headRow}>
         <h2>{HEADING}</h2>
         <span className="cat" style={S.count}>
-          {items.length < total && category === 'all' && status === 'all' && source === 'all'
+          {items.length < total &&
+          category === 'all' &&
+          status === 'all' &&
+          source === 'all' &&
+          month === 'all'
             ? TRUNCATED(total, items.length)
-            : COUNT_LABEL(shown.length, items.length)}
+            : COUNT_LABEL(inMonth.length, items.length)}
         </span>
       </div>
 
@@ -232,10 +344,29 @@ export function Feed({
         <Dropdown legend={TYPE_LEGEND} options={CATEGORIES} value={category} onChange={setCategory} />
         <Dropdown legend={STATUS_LEGEND} options={STATUSES} value={status} onChange={setStatus} />
         <Dropdown legend={SOURCE_LEGEND} options={SOURCES} value={source} onChange={setSource} />
+        <Dropdown
+          legend={MONTH_LEGEND}
+          /* Only months that actually have rows: an option that can only ever
+             produce an empty list is a control that lies about what exists. */
+          options={[
+            { id: 'all', label: ALL_MONTHS },
+            ...monthsAvailable.map((m) => ({ id: m, label: monthFilterLabel(m) })),
+          ]}
+          value={month}
+          onChange={setMonth}
+        />
         <Dropdown legend={SORT_LEGEND} options={SORTS} value={sort} onChange={setSort} />
+
+        {/* Collapse-all sits with the controls because it is one: it changes
+            what you can see, not what the data is. */}
+        {groups.length > 1 ? (
+          <button type="button" className="feed-textbtn" onClick={toggleAll} style={S.collapseAll}>
+            {allCollapsed ? EXPAND_ALL : COLLAPSE_ALL}
+          </button>
+        ) : null}
       </div>
 
-      {shown.length === 0 ? (
+      {inMonth.length === 0 ? (
         /*
          * Two different facts. Narrowing to a list that has no releases yet is
          * not the same as a filter combination matching nothing: the first is
@@ -249,35 +380,72 @@ export function Feed({
             : EMPTY_FILTERED}
         </p>
       ) : (
-        <ol style={S.list}>
-          {shown.map((item, i) => {
-            /*
-             * A month band whenever the month changes.
-             *
-             * Computed against the PREVIOUS row rather than from a grouped
-             * data structure, so it follows whatever the sort and filters
-             * produced: reverse the sort and the bands reverse with it,
-             * because the question "has the month changed since the last row"
-             * is true in either direction.
-             */
-            const band = monthGroup(item.eventDate, item.datePrecision);
-            const previous = i === 0 ? null : shown[i - 1];
-            const previousBand = previous
-              ? monthGroup(previous.eventDate, previous.datePrecision)
-              : null;
+        <>
+          {visible.map((group) => {
+            const isCollapsed = group.month !== null && collapsed.has(group.month);
+            const sectionId = `month-${(group.month ?? 'undated').replace(/\s+/g, '-')}`;
 
             return (
-              <Fragment key={item.eventId}>
-                {band && band !== previousBand ? (
-                  <li style={S.monthBand} aria-hidden="true">
-                    {band}
-                  </li>
+              <section key={group.month ?? 'undated'} style={S.monthSection}>
+                {group.month ? (
+                  /*
+                   * A real button, not a styled div: this collapses content,
+                   * so it has to be reachable by keyboard and announce its
+                   * state. `aria-expanded` is what a screen reader reads, and
+                   * the glyph is what everyone else does.
+                   */
+                  <button
+                    type="button"
+                    className="feed-monthband"
+                    onClick={() => toggleMonth(group.month as string)}
+                    aria-expanded={!isCollapsed}
+                    aria-controls={sectionId}
+                  >
+                    <span aria-hidden="true" style={S.bandGlyph}>
+                      {isCollapsed ? '+' : '–'}
+                    </span>
+                    <span>{group.month}</span>
+                    {/* The count is why you would collapse it. It also names
+                        what it counts, rather than a bare number. */}
+                    <span style={S.bandCount}>{RELEASE_COUNT(group.items.length)}</span>
+                  </button>
                 ) : null}
-                <FeedRow item={item} today={today} />
-              </Fragment>
+
+                {isCollapsed ? null : (
+                  <ol id={sectionId} style={S.list}>
+                    {group.items.map((item) => (
+                      <FeedRow key={item.eventId} item={item} today={today} />
+                    ))}
+                  </ol>
+                )}
+              </section>
             );
           })}
-        </ol>
+
+          {pageCount > 1 ? (
+            <nav style={S.pager} aria-label={PAGER_LABEL}>
+              <button
+                type="button"
+                className="feed-textbtn"
+                onClick={() => setPage(currentPage - 1)}
+                disabled={currentPage === 0}
+              >
+                {PREV_PAGE}
+              </button>
+              <span className="cat" style={S.pagerState}>
+                {PAGE_STATE(currentPage + 1, pageCount)}
+              </span>
+              <button
+                type="button"
+                className="feed-textbtn"
+                onClick={() => setPage(currentPage + 1)}
+                disabled={currentPage >= pageCount - 1}
+              >
+                {NEXT_PAGE}
+              </button>
+            </nav>
+          ) : null}
+        </>
       )}
     </section>
   );
@@ -305,26 +473,28 @@ function FeedRow({ item, today }: { item: FeedItem; today: string }) {
       </div>
 
       <div className="feed-main">
-        <span style={S.artist}>{item.artist}</span>
-        <span style={S.title}>{item.title}</span>
+        {/*
+          The sleeve, when there is one. No placeholder box when there is not:
+          most of a back catalogue has no art in the archive, and a grid of
+          empty squares would be a column of nothing claiming to be something.
+          The row simply reads as text, which is what it was before covers.
+
+          alt is empty because the artist and title sit right beside it: a
+          screen reader announcing "cover of X" then "X" reads it twice.
+        */}
+        {item.coverUrl ? (
+          <img src={item.coverUrl} alt="" width={48} height={48} style={S.cover} loading="lazy" />
+        ) : null}
+        <span style={S.mainText}>
+          <span style={S.artist}>{item.artist}</span>
+          <span style={S.title}>{item.title}</span>
+        </span>
       </div>
 
       <div className="feed-meta">
         <span className="cat" style={S.type}>
           {releaseTypeLabel(item.releaseType)}
         </span>
-        {/*
-          Provenance, only when it says something. A row you follow is the
-          default case and carries no marker: a label repeating identically on
-          most rows is texture, not information. "Liked" marks an artist you do
-          NOT follow — the reason an unfamiliar name is in your feed — and the
-          overlap is left unmarked because it is already in the followed set.
-        */}
-        {!item.followed && item.liked ? (
-          <span className="cat" style={S.provenance}>
-            {LIKED_MARKER}
-          </span>
-        ) : null}
       </div>
     </li>
   );
@@ -408,24 +578,29 @@ const S: Record<string, React.CSSProperties> = {
    * a scan down the list reads the bands as structure rather than as entries.
    * Zero radius and a hard edge, like everything else here.
    */
-  monthBand: {
-    listStyle: 'none',
-    background: 'var(--ink)',
-    color: 'var(--dandelion)',
-    padding: '0.45rem 0.75rem',
-    fontSize: '0.7rem',
-    fontWeight: 700,
-    letterSpacing: '0.18em',
-    textTransform: 'uppercase',
+  // Zero radius, like everything else. Hard 2px edge so it reads as a printed
+  // block rather than a floating thumbnail.
+  cover: {
+    border: '2px solid var(--ink)',
+    objectFit: 'cover',
+    flexShrink: 0,
+    display: 'block',
+  },
+  mainText: { display: 'flex', flexDirection: 'column', minWidth: 0 },
+  monthSection: { marginBottom: '0.5rem' },
+  // Monospace so the glyph does not shift the heading when + becomes –.
+  bandGlyph: { fontFamily: 'monospace', width: '1ch', display: 'inline-block' },
+  bandCount: { marginLeft: 'auto', opacity: 0.75, fontWeight: 400 },
+  collapseAll: { alignSelf: 'flex-end' },
+  pager: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
+    marginTop: '1rem',
+    paddingTop: '0.75rem',
     borderTop: '2px solid var(--ink)',
   },
-  provenance: {
-    fontSize: '0.6rem',
-    border: '1px solid currentColor',
-    padding: '0.05rem 0.3rem',
-    opacity: 0.75,
-  },
-
+  pagerState: { fontSize: '0.7rem' },
   empty: { margin: '0.5rem 0 0' },
   emptyHint: { margin: '0.25rem 0 0', opacity: 0.7, fontSize: '0.85rem' },
 };

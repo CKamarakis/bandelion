@@ -177,6 +177,72 @@ a {
   border-color: var(--ink);
 }
 
+/*
+ * The month band, which is also the collapse control.
+ *
+ * Ink block with dandelion type: the inverse of an upcoming row, so a scan
+ * down the list reads the bands as structure rather than as entries. It is a
+ * button because it collapses content, and it keeps the full-width block shape
+ * so it does not read as a link.
+ */
+.feed-monthband {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-align: left;
+  background: var(--ink);
+  color: var(--dandelion);
+  border: 2px solid var(--ink);
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+}
+
+/* Inverted on hover, so the state change is shape and ground rather than a
+   tint that colour-blind readers cannot separate. */
+.feed-monthband:hover {
+  background: var(--dandelion);
+  color: var(--ink);
+}
+
+.feed-monthband:focus-visible {
+  outline: 3px solid var(--violet);
+  outline-offset: 2px;
+}
+
+/* A control that reads as text: pagination and collapse-all. Underlined so it
+   is not colour alone that marks it actionable. */
+.feed-textbtn {
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: none;
+  border: none;
+  color: var(--ink);
+  padding: 0.2rem 0;
+  cursor: pointer;
+}
+
+.feed-textbtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+  text-decoration: none;
+}
+
+.feed-textbtn:focus-visible {
+  outline: 3px solid var(--violet);
+  outline-offset: 2px;
+}
+
 .block-yellow .btn-danger:hover,
 .btn-danger:hover {
   background: var(--white);
@@ -221,10 +287,13 @@ a {
   margin-bottom: 0.2rem;
 }
 
+/* A row now, because a sleeve may sit beside the text. The text itself stays
+   a column inside it, so a row with no cover looks exactly as it did. */
 .feed-main {
   display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.6rem;
   min-width: 0;
 }
 
