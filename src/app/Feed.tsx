@@ -27,6 +27,8 @@ import {
   byDate,
   groupByMonth,
   inCategory,
+  pageNumbers,
+  PAGE_GAP,
   inSource,
   inStatus,
   inWeek,
@@ -91,7 +93,8 @@ const RELEASE_COUNT = (n: number) => `${n} release${n === 1 ? '' : 's'}`;
 const PAGER_LABEL = 'Pages';
 const PREV_PAGE = 'Previous';
 const NEXT_PAGE = 'Next';
-const PAGE_STATE = (current: number, of: number) => `Page ${current} of ${of}`;
+/* The number is visible; this names what it means for a screen reader. */
+const PAGE_LABEL = (n: number) => `Page ${n}`;
 
 const TYPE_LEGEND = 'Type';
 /* "Status", not "Show": every one of these controls shows something. */
@@ -506,18 +509,41 @@ export function Feed({
             <nav style={S.pager} aria-label={PAGER_LABEL}>
               <button
                 type="button"
-                className="feed-textbtn"
+                className="feed-textbtn feed-pager-step"
                 onClick={() => setPage(currentPage - 1)}
                 disabled={currentPage === 0}
               >
                 {PREV_PAGE}
               </button>
-              <span className="cat" style={S.pagerState}>
-                {PAGE_STATE(currentPage + 1, pageCount)}
-              </span>
+              {/*
+                Every page number, until there are more than ten. A reader with
+                six pages can see all six and pick one; hiding four of them to
+                save a few pixels makes the control worse.
+
+                `aria-current` is what marks the page you are on to a screen
+                reader. The filled block is what marks it to everyone else.
+              */}
+              {pageNumbers(currentPage, pageCount).map((entry, i) =>
+                entry === PAGE_GAP ? (
+                  <span key={`gap-${i}`} style={S.pagerGap} aria-hidden="true">
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={entry}
+                    type="button"
+                    className={`feed-pagebtn${entry === currentPage ? ' is-on' : ''}`}
+                    onClick={() => setPage(entry)}
+                    aria-current={entry === currentPage ? 'page' : undefined}
+                    aria-label={PAGE_LABEL(entry + 1)}
+                  >
+                    {entry + 1}
+                  </button>
+                ),
+              )}
               <button
                 type="button"
-                className="feed-textbtn"
+                className="feed-textbtn feed-pager-step"
                 onClick={() => setPage(currentPage + 1)}
                 disabled={currentPage >= pageCount - 1}
               >
@@ -705,12 +731,15 @@ const S: Record<string, React.CSSProperties> = {
   pager: {
     display: 'flex',
     alignItems: 'center',
-    gap: '1rem',
+    flexWrap: 'wrap',
+    // Tighter than the old 1rem: the row now holds up to a dozen items rather
+    // than three, so the numbers group as one control.
+    gap: '0.35rem',
     marginTop: '1rem',
     paddingTop: '0.75rem',
     borderTop: '2px solid var(--ink)',
   },
-  pagerState: { fontSize: '0.7rem' },
+  pagerGap: { fontSize: '0.7rem', opacity: 0.6, padding: '0 0.1rem' },
   empty: { margin: '0.5rem 0 0' },
   emptyHint: { margin: '0.25rem 0 0', opacity: 0.7, fontSize: '0.85rem' },
 };

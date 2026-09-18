@@ -274,6 +274,45 @@ a {
   text-decoration: none;
 }
 
+/*
+ * A page number. Square, so a row of them reads as one control rather than as
+ * loose digits, and the current page is a filled block: state is ground and
+ * shape, not hue.
+ */
+.feed-pagebtn {
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.35rem;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: var(--white);
+  color: var(--ink);
+  border: var(--rule-width) solid var(--ink);
+  cursor: pointer;
+}
+
+.feed-pagebtn:hover {
+  background: var(--dandelion);
+}
+
+.feed-pagebtn.is-on {
+  background: var(--ink);
+  color: var(--dandelion);
+  cursor: default;
+}
+
+.feed-pagebtn:focus-visible {
+  outline: 3px solid var(--violet);
+  outline-offset: 2px;
+}
+
+/* Space between the step buttons and the numbers they step through. */
+.feed-pager-step {
+  margin: 0 0.5rem;
+}
+
 .feed-textbtn:focus-visible {
   outline: 3px solid var(--violet);
   outline-offset: 2px;
@@ -369,8 +408,22 @@ a {
   color: var(--violet);
 }
 
+/*
+ * This week is the Spotify green, as a block rather than as text.
+ *
+ * Green type on this ground measures 1.54:1 even after the sheet went to 90%,
+ * which is the same invisibility as the yellow: both are background colours in
+ * the palette, not text colours. Black on the green is 10.94:1, which is how
+ * Spotify themselves ship it and how the connect button already uses it.
+ *
+ * It also earns the emphasis: this week is the one of the three you are most
+ * likely to want, and it is now the only filled item in the row.
+ */
 .feed-week-this {
-  color: var(--magenta);
+  background: var(--spotify-green);
+  color: #000000;
+  padding: 0.2rem 0.5rem;
+  margin-left: -0.5rem;
 }
 
 .feed-week-last {

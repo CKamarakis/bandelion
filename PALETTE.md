@@ -55,40 +55,39 @@ Computed from the declared values, not eyeballed.
 | `--spotify-green` on `--dandelion` | 1.28:1 | the button needs its ink border to exist at all |
 | white on `--spotify-green` | 1.92:1 | **fails**, which is why that button sets black |
 
-### Through the 85% sheet
+### Through the 90% sheet
 
-The page sheet is `rgba(255,255,255,0.85)`, so the stripes show faintly
-through it and body text sits on the blend rather than on pure white. Measured
-against the darkest and most saturated parts of the pattern:
+The page sheet is `rgba(255,255,255,0.9)`, so the stripes show faintly through
+it and body text sits on the blend rather than on pure white. The worst case is
+where the sheet covers a black stripe.
 
-| Ink over the sheet, above | Ratio |
-|---|---|
-| black | 9.23:1 |
-| magenta | 10.19:1 |
-| violet | 9.96:1 |
+Ink over that ground is **10.44:1**, against 13.03:1 on pure white: still AAA,
+which is what makes the translucency safe. It is set with `rgba` on the
+background and never with `opacity`, because `opacity` fades the element and
+everything inside it, taking the type down with the surface.
 
-(The effective grounds are blends, not palette colours, so their hex values are
+(The effective ground is a blend, not a palette colour, so its hex is
 deliberately not listed: a hex in this file is a colour that ships.)
 
 Coloured text on that same ground, which is what the week shortcuts use:
 
 | Text | Ratio | Verdict |
 |---|---|---|
-| `--ink` | 9.23:1 | last week |
-| `--violet` | 3.96:1 | next week, passes for bold 14px |
-| `--magenta` | 2.70:1 | this week, **below the 3:1 line and shipped knowingly** |
-| `--dandelion` | 1.06:1 | **rejected** — invisible |
-| `--spotify-green` | 1.36:1 | **rejected** — a background colour, same as the yellow |
+| `--ink` | 10.44:1 | last week |
+| `--violet` | 4.48:1 | next week, passes for normal text |
+| `--magenta` | 3.05:1 | this week's label, above the 3:1 large-text line |
+| `--spotify-green` | 1.54:1 | **never as text**, used as a block instead |
+| `--dandelion` | 1.19:1 | **never as text** |
 
-The magenta is a judgement, not an oversight. It is legible, and the 85% sheet
-is what costs it the 3.80:1 it measures on pure white. The two rejected values
-are a different thing entirely: at 1.06:1 and 1.36:1 they are text the colour
-of its own ground, which is the failure this whole file exists to prevent.
+Raising the sheet from 85% to 90% lifted every one of these: magenta crossed
+3:1 and violet cleared 4.5:1. It did nothing for the green, which went from
+1.36 to 1.54 and stays invisible, because the problem is the colour rather than
+the ground.
 
-Worst case 9.23:1 against 13.03:1 on pure white: still AAA, which is what made
-the translucency safe to ship. It is set with `rgba` on the background and
-never with `opacity`, because `opacity` fades the element and everything inside
-it, taking the type down with the surface.
+**That is why "this week" is a green block with black type rather than green
+text.** Black on `--spotify-green` is 10.94:1, which is how Spotify ships it
+and how the connect button already uses it. The dandelion is the same story for
+the same reason: both are surfaces you set black type on, not inks.
 
 ---
 

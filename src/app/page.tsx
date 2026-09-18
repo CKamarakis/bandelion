@@ -241,7 +241,7 @@ const S: Record<string, React.CSSProperties> = {
      * everything inside it, so the type would drop to 85% too and the measured
      * 12:1 contrast with it. This tints only the surface.
      */
-    background: 'rgba(255, 255, 255, 0.85)',
+    background: 'rgba(255, 255, 255, 0.9)',
     borderLeft: 'var(--rule-width) solid var(--ink)',
     borderRight: 'var(--rule-width) solid var(--ink)',
     minHeight: '100vh',

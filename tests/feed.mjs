@@ -408,6 +408,57 @@ console.log('\n# category and status are independent');
 
   check(paginate([], 100).length === 0, 'no groups means no pages');
 
+  // --- Which page numbers to show -------------------------------------------
+
+  const { pageNumbers, PAGE_GAP } = await import('../src/app/feed-filters.ts');
+  const shown = (current, total, max) => pageNumbers(current, total, max).join(',');
+
+  check(shown(0, 1) === '0', 'a single page lists itself');
+  check(shown(0, 6) === '0,1,2,3,4,5', 'six pages are all listed');
+  check(
+    shown(0, 10) === '0,1,2,3,4,5,6,7,8,9',
+    'ten pages are all listed: the cap is inclusive',
+  );
+
+  {
+    // Above the cap it windows. First, last, current and one either side.
+    const middle = pageNumbers(10, 20);
+    check(middle[0] === 0, 'the first page is always offered');
+    check(middle[middle.length - 1] === 19, 'the last page is always offered');
+    check(middle.includes(10), 'the current page is in the list');
+    check(middle.includes(9) && middle.includes(11), 'so are its neighbours');
+    check(middle.includes(PAGE_GAP), 'and the skipped stretches become gaps');
+    check(
+      shown(10, 20) === '0,gap,9,10,11,gap,19',
+      'the window reads first, gap, neighbours, gap, last',
+      shown(10, 20),
+    );
+  }
+
+  /*
+   * At the ends there is nothing to skip on one side, and a gap standing in
+   * for zero pages would be a lie about what is hidden.
+   */
+  check(shown(0, 20) === '0,1,gap,19', 'no leading gap on the first page', shown(0, 20));
+  check(shown(19, 20) === '0,gap,18,19', 'no trailing gap on the last page', shown(19, 20));
+  check(
+    shown(1, 20) === '0,1,2,gap,19',
+    'page two needs no gap before it: nothing is skipped',
+    shown(1, 20),
+  );
+
+  {
+    // A single skipped page must not become an ellipsis wider than the number
+    // it replaces.
+    const list = pageNumbers(3, 12, 5);
+    check(!list.includes(PAGE_GAP) || list.join(',').indexOf('gap') > 0, 'gaps never lead');
+    check(
+      pageNumbers(2, 12, 5).join(',') === '0,1,2,3,gap,11',
+      'one missing page still collapses, two or more always do',
+      pageNumbers(2, 12, 5).join(','),
+    );
+  }
+
   // --- The Spotify artist link ---------------------------------------------
   // A wrong URL fails silently: the link still renders and still clicks, it
   // just lands somewhere unhelpful. Assert the shape Spotify actually uses.

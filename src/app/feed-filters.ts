@@ -81,6 +81,46 @@ export function inSource(item: Filterable, source: SourceId): boolean {
 
 export type WeekId = 'last' | 'this' | 'next';
 
+/** A gap in the page list, where numbers were left out. */
+export const PAGE_GAP = 'gap';
+
+/**
+ * Which page numbers to show, and where to put gaps.
+ *
+ * Every page is listed until there are more than `max` of them: with six pages
+ * a reader can see all six and pick, and hiding four of them behind an ellipsis
+ * to save a few pixels makes the control worse.
+ *
+ * Past that it windows: first, last, the current page and one either side, with
+ * gaps standing in for the rest. First and last are always present because they
+ * are the two a reader jumps to most, and the neighbours are what make paging
+ * one step at a time possible without the Previous/Next buttons.
+ */
+export function pageNumbers(
+  current: number,
+  total: number,
+  max = 10,
+): (number | typeof PAGE_GAP)[] {
+  if (total <= max) return Array.from({ length: total }, (_, i) => i);
+
+  const keep = new Set<number>([0, total - 1, current]);
+  if (current - 1 > 0) keep.add(current - 1);
+  if (current + 1 < total - 1) keep.add(current + 1);
+
+  const sorted = [...keep].sort((a, b) => a - b);
+  const out: (number | typeof PAGE_GAP)[] = [];
+
+  for (let i = 0; i < sorted.length; i++) {
+    // A gap only when pages were actually skipped. Two adjacent numbers, or a
+    // single missing page, do not earn an ellipsis wider than the number it
+    // replaces.
+    if (i > 0 && sorted[i] - sorted[i - 1] > 1) out.push(PAGE_GAP);
+    out.push(sorted[i]);
+  }
+
+  return out;
+}
+
 /**
  * The Monday that starts the calendar week containing `date`.
  *
