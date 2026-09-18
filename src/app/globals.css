@@ -260,71 +260,127 @@ a {
   outline-offset: 2px;
 }
 
-/* --- Feed rows -------------------------------------------------------------
+/* --- Feed cards ------------------------------------------------------------
  *
- * All row layout lives here, not in inline styles. The first version split it
- * between the two and the inline `display: block` silently beat the media
+ * All card layout lives here, not in inline styles. An earlier version split it
+ * between the two and an inline `display: block` silently beat the media
  * query's `display: grid`, so the desktop columns vanished while every test
  * stayed green. Found by screenshot.
- *
- * Mobile-first: stacked by default, columnar at 640px. That direction fits the
- * data — artist names and titles are both long and unpredictable, and a
- * three-column grid at 390px squeezed "Emma Ruth Rundle" to one word per line.
  */
-.feed-row {
-  display: block;
-  padding: 0.7rem 0.6rem;
-  border-bottom: var(--rule-width) solid var(--rule);
+/*
+ * Cards in a grid, three across.
+ *
+ * Was a full-width row per release, which left most of the line empty once the
+ * metadata moved right, and broke alignment the moment a sleeve appeared: an
+ * image in one cell of a baseline-aligned grid pushed the date away from the
+ * text beside it. A card puts the sleeve above the text instead of next to it,
+ * so there is no baseline to fight.
+ *
+ * Mobile-first: one column, then two, then three. Three columns at 390px gave
+ * one word per line.
+ */
+.feed-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--rule-width);
+  /* The gap is ink, so the rules between cards are the grid showing through
+     rather than a border on each card doubling up at every seam. */
+  background: var(--rule);
+  border: var(--rule-width) solid var(--rule);
 }
 
-/* Date and state share a line on narrow screens: both are short, and pairing
-   them keeps the row to three lines rather than five. */
+@media (min-width: 560px) {
+  .feed-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 860px) {
+  .feed-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.feed-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  /* White by default; .block-yellow on an upcoming card overrides it, which is
+     why this is a plain declaration and not on a more specific selector. */
+  background: var(--white);
+  /* Every card the same height in its row, so the grid stays a grid even when
+     one title runs to three lines. */
+  height: 100%;
+}
+
+/* An upcoming card is dandelion. Written after .feed-row so it wins on order
+   at equal specificity, rather than relying on where the class lands. */
+.feed-row.block-yellow {
+  background: var(--dandelion);
+}
+
+/* Date and state on one line: both are short, and the card is narrow. */
 .feed-date {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0.5rem;
-  margin-bottom: 0.2rem;
 }
 
-/* A row now, because a sleeve may sit beside the text. The text itself stays
-   a column inside it, so a row with no cover looks exactly as it did. */
 .feed-main {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.6rem;
+  flex-direction: column;
+  gap: 0.15rem;
   min-width: 0;
 }
 
+/* Pushed to the bottom of the card, so the type label sits on the same line
+   across a row of cards whatever the title length above it. */
 .feed-meta {
   display: flex;
   align-items: baseline;
   gap: 0.5rem;
-  margin-top: 0.2rem;
+  margin-top: auto;
+  padding-top: 0.25rem;
 }
 
-@media (min-width: 640px) {
-  .feed-row {
-    display: grid;
-    grid-template-columns: 10rem 1fr auto;
-    gap: 0 1rem;
-    align-items: baseline;
-  }
+/*
+ * The sleeve, or the block that stands in for one.
+ *
+ * Square and full-bleed to the card's text column, so a row of cards reads as
+ * a row of records. 61 of 552 releases have no art in the archive, which is
+ * why the stand-in is designed rather than left as a gap.
+ */
+.feed-cover {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border: var(--rule-width) solid var(--ink);
+}
 
-  .feed-date {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.15rem;
-    margin-bottom: 0;
-  }
-
-  .feed-meta {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.15rem;
-    margin-top: 0;
-  }
+/*
+ * No cover: magenta with hard ink stripes.
+ *
+ * repeating-linear-gradient is a flat two-colour pattern with hard stops, not
+ * a blend: no soft edge anywhere in it, which is what the no-gradients rule is
+ * actually about. Magenta is an accent used on a small surface, per the
+ * palette rule that keeps it off body text and large areas.
+ */
+.feed-cover-none {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: var(--rule-width) solid var(--ink);
+  background-color: var(--magenta);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--ink) 0,
+    var(--ink) 8px,
+    var(--magenta) 8px,
+    var(--magenta) 20px
+  );
 }
 
 /* --- Feed dropdowns --------------------------------------------------------

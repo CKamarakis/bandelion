@@ -412,7 +412,7 @@ export function Feed({
                 ) : null}
 
                 {isCollapsed ? null : (
-                  <ol id={sectionId} style={S.list}>
+                  <ol id={sectionId} className="feed-grid" style={S.list}>
                     {group.items.map((item) => (
                       <FeedRow key={item.eventId} item={item} today={today} />
                     ))}
@@ -472,23 +472,23 @@ function FeedRow({ item, today }: { item: FeedItem; today: string }) {
         ) : null}
       </div>
 
-      <div className="feed-main">
-        {/*
-          The sleeve, when there is one. No placeholder box when there is not:
-          most of a back catalogue has no art in the archive, and a grid of
-          empty squares would be a column of nothing claiming to be something.
-          The row simply reads as text, which is what it was before covers.
+      {/*
+        The sleeve, or the striped block standing in for one.
 
-          alt is empty because the artist and title sit right beside it: a
-          screen reader announcing "cover of X" then "X" reads it twice.
-        */}
-        {item.coverUrl ? (
-          <img src={item.coverUrl} alt="" width={48} height={48} style={S.cover} loading="lazy" />
-        ) : null}
-        <span style={S.mainText}>
-          <span style={S.artist}>{item.artist}</span>
-          <span style={S.title}>{item.title}</span>
-        </span>
+        alt is empty because the artist and title are right below it: a screen
+        reader announcing "cover of X" and then "X" reads the same thing twice.
+        The stand-in is aria-hidden for the same reason plus one more: it
+        carries no information at all, it is what absence looks like.
+      */}
+      {item.coverUrl ? (
+        <img src={item.coverUrl} alt="" className="feed-cover" loading="lazy" />
+      ) : (
+        <span className="feed-cover-none" aria-hidden="true" />
+      )}
+
+      <div className="feed-main">
+        <span style={S.artist}>{item.artist}</span>
+        <span style={S.title}>{item.title}</span>
       </div>
 
       <div className="feed-meta">
@@ -555,7 +555,9 @@ const S: Record<string, React.CSSProperties> = {
   },
   filterActive: { background: 'var(--ink)', color: 'var(--white)' },
 
-  list: { listStyle: 'none', margin: 0, padding: 0, borderTop: 'var(--rule-width) solid var(--rule)' },
+  // No borderTop: .feed-grid draws its own frame, and a second rule here put a
+  // 4px line under every month heading.
+  list: { listStyle: 'none', margin: 0, padding: 0 },
 
   // Date and metadata share a line: both are short, and pairing them keeps the
   // row to two lines rather than four.
@@ -578,15 +580,6 @@ const S: Record<string, React.CSSProperties> = {
    * a scan down the list reads the bands as structure rather than as entries.
    * Zero radius and a hard edge, like everything else here.
    */
-  // Zero radius, like everything else. Hard 2px edge so it reads as a printed
-  // block rather than a floating thumbnail.
-  cover: {
-    border: '2px solid var(--ink)',
-    objectFit: 'cover',
-    flexShrink: 0,
-    display: 'block',
-  },
-  mainText: { display: 'flex', flexDirection: 'column', minWidth: 0 },
   monthSection: { marginBottom: '0.5rem' },
   // Monospace so the glyph does not shift the heading when + becomes –.
   bandGlyph: { fontFamily: 'monospace', width: '1ch', display: 'inline-block' },

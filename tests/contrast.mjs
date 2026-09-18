@@ -186,7 +186,48 @@ check(
   'no non-zero border-radius anywhere: hard edges are the whole point',
 );
 check(!/box-shadow/.test(declarations), 'no box-shadow: flat blocks and hard rules only');
-check(!/gradient/.test(declarations), 'no gradients');
+/*
+ * No blended gradients.
+ *
+ * The rule is against soft transitions, not against the function: a
+ * `repeating-linear-gradient` whose colour stops touch is a hard-edged stripe
+ * pattern with no blend anywhere in it, which is a screenprint, not a fade.
+ * So `linear-gradient` and `radial-gradient` stay banned outright, and the
+ * repeating form is allowed only in the striped no-cover block.
+ *
+ * Narrowed deliberately rather than by muting the check. If this ever needs
+ * widening again, the question to ask is whether the declaration produces a
+ * visible blend, because that is the thing the design rule forbids.
+ */
+check(
+  !/(^|[^-\w])(linear-gradient|radial-gradient|conic-gradient)/.test(declarations),
+  'no blended gradients: flat blocks and hard rules only',
+);
+
+/*
+ * Match to the end of the declaration, not to the first ')'.
+ *
+ * The stops are written as `var(--ink) 8px`, so a lazy `[^)]*` stops inside
+ * the first var() and reports a pattern with no stops at all — which read as a
+ * blend and failed a correct declaration.
+ */
+const repeating = declarations.match(/repeating-linear-gradient\([\s\S]*?\);/g) ?? [];
+for (const pattern of repeating) {
+  /*
+   * Every stop must share a position with its neighbour, which is what makes
+   * the edge hard. `ink 0, ink 8px, magenta 8px` is a stripe; `ink 0, magenta
+   * 20px` is a fade wearing the same function name.
+   */
+  // `0` is a valid stop and carries no unit, so matching only `Npx` misses it
+  // and reads a correct hard-stop pattern as a blend.
+  const stops = [...pattern.matchAll(/(?:^|[\s,])(\d+)(?:px)?(?=[\s,)])/g)].map((m) => m[1]);
+  const hasTouchingStops = stops.some((value, i) => i > 0 && stops[i - 1] === value);
+  check(
+    hasTouchingStops,
+    'a repeating gradient uses hard stops, not a blend',
+    pattern,
+  );
+}
 check(!/backdrop-filter/.test(declarations), 'no glassmorphism');
 
 console.log(failed ? `\n${failed} check(s) failed` : '\nall contrast checks passed');
