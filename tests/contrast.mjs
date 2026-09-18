@@ -230,5 +230,35 @@ for (const pattern of repeating) {
 }
 check(!/backdrop-filter/.test(declarations), 'no glassmorphism');
 
+// --- PALETTE.md names the colours that actually exist ------------------------
+//
+// The file documents the palette; globals.css defines it. A hex listed there
+// and absent from the stylesheet is documentation of a colour nobody ships,
+// which is the drift constraint 3 exists to catch. The reverse is deliberately
+// not checked: --rule is an alias, not a new colour.
+
+{
+  const paletteDoc = readFileSync(join(import.meta.dirname, '..', 'PALETTE.md'), 'utf8');
+  const declared = new Set(
+    Object.values(vars).map((v) => v.toLowerCase().trim()),
+  );
+  // True black is the striped ground, written literally in the stylesheet
+  // rather than as a token, so it is a legitimate hex in the document.
+  declared.add('#000000');
+
+  const documented = [...paletteDoc.matchAll(/`(#[0-9a-fA-F]{6})`/g)].map((m) =>
+    m[1].toLowerCase(),
+  );
+
+  check(documented.length > 0, 'PALETTE.md lists at least one hex');
+  for (const hex of new Set(documented)) {
+    check(
+      declared.has(hex),
+      `PALETTE.md documents a colour that ships: ${hex}`,
+      `not found in globals.css (declared: ${[...declared].join(', ')})`,
+    );
+  }
+}
+
 console.log(failed ? `\n${failed} check(s) failed` : '\nall contrast checks passed');
 process.exit(failed ? 1 : 0);

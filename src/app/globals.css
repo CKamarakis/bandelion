@@ -44,6 +44,42 @@ body {
   color: var(--ink);
 }
 
+/*
+ * The striped ground: thin magenta and violet pairs on black, at -45deg.
+ *
+ * Drawn in CSS rather than served as an image, because it is four hard-edged
+ * line pairs repeating: as a file it would be a raster to scale and cache, and
+ * at any zoom the diagonals would soften. Every stop touches its neighbour, so
+ * there is no blend anywhere in it (tests/contrast.mjs checks exactly that).
+ *
+ * NOTHING sets text on this. Ink on black measures 1.61:1 -- unreadable -- so
+ * the ground exists only behind opaque blocks, and the page's own surfaces
+ * stay white and dandelion. That is also what keeps the accent rule intact:
+ * magenta and violet are hairlines here, not a large coloured surface.
+ */
+body.striped-ground {
+  background-color: #000000;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--magenta) 0,
+    var(--magenta) 3px,
+    #000000 3px,
+    #000000 9px,
+    var(--magenta) 9px,
+    var(--magenta) 12px,
+    #000000 12px,
+    #000000 60px,
+    var(--violet) 60px,
+    var(--violet) 63px,
+    #000000 63px,
+    #000000 69px,
+    var(--violet) 69px,
+    var(--violet) 72px,
+    #000000 72px,
+    #000000 120px
+  );
+}
+
 body {
   font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Menlo, Consolas, monospace;
   font-size: 14px;
@@ -360,20 +396,32 @@ a {
 }
 
 /*
- * The artist link. Underlined, never colour alone, and it inherits the card's
- * ink so it stays readable on both the white and dandelion grounds.
+ * The artist link.
+ *
+ * `inline-block` with its own padding, so the hover block is the width of the
+ * name plus 10px either side rather than the full width of the card: the
+ * anchor was a plain inline box filling its line, and the highlight read as a
+ * banner rather than as the name being hit.
+ *
+ * The negative margin pulls that padding back out of the layout, so adding the
+ * hover target does not shift the name away from the title beneath it.
+ *
+ * No underline at rest. It is not colour alone doing the work either: the
+ * affordance is the hover inversion plus the cursor, and the name is already
+ * the heaviest type in the card.
  */
 .feed-artistlink {
+  display: inline-block;
+  align-self: flex-start;
   color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-thickness: 2px;
+  text-decoration: none;
+  padding: 0 10px;
+  margin: 0 -10px;
 }
 
 .feed-artistlink:hover {
   background: var(--ink);
   color: var(--dandelion);
-  text-decoration: none;
 }
 
 .feed-artistlink:focus-visible {

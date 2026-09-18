@@ -263,29 +263,31 @@ venues and catalogue numbers. So:
   hard rules between them.
 - **The grid is visible.** Hard rules, boxes, obvious columns. Not hidden.
 - **Restraint against the palette.** Saville used flat colour sparingly on a lot
-  of white. This is why magenta and violet are accents only.
+  of white. Magenta and violet are allowed on real surfaces, but the default is
+  still a lot of white with colour placed where it means something.
 
 ### Palette
 
-**Primary — carries the whole interface:**
-- `#FFFFFF` white
-- `#333129` near-black olive
-- `#F7D000` dandelion yellow
+**`PALETTE.md` is the reference**: every colour, what it is for, and the
+measured ratio of every pairing worth knowing. The values themselves live in
+`src/app/globals.css`, and `tests/contrast.mjs` parses that file, so a hex is
+declared exactly once in the codebase.
 
-**Accent — CTAs, emphasis, supporting material only. Never body text, never
-large surfaces:**
-- `#F700A8` magenta
-- `#9C00F7` violet
+The short version:
+
+- `#FFFFFF` white, `#333129` near-black olive, `#F7D000` dandelion yellow carry
+  the interface.
+- `#F700A8` magenta and `#9C00F7` violet are **usable on surfaces, not only as
+  hairlines**. The earlier rule confined them to accents; what actually matters
+  is the measurement, not the area, and `PALETTE.md` records which pairings
+  pass. Restraint is still the intent — a lot of white with colour placed
+  deliberately — but it is a design judgement now rather than a hard limit.
+- `#000000` true black is the striped ground and nothing else. It is NOT
+  `--ink`: the two differ, and ink on true black is 1.61:1, so no type is ever
+  set on the stripes.
 
 The yellow is **flyer stock**, not a text colour: a surface you set black type
 on, the way a screenprinted poster works.
-
-| Pairing | Ratio | Use |
-|---|---|---|
-| `#333129` on `#FFFFFF` | ≈12:1 | body text |
-| `#333129` on `#F7D000` | ≈9:1 | high-impact blocks, headers, callouts |
-| `#F7D000` on `#FFFFFF` | ≈1.6:1 | **never for text** — fails badly |
-| accents on white / on olive | check per use | measure before shipping |
 
 ### Rules
 

@@ -204,7 +204,23 @@ const S: Record<string, React.CSSProperties> = {
   // No overflow-x guard here on purpose: hiding overflow hides the bug too.
   // tests/screenshots.mjs measures scrollWidth against the viewport and fails
   // the run instead, so real overflow surfaces rather than being clipped.
-  page: { maxWidth: '960px', margin: '0 auto', padding: '48px 24px 96px' },
+  /*
+   * An opaque sheet on the striped ground.
+   *
+   * The stripes are a page background, and every surface carrying type sits on
+   * top of them: ink on black measures 1.61:1, so type must never land on the
+   * ground itself. The hard border is what makes it read as a sheet laid on
+   * the pattern rather than a gap in it.
+   */
+  page: {
+    maxWidth: '960px',
+    margin: '0 auto',
+    padding: '48px 32px 96px',
+    background: 'var(--white)',
+    borderLeft: 'var(--rule-width) solid var(--ink)',
+    borderRight: 'var(--rule-width) solid var(--ink)',
+    minHeight: '100vh',
+  },
   masthead: { paddingBottom: '20px' },
   rule: { height: '6px', background: 'var(--ink)', border: 'none', margin: '0' },
   catRow: { display: 'flex', justifyContent: 'space-between', marginBottom: '14px' },
