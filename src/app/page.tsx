@@ -14,6 +14,7 @@ import { rosterStatus } from '../jobs/roster.ts';
 import { likedStatus } from '../jobs/liked.ts';
 import { RosterImport } from './RosterImport.tsx';
 import { ConnectSpotify } from './ConnectSpotify.tsx';
+import { InfoNote } from './InfoNote.tsx';
 import { Feed } from './Feed.tsx';
 
 export const dynamic = 'force-dynamic';
@@ -172,8 +173,12 @@ export default async function Home({
           </>
         ) : connected ? (
           <>
-            <h2>{CONNECTED_HEADING}</h2>
-            <p style={S.body}>{CONNECTED_BODY}</p>
+            {/* The explanation moves behind the icon: it answers a question
+                you ask once, and it was holding a line of the panel forever. */}
+            <div style={S.panelHead}>
+              <h2>{CONNECTED_HEADING}</h2>
+              <InfoNote>{CONNECTED_BODY}</InfoNote>
+            </div>
             {/* Both panel actions on one row: importing and disconnecting are
                 the only two things this panel does, and stacking them made the
                 second look like a consequence of the first. */}
@@ -287,6 +292,14 @@ const S: Record<string, React.CSSProperties> = {
   // Even padding so the block reads as one printed panel rather than a column
   // that happens to be yellow.
   panel: { padding: '28px' },
+  // The heading and the info icon share a line, icon hard right.
+  panelHead: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: '16px',
+    marginBottom: '20px',
+  },
   /*
    * Full width of the panel, wrapping only when it genuinely does not fit.
    * 20px below rather than 24: the heading, the sentence and the buttons are

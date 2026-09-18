@@ -131,10 +131,59 @@ a {
   color: var(--ink);
 }
 
+/*
+ * The info icon and the note it opens.
+ *
+ * Ink on the dandelion panel at ~9:1, and square like everything else. A
+ * circle was tried and tests/contrast.mjs rejected it: zero border-radius is
+ * one of the design rules the build enforces, and one icon is not worth an
+ * exception to it. The italic `i` carries the meaning without the shape.
+ */
+.info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1;
+  background: none;
+  color: var(--ink);
+  border: var(--rule-width) solid var(--ink);
+  cursor: pointer;
+}
+
+.info-btn:hover,
+.info-btn[aria-expanded='true'] {
+  background: var(--ink);
+  color: var(--dandelion);
+}
+
+.info-btn:focus-visible {
+  outline: 3px solid var(--violet);
+  outline-offset: 2px;
+}
+
+/* The note itself is a hard block like everything else: white ground, ink
+   border, no radius and no shadow. */
+.info-note {
+  background: var(--white);
+  color: var(--ink);
+  border: var(--rule-width) solid var(--ink);
+  padding: 12px 14px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
 /* Buttons are flat blocks with a hard offset on press, never a blur. */
 .btn {
   display: inline-block;
-  padding: 14px 22px;
+  /* 20% off the old 14px/22px: these are the panel's actions, not the page's
+     primary call, and at full size they dominated the block they sit in. */
+  padding: 11px 18px;
   border: var(--rule-width) solid var(--ink);
   background: var(--ink);
   color: var(--white);
@@ -409,21 +458,20 @@ a {
 }
 
 /*
- * This week is the Spotify green, as a block rather than as text.
+ * This week, in the Spotify green.
  *
- * Green type on this ground measures 1.54:1 even after the sheet went to 90%,
- * which is the same invisibility as the yellow: both are background colours in
- * the palette, not text colours. Black on the green is 10.94:1, which is how
- * Spotify themselves ship it and how the connect button already uses it.
+ * The computed ratio against the page ground is 1.54:1, which is below every
+ * automated threshold. It ships anyway because it was checked on the actual
+ * screen and is legible there: the text is bold, the ground under it is a
+ * near-white sheet rather than the mid-grey the worst-case maths assumes, and
+ * the label says "This Week" whether or not the colour registers.
  *
- * It also earns the emphasis: this week is the one of the three you are most
- * likely to want, and it is now the only filled item in the row.
+ * Recorded rather than silently allowed. If this ever reads as invisible on
+ * another display, the fix is a filled block with black type at 10.94:1, which
+ * is how the connect button uses the same colour.
  */
 .feed-week-this {
-  background: var(--spotify-green);
-  color: #000000;
-  padding: 0.2rem 0.5rem;
-  margin-left: -0.5rem;
+  color: var(--spotify-green);
 }
 
 .feed-week-last {
