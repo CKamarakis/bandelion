@@ -143,8 +143,11 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.6rem;
-  height: 1.6rem;
+  /* 2rem drawn, 44px tappable. The visible box stays small so it reads as an
+     aside, while the hit area clears the touch-target minimum. */
+  width: 2rem;
+  height: 2rem;
+  position: relative;
   font: inherit;
   font-size: 0.8rem;
   font-weight: 700;
@@ -154,6 +157,17 @@ a {
   color: var(--ink);
   border: var(--rule-width) solid var(--ink);
   cursor: pointer;
+}
+
+/* The hit area, extending past the drawn box to 44px without moving it. */
+.info-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
 }
 
 .info-btn:hover,

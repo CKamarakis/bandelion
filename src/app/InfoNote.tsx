@@ -80,6 +80,11 @@ const S: Record<string, React.CSSProperties> = {
     right: 0,
     // Wide enough for a sentence, capped so it never spans the whole panel.
     width: 'min(30ch, 70vw)',
-    zIndex: 2,
+    /*
+     * Above the panel's own content, and above the feed below it. The note is
+     * absolutely positioned, so it overhangs the panel's bottom edge when the
+     * panel is short; without this it slid behind the controls underneath.
+     */
+    zIndex: 5,
   },
 };
