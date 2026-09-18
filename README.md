@@ -1,8 +1,9 @@
 # Bandelion
 
-A self-hosted music radar. It takes the artists you follow on Spotify and tells
-you what is actually happening with them: new releases, announced releases, gigs
-in your city, videos, reviews. One feed, filterable.
+A self-hosted music radar. It takes the artists you follow on Spotify — and the
+artists behind your liked songs — and tells you what is actually happening with
+them: new releases, announced releases, gigs in your city, videos, reviews. One
+feed, filterable.
 
 Band + dandelion. Seeds scattering.
 
@@ -32,7 +33,9 @@ the app owner to have it, or the API stops responding).
 
 1. Go to [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) and log in.
 2. **Create app**. Name and description can be anything.
-3. Redirect URI: `http://localhost:3000/api/auth/callback/spotify`
+3. Redirect URI: `http://127.0.0.1:3000/api/auth/callback/spotify`
+   — the loopback IP, not `localhost`. Spotify rejects `localhost` outright, and
+   it matches the URI byte for byte, so a mismatch fails at the callback.
 4. Under APIs used, tick **Web API**.
 5. Save, then open **Settings** to find your **Client ID** and **Client secret**.
 
@@ -56,17 +59,63 @@ BANDELION_CITY=Berlin
 docker compose up
 ```
 
-Open `http://localhost:3000` and connect your Spotify account.
+Open `http://127.0.0.1:3000` and connect your Spotify account.
 
-### 4. Wait for the first import
+### 4. Import your artists
 
-The first import is slow, and deliberately so. MusicBrainz — where artist IDs
-and links come from — allows one request per second, so a few thousand followed
-artists takes around half an hour.
+Two lists, imported separately:
 
-You do not have to wait. The feed works as soon as the first artists land, and
-fills in behind you. Progress is shown as counts. Stopping the container is
-safe: the import resumes where it stopped.
+```bash
+npm run ingest          # artists you follow
+npm run ingest liked    # artists behind your liked songs
+```
+
+Both are fast — reading 2,000 liked songs takes about ten seconds. What takes
+time is the step after: every artist needs a MusicBrainz ID before its releases
+can be fetched, and MusicBrainz allows one request per second.
+
+```bash
+npm run ingest resolve  # artist identities. The slow one.
+npm run ingest releases # then the actual releases
+```
+
+**How slow:** measured on a real library, a 625-artist followed roster resolves
+in a bit over an hour. A 1,400-artist liked list took about twelve, because
+obscure artists fall through to a name search rather than an exact ID match.
+Run it overnight. `npm run ingest resolve 60` does a bounded sample first if you
+want to see the hit rate before committing.
+
+You do not have to wait for any of it. The feed works as soon as the first
+releases land and fills in behind you. Stopping is safe: every job checkpoints
+and resumes where it stopped.
+
+---
+
+## The two lists
+
+Following an artist on Spotify is a deliberate act. Liking a song is a smaller
+one, and there are usually far more of them — so the two are kept apart rather
+than merged into one roster.
+
+- **Followed** — artists from `/me/following`.
+- **Liked songs** — every artist credited on a track you saved, including
+  collaborators and featured guests.
+
+They overlap heavily. On a real library, 477 of 1,408 liked artists were also
+followed, so an artist is one entry carrying both marks rather than two rows.
+The feed's **From** filter switches between *All artists*, *Followed* and
+*Liked songs*, and a release shows a **From liked songs** mark only when you do
+not also follow that artist — the reason an unfamiliar name is in your feed.
+
+What gets skipped: an album credited to someone who performs nothing you liked.
+"Various Artists" on a compilation, a label or a curator on a DJ mix. They are
+not acts, so they do not become artists. The import reports how many it skipped
+rather than dropping them quietly.
+
+Liked artists have no images. `/me/tracks` gives an artist's name and ID but no
+picture, and the batch endpoint that could fetch 50 at a time now returns 403
+despite its documentation page still reading as current. One request per artist
+is the remaining option, and that is not worth an avatar.
 
 ---
 
@@ -86,16 +135,39 @@ they see an app that loads nothing. Five is the ceiling, including you.
 
 | Source | What it gives | Status |
 |---|---|---|
-| Spotify | followed artists, releases | official |
-| MusicBrainz | canonical artist IDs, links | official |
-| Ticketmaster | large-venue gigs | official |
-| Eventim | German mid-size gigs | undocumented endpoint |
-| Resident Advisor | club and electronic listings | undocumented endpoint |
-| Promoter sites | small-venue gigs, support acts | scraped |
+| Spotify | followed artists, liked-song artists | official |
+| MusicBrainz | canonical artist IDs, links, releases | official |
+| Ticketmaster | large-venue gigs | **not built yet** |
+| Eventim | German mid-size gigs | **not built yet** — undocumented endpoint |
+| Resident Advisor | club and electronic listings | **not built yet** — undocumented endpoint |
+| Promoter sites | small-venue gigs, support acts | **not built yet** — scraped |
 
-The last three are what make the local coverage good, and they can break without
-warning. When one does, it is marked degraded and the rest of the feed carries
-on. Check `/health` to see the current state of each.
+Releases work today. **Gigs do not exist yet** — the four sources above are
+planned, not shipped, and nothing in the feed is a concert listing.
+
+When they arrive, the last three are what will make local coverage good, and
+they can break without warning: each one is an undocumented endpoint or a
+scrape. A broken source is recorded as degraded and the rest of the feed carries
+on, rather than the whole feed emptying.
+
+---
+
+## What does not work yet
+
+Honest list, because finding these yourself is worse.
+
+- **No gigs.** Releases only. The gig sources in the table above are planned.
+- **No review screen.** When MusicBrainz has several acts under one name, the
+  artist is queued for a human decision instead of being guessed at — a wrong ID
+  attaches another band's records to your feed. There is nowhere to make that
+  decision yet, so queued artists stay unresolved and produce no releases. On a
+  real 1,556-artist library this was 392 artists, roughly a quarter.
+- **No unfollow or unlike.** Nothing is ever removed. Neither is observable from
+  a partial import, so an interrupted run would look identical to unfollowing
+  everything after the point it stopped.
+- **Liked artists have no images**, as above.
+
+`LIMITS.md` tracks the full list and what would lift each one.
 
 ---
 
@@ -104,6 +176,8 @@ on. Check `/health` to see the current state of each.
 | File | What it is |
 |---|---|
 | `CLAUDE.md` | How the project is built and why. Read first. |
+| `LIMITS.md` | What is deferred, and what would lift each limit. |
+| `VENUES.md` | The Berlin venues the gig sources will target. |
 | `TESTING.md` | Each test suite and the bug that caused it. |
 | `PLAYBOOK.md` | Decisions worth making before writing code. |
 | `.claude/skills/copy/SKILL.md` | Voice rules for user-facing text. `/copy` |

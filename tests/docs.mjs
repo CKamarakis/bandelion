@@ -161,5 +161,27 @@ for (const [, script] of readme.matchAll(/npm run ([\w:]+)/g)) {
   );
 }
 
+/*
+ * The setup instructions must not tell anyone to use `localhost`.
+ *
+ * Spotify rejects it outright and matches the redirect URI byte for byte, so a
+ * README saying `localhost` fails every reader at the callback — which is
+ * exactly what it said, while .env.example three directories away explained
+ * why that cannot work. Prose drifts; this fails the build instead.
+ */
+check(
+  !/localhost:3000/.test(readme),
+  'README uses the loopback IP, not localhost (Spotify rejects localhost)',
+  'found "localhost:3000" in README.md',
+);
+
+const envExample = readFileSync(join(root, '.env.example'), 'utf8');
+const redirectInEnv = envExample.match(/SPOTIFY_REDIRECT_URI=(\S+)/)?.[1];
+check(
+  Boolean(redirectInEnv) && readme.includes(redirectInEnv),
+  'README quotes the same redirect URI as .env.example',
+  `env says ${redirectInEnv}`,
+);
+
 console.log(failed ? `\n${failed} check(s) failed` : '\nall docs checks passed');
 process.exit(failed ? 1 : 0);
