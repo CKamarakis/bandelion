@@ -128,7 +128,25 @@ export default async function Home({
           <span className="cat">BND 0001</span>
           <span className="cat">{cfg.city.toUpperCase()}</span>
         </div>
-        <h1>{TITLE}</h1>
+        {/*
+          The mark sits with the wordmark, not above it.
+
+          alt is empty and the image is decorative: the h1 beside it already
+          says "Bandelion", so a screen reader announcing the logo would read
+          the name twice. `width`/`height` are set so the row does not reflow
+          when the image loads.
+        */}
+        <div style={S.titleRow}>
+          <img
+            src="/logo.png"
+            alt=""
+            width={64}
+            height={64}
+            style={S.logo}
+            aria-hidden="true"
+          />
+          <h1 style={S.title}>{TITLE}</h1>
+        </div>
         <p style={S.tagline}>{TAGLINE}</p>
       </header>
 
@@ -229,6 +247,21 @@ const S: Record<string, React.CSSProperties> = {
     minHeight: '100vh',
   },
   masthead: { paddingBottom: '20px' },
+  titleRow: { display: 'flex', alignItems: 'center', gap: '18px' },
+  /*
+   * The mark, on its own black ground. No border: the artwork is already a
+   * black circle, so a rule around it would draw a box around a circle.
+   */
+  logo: { display: 'block', flexShrink: 0, width: '64px', height: '64px' },
+  /*
+   * Sized to the mark rather than to the viewport.
+   *
+   * The global h1 is clamp(2.5rem, 9vw, 5.5rem), which at 960px renders near
+   * 86px and towered over a 64px logo. 3.25rem caps the cap-height at roughly
+   * the circle's diameter so the two read as one lockup, and the clamp still
+   * lets it shrink on a narrow screen.
+   */
+  title: { fontSize: 'clamp(2rem, 6vw, 3.25rem)', lineHeight: 0.9 },
   rule: { height: '6px', background: 'var(--ink)', border: 'none', margin: '0' },
   catRow: { display: 'flex', justifyContent: 'space-between', marginBottom: '14px' },
   // No ch cap: the tagline is one line at 960px and wraps only if the viewport
