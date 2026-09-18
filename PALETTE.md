@@ -70,6 +70,21 @@ against the darkest and most saturated parts of the pattern:
 (The effective grounds are blends, not palette colours, so their hex values are
 deliberately not listed: a hex in this file is a colour that ships.)
 
+Coloured text on that same ground, which is what the week shortcuts use:
+
+| Text | Ratio | Verdict |
+|---|---|---|
+| `--ink` | 9.23:1 | last week |
+| `--violet` | 3.96:1 | next week, passes for bold 14px |
+| `--magenta` | 2.70:1 | this week, **below the 3:1 line and shipped knowingly** |
+| `--dandelion` | 1.06:1 | **rejected** — invisible |
+| `--spotify-green` | 1.36:1 | **rejected** — a background colour, same as the yellow |
+
+The magenta is a judgement, not an oversight. It is legible, and the 85% sheet
+is what costs it the 3.80:1 it measures on pure white. The two rejected values
+are a different thing entirely: at 1.06:1 and 1.36:1 they are text the colour
+of its own ground, which is the failure this whole file exists to prevent.
+
 Worst case 9.23:1 against 13.03:1 on pure white: still AAA, which is what made
 the translucency safe to ship. It is set with `rgba` on the background and
 never with `opacity`, because `opacity` fades the element and everything inside

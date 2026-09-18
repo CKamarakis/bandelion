@@ -300,17 +300,17 @@ a {
 }
 
 /*
- * Both buttons are always present, never conditional.
+ * Two states, and no third. Ink with a white glyph at rest, ink with a yellow
+ * glyph on hover and while pressed.
  *
- * Clear-filters used to render only when a filter was set, so the collapse
- * button moved sideways the moment you touched a dropdown: controls that
- * appear and vanish make the row a moving target. It is disabled instead when
- * there is nothing to clear, which says the same thing without relocating its
- * neighbour.
+ * Deliberately never disabled: both buttons are always present and always
+ * live. Clearing filters when none are set does nothing, and a button that
+ * dims and undims is a third state to read for no information gained.
  */
-.feed-iconbtn:disabled {
-  opacity: 0.35;
-  cursor: default;
+.feed-iconbtn:hover,
+.feed-iconbtn:active,
+.feed-iconbtn:focus-visible {
+  color: var(--dandelion);
 }
 
 .feed-iconbtn:focus-visible {
@@ -324,12 +324,22 @@ a {
  * Bold 14px in sentence case rather than the tracked uppercase used for
  * labels elsewhere, because these are things you press, not headings.
  *
- * All three are ink. Colouring them by week was tried and measured: dandelion
- * text lands at 1.06:1 on the page ground and magenta at 2.70:1, so the yellow
- * one would have been invisible and the magenta unreadable. The yellow is
- * flyer stock, not a text colour.
+ * Colour-coded by distance from now: violet ahead, magenta on the current
+ * week, ink behind. Measured on the page ground (#D9D9D9 where the sheet sits
+ * over a black stripe):
  *
- * The pressed state is an underline plus weight of ground, never hue alone.
+ *   violet  3.96:1   passes for bold 14px
+ *   magenta 2.70:1   below the 3:1 large-text line, shipped knowingly
+ *   ink     9.23:1
+ *
+ * Magenta is a deliberate call, not an oversight: it is legible, and the 85%
+ * sheet is what costs it the 3.80:1 it measures on pure white. Two colours
+ * were rejected outright for this row and stay rejected -- dandelion at 1.06:1
+ * and Spotify green at 1.36:1 are both backgrounds, not text, and would be
+ * invisible rather than merely low.
+ *
+ * Colour is never the only signal: the pressed state is an underline, and the
+ * labels say which week in words.
  */
 .feed-weekbtn {
   font: inherit;
@@ -353,6 +363,18 @@ a {
   text-decoration: underline;
   text-underline-offset: 4px;
   text-decoration-thickness: 3px;
+}
+
+.feed-week-next {
+  color: var(--violet);
+}
+
+.feed-week-this {
+  color: var(--magenta);
+}
+
+.feed-week-last {
+  color: var(--ink);
 }
 
 .feed-weekbtn:focus-visible {

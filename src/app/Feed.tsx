@@ -82,9 +82,9 @@ const WEEK_GROUP_LABEL = 'Jump to a week';
  * whether to click.
  */
 const WEEKS = [
-  { id: 'last', label: 'Last Week' },
-  { id: 'this', label: 'This Week' },
   { id: 'next', label: 'Next Week' },
+  { id: 'this', label: 'This Week' },
+  { id: 'last', label: 'Last Week' },
 ] as const;
 /* Names what it counts, per the rule against a bare "12". */
 const RELEASE_COUNT = (n: number) => `${n} release${n === 1 ? '' : 's'}`;
@@ -314,12 +314,9 @@ export function Feed({
     monthsAvailable.length > 0 && monthsAvailable.every((m) => collapsed.has(m));
 
   /*
-   * Sort is deliberately not a filter: it changes the order, not what is in
-   * the list, so clearing filters should not silently reverse the feed.
+   * Sort is deliberately not cleared: it changes the order, not what is in the
+   * list, so clearing filters should not silently reverse the feed.
    */
-  const anyFilterSet =
-    category !== 'all' || status !== 'all' || source !== 'all' || month !== 'all' || week !== 'all';
-
   function clearFilters() {
     setCategory('all');
     setStatus('all');
@@ -406,7 +403,6 @@ export function Feed({
             type="button"
             className="feed-iconbtn"
             onClick={clearFilters}
-            disabled={!anyFilterSet}
             title={CLEAR_FILTERS}
             aria-label={CLEAR_FILTERS}
           >
@@ -417,7 +413,6 @@ export function Feed({
             type="button"
             className="feed-iconbtn"
             onClick={toggleAll}
-            disabled={groups.length < 2}
             title={allCollapsed ? EXPAND_ALL : COLLAPSE_ALL}
             aria-label={allCollapsed ? EXPAND_ALL : COLLAPSE_ALL}
             aria-pressed={allCollapsed}
@@ -441,7 +436,7 @@ export function Feed({
             <button
               key={w.id}
               type="button"
-              className={`feed-weekbtn${active ? ' is-on' : ''}`}
+              className={`feed-weekbtn feed-week-${w.id}${active ? ' is-on' : ''}`}
               aria-pressed={active}
               onClick={() => setWeek(active ? 'all' : w.id)}
             >
