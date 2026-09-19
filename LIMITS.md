@@ -273,6 +273,49 @@ two.
 
 ---
 
+## L12 · Nothing plays, and no release links to its own album · degrades
+
+**Measured.** `release_details.spotify_album_id` exists and is never written:
+`src/adapters/musicbrainz.ts` hardcodes `spotifyAlbumId: null`, because releases
+come from MusicBrainz release-groups and MusicBrainz does not carry a Spotify
+album id. So both list pages link the **artist**, not the record — you land on
+the artist page and find the album yourself.
+
+**What an embed would cost, verified 2026-09-19 with tokenless requests:**
+
+- `GET https://open.spotify.com/embed/album/{id}` returns **200 with no token,
+  no registered app and no OAuth** — measured, as does the iFrame API script at
+  `/embed/iframe-api/v1`. The embed appears to sit **outside** the 5-allowlisted-
+  user ceiling that constrains every Web API call in this project.
+- **Thin intel, flagged:** there is no official statement that embeds are exempt
+  from quota modes. The [quota modes page](https://developer.spotify.com/documentation/web-api/concepts/quota-modes)
+  simply never mentions embeds. The conclusion rests on that silence plus the
+  measured tokenless 200s, so it is the same risk category as the undocumented
+  Eventim endpoint: fine for a personal instance, not a guarantee.
+- Anonymous playback is a **preview clip, not the record**: the embed HTML ships
+  `"isAnonymous":true` and an `audioPreview` MP3_96 URL, measured at 325,067
+  bytes ≈ 27s. Full tracks need that browser logged into Spotify with Premium.
+  The owner already needs Premium for the app to work at all, so on a personal
+  instance this is mostly moot — but copy must never promise full playback.
+- **Premium is no longer detectable.** The Feb 2026 migration removed `product`
+  from `GET /me`, so no UI may be gated on it, ever.
+- oEmbed's returned HTML carries `border-radius: 12px`, so the iframe has to be
+  hand-built to satisfy the zero-radius rule.
+
+**What would lift it:** a resolve pass matching MusicBrainz release-groups to
+Spotify albums via `GET /search?type=album`, which survived the Feb 2026
+migration — but with `limit` cut from 50 to 10, so disambiguation has a smaller
+candidate pool than the artist matcher enjoys. That pass has the same
+false-match risk the artist matcher has, and would need its own eval set before
+a wrong album link could be trusted on a page. Then the iframe, with
+`allow="encrypted-media"` or every viewer is forced to previews.
+
+**Trigger:** when the playlist is in daily use and the artist link is the thing
+that slows a listen down. Deliberately after the lists, so the matching risk
+lands on a screen that already works.
+
+---
+
 ## Deliberately not limits
 
 Things that look like gaps and are not, so nobody "fixes" them:

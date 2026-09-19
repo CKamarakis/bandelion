@@ -136,6 +136,15 @@ CREATE TABLE IF NOT EXISTS gig_details (
   price_text        TEXT
 );
 
+-- What you have decided about an event, as independent flags.
+--
+-- Not a pipeline: a record can be queued and listened and not liked, which is
+-- the ordinary outcome of working through the playlist. Hearting one never
+-- moves it off the playlist, so the three answer three different questions —
+-- do I want to hear this, did I hear it, was it any good.
+--
+-- `queued` and `listened` are added by migration 4, not here; see the note on
+-- user_artists for why this file must stay runnable before migrations.
 CREATE TABLE IF NOT EXISTS event_state (
   user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   event_id   INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,

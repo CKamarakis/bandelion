@@ -8,7 +8,12 @@
  */
 
 import { loadConfig } from '../config.ts';
-import { loadTokens, getFeed, getFeedCounts, type FeedItem } from '../db/index.ts';
+import {
+  loadTokens,
+  getFeed,
+  getFeedCounts,
+  type FeedItem,
+} from '../db/index.ts';
 import { LOCAL_USER_ID, db } from '../auth/session.ts';
 import { rosterStatus } from '../jobs/roster.ts';
 import { likedStatus } from '../jobs/liked.ts';
@@ -16,6 +21,7 @@ import { RosterImport } from './RosterImport.tsx';
 import { ConnectSpotify } from './ConnectSpotify.tsx';
 import { InfoNote } from './InfoNote.tsx';
 import { Feed } from './Feed.tsx';
+import { Masthead } from './Masthead.tsx';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +33,7 @@ export const dynamic = 'force-dynamic';
  * roster actually is: followed artists, not listening history. Naming the two
  * scopes is honest about exactly what the grant covers.
  */
-const TITLE = 'Bandelion';
+/* The wordmark lives in Masthead.tsx now, with the nav it shares a row with. */
 /*
  * "Follow and like" rather than "follow": the roster is now two lists, and a
  * tagline naming only one of them describes a feed the app no longer shows.
@@ -109,7 +115,9 @@ export default async function Home({
      * 5,000 is years of headroom, and the row count is what the header reports
      * if it is ever hit.
      */
-    feed = getFeed(database, { type: 'release', limit: 5000 });
+    // userId so each row carries its own save state, read in the same query
+    // rather than fetched per card on mount.
+    feed = getFeed(database, { type: 'release', limit: 5000, userId: LOCAL_USER_ID });
     feedTotal = getFeedCounts(database).total;
     liked = likedStatus(database, LOCAL_USER_ID);
   } catch (err) {
@@ -124,35 +132,11 @@ export default async function Home({
 
   return (
     <main style={S.page}>
-      <header style={S.masthead}>
-        {/*
-          The mark sits with the wordmark, not above it, and the catalogue
-          labels stack to their right on the same row: the masthead is wide
-          enough that giving them a line of their own wasted one.
-
-          alt is empty and the image is decorative: the h1 beside it already
-          says "Bandelion", so a screen reader announcing the logo would read
-          the name twice. `width`/`height` are set so the row does not reflow
-          when the image loads.
-        */}
-        <div style={S.titleRow}>
-          <img
-            src="/logo.png"
-            alt=""
-            width={64}
-            height={64}
-            style={S.logo}
-            aria-hidden="true"
-          />
-          <h1 style={S.title}>{TITLE}</h1>
-          {/* Catalogue number over city, both right-aligned, top of the row. */}
-          <div style={S.catStack}>
-            <span className="cat">BND 0001</span>
-            <span className="cat">{cfg.city.toUpperCase()}</span>
-          </div>
-        </div>
-        <p style={S.tagline}>{TAGLINE}</p>
-      </header>
+      {/* The masthead is shared by all three pages, so the catalogue number and
+          the nav cannot drift between them. The tagline stays here: it
+          introduces the app, and the list pages are past the introduction. */}
+      <Masthead city={cfg.city} here="/" />
+      <p style={S.tagline}>{TAGLINE}</p>
 
       {/* The heavy rule that separates masthead from content. Its own element
           rather than a border, so the panel below can sit flush against it. */}
@@ -254,36 +238,12 @@ const S: Record<string, React.CSSProperties> = {
     borderRight: 'var(--rule-width) solid var(--ink)',
     minHeight: '100vh',
   },
-  masthead: { paddingBottom: '20px' },
-  // Logo and wordmark centred on each other; the catalogue stack pushed right
-  // and pinned to the top of the row, where a specimen label belongs.
-  titleRow: { display: 'flex', alignItems: 'center', gap: '18px' },
-  catStack: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-end',
-    gap: '2px',
-    marginLeft: 'auto',
-    alignSelf: 'flex-start',
-  },
-  /*
-   * The mark, on its own black ground. No border: the artwork is already a
-   * black circle, so a rule around it would draw a box around a circle.
-   */
-  logo: { display: 'block', flexShrink: 0, width: '64px', height: '64px' },
-  /*
-   * Sized to the mark rather than to the viewport.
-   *
-   * The global h1 is clamp(2.5rem, 9vw, 5.5rem), which at 960px renders near
-   * 86px and towered over a 64px logo. 3.25rem caps the cap-height at roughly
-   * the circle's diameter so the two read as one lockup, and the clamp still
-   * lets it shrink on a narrow screen.
-   */
-  title: { fontSize: 'clamp(2rem, 6vw, 3.25rem)', lineHeight: 0.9 },
+  // The masthead's own layout moved to Masthead.tsx with the markup.
   rule: { height: '6px', background: 'var(--ink)', border: 'none', margin: '0' },
   // No ch cap: the tagline is one line at 960px and wraps only if the viewport
   // cannot hold it. A measure limit here broke it in two with room to spare.
-  tagline: { margin: '18px 0 0', fontSize: '0.95rem' },
+  // 10px below, so the tagline is not flush against the masthead rule.
+  tagline: { margin: '18px 0 10px', fontSize: '0.95rem' },
   notice: {
     // Wraps instead of overflowing: at 390px the label sits above the message.
     display: 'flex',

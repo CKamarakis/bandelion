@@ -38,6 +38,8 @@ import {
   type StatusId,
   type WeekId,
 } from './feed-filters.ts';
+import { QueueStamp } from './FlagButtons.tsx';
+import { flagOf, useEventFlags } from './use-event-flags.ts';
 
 /*
  * Copy, hoisted so every user-facing string is reviewable in one place against
@@ -232,6 +234,12 @@ export function Feed({
    * instead would hide anything this set had never heard of.
    */
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set());
+  /*
+   * The save marks. Optimistic, so the stamp inks on the press rather than on
+   * the response — see use-event-flags.ts for why, and for what happens when
+   * the write fails.
+   */
+  const { overlay, toggle, isPending } = useEventFlags();
 
   const shown = useMemo(
     () =>
@@ -497,7 +505,16 @@ export function Feed({
                 {isCollapsed ? null : (
                   <ol id={sectionId} className="feed-grid" style={S.list}>
                     {group.items.map((item) => (
-                      <FeedRow key={item.eventId} item={item} today={today} />
+                      <FeedRow
+                        key={item.eventId}
+                        item={item}
+                        today={today}
+                        queued={flagOf(item, overlay, 'queued')}
+                        pending={isPending(item.eventId, 'queued')}
+                        onQueue={() =>
+                          toggle(item.eventId, 'queued', !flagOf(item, overlay, 'queued'))
+                        }
+                      />
                     ))}
                   </ol>
                 )}
@@ -557,28 +574,49 @@ export function Feed({
   );
 }
 
-function FeedRow({ item, today }: { item: FeedItem; today: string }) {
+function FeedRow({
+  item,
+  today,
+  queued,
+  pending,
+  onQueue,
+}: {
+  item: FeedItem;
+  today: string;
+  queued: boolean;
+  pending: boolean;
+  onQueue: () => void;
+}) {
   // No year on the card: the month band above the grid already says it.
   const when = formatEventDate(item.eventDate, item.datePrecision, true);
   const soon = item.isUpcoming ? relativeDays(item.eventDate, item.datePrecision, today) : null;
 
   return (
     <li
+      // No class for the saved state: the stamp carries it alone now. A
+      // magenta card edge read as noise against a wall of yellow.
       className={`feed-row${item.isUpcoming ? ' block-yellow' : ''}`}
     >
       {/*
-        The sleeve, or the striped block standing in for one.
+        The sleeve, or the striped block standing in for one, with the save
+        stamp on its corner.
 
         alt is empty because the artist and title are right below it: a screen
         reader announcing "cover of X" and then "X" reads the same thing twice.
         The stand-in is aria-hidden for the same reason plus one more: it
         carries no information at all, it is what absence looks like.
+
+        The wrapper exists to give the stamp something to position against, and
+        wraps both cases so the sleeve and its absence behave identically.
       */}
-      {item.coverUrl ? (
-        <img src={item.coverUrl} alt="" className="feed-cover" loading="lazy" />
-      ) : (
-        <span className="feed-cover-none" aria-hidden="true" />
-      )}
+      <span className="cover-wrap">
+        {item.coverUrl ? (
+          <img src={item.coverUrl} alt="" className="feed-cover" loading="lazy" />
+        ) : (
+          <span className="feed-cover-none" aria-hidden="true" />
+        )}
+        <QueueStamp on={queued} pending={pending} onToggle={onQueue} />
+      </span>
 
       <div className="feed-main">
         {/*

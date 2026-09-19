@@ -181,9 +181,46 @@ check(true, 'no two palette colours are visually identical');
 // --- Design rules that are checkable in CSS ---------------------------------
 
 check(/border-radius:\s*0/.test(declarations), 'globals.css sets border-radius to zero');
+
+/*
+ * Zero border-radius, with exactly one exception: the save stamp.
+ *
+ * The rule is against interface chrome pretending to be soft — rounded cards,
+ * pill buttons, the SaaS look it exists to keep out. The stamp is an ink mark
+ * on a record sleeve, the same category as the logo, which is also a black
+ * circle. A deliberate, discussed exception.
+ *
+ * Narrowed rather than muted, following the gradient check above: the allowance
+ * is pinned to one selector, so a rounded corner anywhere else still fails. The
+ * count check is what makes that real — without it, `.stamp` in the allowlist
+ * would excuse every `border-radius` in the file.
+ */
+/*
+ * The two rounded things, both circles drawn around circular artwork: the save
+ * stamp, and the masthead mark's focus ring. Anything else must be square.
+ */
+const ROUNDED_ALLOWED = ['.stamp', '.masthead-home'];
+
+const roundedSelectors = [];
+for (const [, selector, body] of declarations.matchAll(/([^{}]+)\{([^}]*)\}/g)) {
+  // Per declaration, not per rule: a rule setting `border-radius: 0` and
+  // nothing else would otherwise match a loose search for a non-zero value
+  // sitting elsewhere in the same block.
+  const rounded = [...body.matchAll(/border-radius:\s*([^;]+)/g)].some(
+    ([, value]) => !/^0\D*$/.test(value.trim()),
+  );
+  if (rounded) roundedSelectors.push(selector.trim());
+}
+
+const unexpectedRounded = roundedSelectors.filter((s) => !ROUNDED_ALLOWED.includes(s));
 check(
-  !/border-radius:\s*(?!0)[1-9]/.test(declarations),
-  'no non-zero border-radius anywhere: hard edges are the whole point',
+  unexpectedRounded.length === 0,
+  'only the stamp and the masthead mark are round: hard edges everywhere else',
+  `unexpected rounded selectors: ${unexpectedRounded.join(' | ') || '(none)'}`,
+);
+check(
+  /\.stamp\s*\{[^}]*border-radius:\s*50%/.test(declarations),
+  'the save stamp is a circle, which is the documented exception',
 );
 check(!/box-shadow/.test(declarations), 'no box-shadow: flat blocks and hard rules only');
 /*
