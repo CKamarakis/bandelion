@@ -106,6 +106,36 @@ const MIGRATIONS: { id: number; describe: string; sql: string[] }[] = [
       `ALTER TABLE release_details ADD COLUMN cover_checked_at TEXT`,
     ],
   },
+  {
+    id: 4,
+    describe: 'the playlist and listened flags on event_state',
+    sql: [
+      /*
+       * Two more flags, so the feed can be read once and worked through later.
+       *
+       * `favorited` was already in schema.sql and unused; these join it rather
+       * than replacing it, because the three are independent answers and not
+       * stages of one. Hearting a record does not take it off the playlist —
+       * that was a product decision (see CLAUDE.md) and it is why this is three
+       * booleans on one row rather than a single `state` column holding one of
+       * 'queued' | 'listened' | 'liked'. A state machine here would make
+       * "listened but did not like it" unrepresentable, which is the most
+       * common outcome of actually using the list.
+       */
+      `ALTER TABLE event_state ADD COLUMN queued INTEGER NOT NULL DEFAULT 0`,
+      `ALTER TABLE event_state ADD COLUMN listened INTEGER NOT NULL DEFAULT 0`,
+      /*
+       * One index per list page, each covering the flag it filters on.
+       *
+       * Not one index on (user_id, queued, favorited): the playlist filters on
+       * queued and the favs page on favorited, and a composite would only help
+       * whichever came first. No rows exist yet — nothing has ever written to
+       * this table — so there is nothing to backfill, unlike migration 2.
+       */
+      `CREATE INDEX IF NOT EXISTS idx_state_queued ON event_state(user_id, queued)`,
+      `CREATE INDEX IF NOT EXISTS idx_state_favorited ON event_state(user_id, favorited)`,
+    ],
+  },
 ];
 
 /** Bring an existing database up to the current schema version. */
@@ -379,6 +409,169 @@ export interface FeedItem {
    * every artist in the database today does.
    */
   spotifyArtistId: string | null;
+  /** On the playlist: saved from the feed to hear later. */
+  queued: boolean;
+  /** Played. Independent of `favorited` — see event_state. */
+  listened: boolean;
+  /** Liked, after hearing it. Stays on the playlist as well. */
+  favorited: boolean;
+}
+
+/** The flags a user can set on an event. One column each; see event_state. */
+export interface EventFlags {
+  queued?: boolean;
+  listened?: boolean;
+  favorited?: boolean;
+}
+
+/**
+ * Set one or more flags on an event, creating the state row if needed.
+ *
+ * UPSERT rather than a read-modify-write: the row usually does not exist yet,
+ * and the first thing anyone does to a release is toggle one flag on it. Only
+ * the keys present in `flags` are written, so toggling the heart cannot clear
+ * the tick — the bug this shape exists to prevent.
+ */
+export function setEventFlags(
+  db: DB,
+  userId: number,
+  eventId: number,
+  flags: EventFlags,
+): void {
+  const columns: string[] = [];
+  const values: number[] = [];
+
+  // Whitelisted, not iterated from the caller's keys: these names are
+  // interpolated into SQL, so the set of legal ones is closed here rather than
+  // trusted from a request body.
+  for (const name of ['queued', 'listened', 'favorited'] as const) {
+    const value = flags[name];
+    if (value === undefined) continue;
+    columns.push(name);
+    values.push(value ? 1 : 0);
+  }
+
+  if (columns.length === 0) return;
+
+  const assignments = columns.map((c) => `${c} = excluded.${c}`).join(', ');
+
+  db.prepare(
+    `INSERT INTO event_state (user_id, event_id, ${columns.join(', ')})
+          VALUES (?, ?, ${columns.map(() => '?').join(', ')})
+     ON CONFLICT (user_id, event_id)
+       DO UPDATE SET ${assignments}, updated_at = datetime('now')`,
+  ).run(userId, eventId, ...values);
+}
+
+/**
+ * The saved lists: what is on the playlist, or what has been hearted.
+ *
+ * An INNER JOIN on event_state, unlike getFeed's LEFT JOIN: a row with no state
+ * row has never been flagged, so it belongs on neither list. Ordered by when
+ * the flag was set, newest first — the playlist is a thing you add to and work
+ * through, so the order that matters is the order you saved them, not the
+ * release dates the feed sorts by.
+ */
+export function getFlaggedEvents(
+  db: DB,
+  userId: number,
+  flag: 'queued' | 'favorited',
+): FeedItem[] {
+  // Interpolated, but `flag` is a union of two literals rather than a string
+  // from a request: there is no path from user input to this line.
+  const rows = db
+    .prepare(
+      `SELECT e.id AS eventId, e.artist_id AS artistId, a.name AS artist,
+              e.title, e.event_date AS eventDate, e.source_url AS sourceUrl,
+              e.first_seen_at AS firstSeenAt,
+              rd.release_type AS releaseType,
+              rd.date_precision AS datePrecision,
+              rd.is_upcoming AS isUpcoming,
+              rd.cover_url AS coverUrl,
+              (SELECT external_id FROM artist_external_ids
+                WHERE artist_id = e.artist_id AND source = 'spotify') AS spotifyArtistId,
+              COALESCE(ua.followed, 0) AS followed,
+              COALESCE(ua.liked, 0) AS liked,
+              es.queued, es.listened, es.favorited
+         FROM event_state es
+         JOIN events e ON e.id = es.event_id
+         JOIN artists a ON a.id = e.artist_id
+         LEFT JOIN release_details rd ON rd.event_id = e.id
+         LEFT JOIN user_artists ua ON ua.artist_id = e.artist_id
+        WHERE es.user_id = ? AND es.${flag} = 1
+        ORDER BY es.updated_at DESC, e.id DESC`,
+    )
+    .all(userId) as unknown as RawFeedRow[];
+
+  // Arrow rather than a bare reference: Array.map passes the index as the
+  // second argument, which would land in toFeedItem's `today` parameter.
+  const today = todayIso();
+  return rows.map((r) => toFeedItem(r, today));
+}
+
+/** Counts for the nav, so each link says how much is behind it. */
+export function getListCounts(db: DB, userId: number): { queued: number; favorited: number } {
+  return db
+    .prepare(
+      `SELECT COALESCE(SUM(queued), 0) AS queued,
+              COALESCE(SUM(favorited), 0) AS favorited
+         FROM event_state WHERE user_id = ?`,
+    )
+    .get(userId) as { queued: number; favorited: number };
+}
+
+/** SQLite hands back 0/1 for every boolean; one place converts them. */
+type RawFeedRow = Omit<
+  FeedItem,
+  'isUpcoming' | 'followed' | 'liked' | 'queued' | 'listened' | 'favorited'
+> & {
+  isUpcoming: number;
+  followed: number;
+  liked: number;
+  queued: number | null;
+  listened: number | null;
+  favorited: number | null;
+};
+
+/*
+ * Today, as a plain 'YYYY-MM-DD' string in UTC.
+ *
+ * Matches how event dates are stored, so the comparison is string-to-string
+ * with no parsing and no timezone. Computed per call rather than per row: a
+ * 600-row feed would otherwise build the same string 600 times, and a sweep
+ * that straddles midnight should still label one page consistently.
+ */
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function toFeedItem(r: RawFeedRow, today: string = todayIso()): FeedItem {
+  return {
+    ...r,
+    /*
+     * Derived from the date, not read from the column.
+     *
+     * `release_details.is_upcoming` is a snapshot of what was true when the
+     * ingest ran, and it goes stale the moment a date passes: measured on the
+     * real database on 2026-09-19, four releases dated 2026-09-18 still claimed
+     * is_upcoming=1 while eighteen others on the same date said 0. The stored
+     * column stays because the sweep and the sort still use it, but nothing a
+     * reader sees may depend on it.
+     *
+     * A date-only release counts as out on its own day: '2026-09-18' is not
+     * after '2026-09-18', so it reads as released on the 18th rather than at
+     * some invented hour. A partial date ('2026' or '2026-09') compares as the
+     * start of its period, which is the same honest position byDate() sorts it
+     * at. A row with no date at all cannot be upcoming.
+     */
+    isUpcoming: r.eventDate ? r.eventDate > today : false,
+    followed: r.followed === 1,
+    liked: r.liked === 1,
+    // NULL when the LEFT JOIN found no state row, which means not flagged.
+    queued: r.queued === 1,
+    listened: r.listened === 1,
+    favorited: r.favorited === 1,
+  };
 }
 
 /**
@@ -395,7 +588,7 @@ export interface FeedItem {
  */
 export function getFeed(
   db: DB,
-  opts: { limit?: number; type?: 'release' | 'gig' } = {},
+  opts: { limit?: number; type?: 'release' | 'gig'; userId?: number } = {},
 ): FeedItem[] {
   const rows = db
     .prepare(
@@ -409,9 +602,13 @@ export function getFeed(
               (SELECT external_id FROM artist_external_ids
                 WHERE artist_id = e.artist_id AND source = 'spotify') AS spotifyArtistId,
               COALESCE(ua.followed, 0) AS followed,
-              COALESCE(ua.liked, 0) AS liked
+              COALESCE(ua.liked, 0) AS liked,
+              -- LEFT JOIN: most events have no state row at all, and NULL here
+              -- means "never flagged", which toFeedItem reads as false.
+              es.queued, es.listened, es.favorited
          FROM events e
          JOIN artists a ON a.id = e.artist_id
+         LEFT JOIN event_state es ON es.event_id = e.id AND es.user_id = ?
          LEFT JOIN release_details rd ON rd.event_id = e.id
          -- LEFT JOIN, and one row per artist: the flags live on a single
          -- user_artists row, so an artist on both lists cannot duplicate the
@@ -425,17 +622,13 @@ export function getFeed(
                  CASE WHEN rd.is_upcoming = 0 THEN e.event_date END DESC
         LIMIT ?`,
     )
-    .all(opts.type ?? null, opts.limit ?? 200) as unknown as (Omit<
-    FeedItem,
-    'isUpcoming' | 'followed' | 'liked'
-  > & { isUpcoming: number; followed: number; liked: number })[];
+    // Bind order follows the query text, not the options object: the
+    // event_state join sits above the WHERE clause, so userId is first.
+    .all(opts.userId ?? 1, opts.type ?? null, opts.limit ?? 200) as unknown as RawFeedRow[];
 
-  return rows.map((r) => ({
-    ...r,
-    isUpcoming: r.isUpcoming === 1,
-    followed: r.followed === 1,
-    liked: r.liked === 1,
-  }));
+  // See getFlaggedEvents: `map` would otherwise pass the index as `today`.
+  const today = todayIso();
+  return rows.map((r) => toFeedItem(r, today));
 }
 
 /** Counts for the feed header. Separate query so the list can be paged later. */
@@ -444,7 +637,11 @@ export function getFeedCounts(db: DB): { total: number; upcoming: number; artist
     .prepare(
       `SELECT
          (SELECT COUNT(*) FROM events WHERE type = 'release') AS total,
-         (SELECT COUNT(*) FROM release_details WHERE is_upcoming = 1) AS upcoming,
+         -- Derived from the date, matching what the feed actually shows.
+         -- Counting is_upcoming here reported 42 against a feed showing 38,
+         -- because the stored flag is a snapshot from the last ingest.
+         (SELECT COUNT(*) FROM events
+           WHERE type = 'release' AND event_date > date('now')) AS upcoming,
          (SELECT COUNT(DISTINCT artist_id) FROM events WHERE type = 'release') AS artists`,
     )
     .get() as { total: number; upcoming: number; artists: number };

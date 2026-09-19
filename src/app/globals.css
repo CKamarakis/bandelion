@@ -750,3 +750,389 @@ a {
   background: var(--white);
   color: var(--ink);
 }
+
+/* --- The marks: save, listened, liked -------------------------------------
+ *
+ * Three toggles sharing one visual language: an inked stamp when on, an
+ * outlined one when off. State is fill AND glyph AND an aria-pressed label,
+ * never colour alone.
+ */
+
+/*
+ * The bolt stamp, sitting on the sleeve's top-right corner.
+ *
+ * A CIRCLE, and the only one in the project. Zero-radius is about interface
+ * chrome pretending to be soft; this is an ink stamp on a record sleeve, the
+ * same category as the logo — which is also a black circle and also carries no
+ * border. Deliberate and discussed. Do not "fix" it.
+ *
+ * 24px of ground carrying a 16px glyph, per spec.
+ *
+ * The ground is `--ink`, not true black. True black is the striped page ground
+ * and nothing else (PALETTE.md), and ink is what every other mark, rule and
+ * border in the project is drawn in — a stamp is ink by definition. The two
+ * read identically at 24px anyway, and magenta on ink is the pairing
+ * tests/contrast.mjs actually measures.
+ */
+.stamp {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--white);
+  cursor: pointer;
+  /* Above the sleeve, which is a positioned block in the same stacking
+     context. Low number: nothing else in a card competes. */
+  z-index: 1;
+}
+
+.stamp .glyph {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+/* Off: a white bolt on black reads as "available", not as "set". */
+.stamp:hover,
+.stamp:focus-visible {
+  color: var(--dandelion);
+}
+
+/*
+ * On: the stamp inverts to a magenta ground with a white bolt.
+ *
+ * Ground and glyph both change, rather than the glyph alone. Now that the card
+ * carries no border, this is the only signal, so it cannot rest on hue: an
+ * inked disc and a dark disc differ in overall value, which survives a
+ * greyscale print and most colour blindness. `aria-pressed` carries it for a
+ * screen reader.
+ */
+.stamp.is-on {
+  background: var(--magenta);
+  color: var(--white);
+}
+
+.stamp.is-on:hover,
+.stamp.is-on:focus-visible {
+  color: var(--dandelion);
+}
+
+.stamp:focus-visible {
+  outline: 3px solid var(--violet);
+  outline-offset: 2px;
+}
+
+/* Mid-request. Not `disabled`, which would drop keyboard focus to the body
+   between the press and the response. */
+.stamp[aria-busy='true'] {
+  opacity: 0.6;
+}
+
+/*
+ * The sleeve needs to be a positioning context for the stamp to corner itself
+ * against. A wrapper rather than position on the image, because the no-cover
+ * stand-in is a span and both must behave the same.
+ */
+.cover-wrap {
+  position: relative;
+  display: block;
+}
+
+/*
+ * A saved card carries no edge.
+ *
+ * There was a magenta left border here, as a second signal so that "saved" was
+ * not carried by the stamp's colour alone. It read as noise against a wall of
+ * yellow upcoming cards, so the stamp does the work instead: the bolt changes
+ * ground as well as colour, which is a shape difference rather than a hue one,
+ * and `aria-pressed` carries the state for anyone who cannot see either.
+ */
+
+/* --- The saved lists ------------------------------------------------------ */
+
+/*
+ * A list, not a grid. The feed is for scanning many records at once, so it is
+ * cards; these pages are for working through a shortlist one row at a time,
+ * where a line per record puts more of them on screen and keeps the marks in a
+ * single column your eye can run down.
+ */
+.list {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  /* Hard rules between rows, and one closing the list. The grid is visible. */
+  border-top: var(--rule-width) solid var(--rule);
+}
+
+.list-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--white);
+  border-bottom: var(--rule-width) solid var(--rule);
+}
+
+/* Upcoming rows carry the dandelion, exactly as they do in the feed: the same
+   fact must not be told two different ways on two screens. */
+.list-row.is-upcoming {
+  background: var(--dandelion);
+}
+
+/* Small, square, hard-edged. 44px so it still reads as a sleeve. */
+.list-cover {
+  display: block;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border: var(--rule-width) solid var(--ink);
+}
+
+/* The stand-in, matching .feed-cover-none at list scale. Hard stops, no blend:
+   the no-gradients rule is about soft edges, and there are none here. */
+.list-cover-none {
+  display: block;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: var(--rule-width) solid var(--ink);
+  background-color: var(--magenta);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--ink) 0,
+    var(--ink) 5px,
+    var(--magenta) 5px,
+    var(--magenta) 12px
+  );
+}
+
+/*
+ * Artist and title stacked, taking the slack.
+ *
+ * min-width: 0 so a long title wraps or ellipses inside the flex row rather
+ * than pushing the marks off the right edge — the flex default of auto would
+ * refuse to shrink below the text's own width.
+ */
+.list-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.list-artist {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  /* Underlined, because colour is never the only signal for a link. */
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+  color: var(--ink);
+}
+
+.list-artist:hover,
+.list-artist:focus-visible {
+  background: var(--dandelion);
+}
+
+.list-title {
+  overflow-wrap: anywhere;
+}
+
+.list-date {
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/* The count above the list, and the empty state when there is none. */
+.list-count {
+  margin: 1.25rem 0 0;
+  opacity: 0.7;
+}
+
+.list-empty {
+  margin: 1.5rem 0 0;
+  padding: 1.25rem;
+  background: var(--white);
+  border: var(--rule-width) solid var(--rule);
+}
+
+/*
+ * A row un-flagged in this session.
+ *
+ * It keeps its place until the next load: removing it live would slide every
+ * row below it up, and the next press would land on whatever moved under the
+ * cursor. Struck through and faded, so it reads as "removed, still visible"
+ * rather than as an ordinary row. The strike is the signal; the fade only
+ * supports it.
+ */
+.list-row.is-removed {
+  opacity: 0.55;
+}
+
+.list-row.is-removed .list-title,
+.list-row.is-removed .list-artist {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+/* Type and state, in the catalogue face. Fixed-width so the marks line up in a
+   column down the list rather than jittering with label length. */
+.list-meta {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.6rem;
+  align-items: baseline;
+}
+
+/* The two marks at the row's end, as one group. */
+.list-marks {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.35rem;
+}
+
+/*
+ * The row marks: glyph only, no box.
+ *
+ * They had a white ground and a hard border, which put three boxes on every row
+ * and turned a list into a grid of buttons. The glyph carries it alone now, so
+ * each state has to be legible in the drawing itself: the speaker gains sound
+ * waves, the heart fills, and neither relies on a container changing colour.
+ *
+ * The hit area stays 2rem even though nothing is painted on it, because a 16px
+ * glyph is not a target anyone can hit reliably.
+ */
+.mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  background: none;
+  color: var(--ink);
+  border: none;
+  cursor: pointer;
+}
+
+.mark .glyph {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+/*
+ * On: both marks go magenta.
+ *
+ * The colour is not carrying the state on its own in either case — the speaker
+ * gains its sound waves and the heart fills — so magenta is emphasis on top of
+ * a shape change rather than the signal itself.
+ */
+.mark.mark-favorited.is-on,
+.mark.mark-listened.is-on {
+  color: var(--magenta);
+}
+
+/*
+ * Remove is quieter until you reach for it: it is the one destructive control
+ * on the row and should not compete with the two you press often.
+ */
+.mark-remove {
+  opacity: 0.45;
+}
+
+.mark:hover,
+.mark:focus-visible {
+  color: var(--magenta);
+  opacity: 1;
+}
+
+.mark:focus-visible {
+  outline: 3px solid var(--violet);
+  outline-offset: 2px;
+}
+
+.mark[aria-busy='true'] {
+  opacity: 0.6;
+}
+
+/* --- Nav ------------------------------------------------------------------
+ *
+ * Catalogue-type links in the masthead. Each names what it counts, per the
+ * rule against a bare number.
+ */
+/*
+ * Pushed right, with the catalogue stack after it.
+ *
+ * `margin-left: auto` here and nowhere else in the row: two elements both
+ * claiming the free space would split it between them and leave the nav
+ * floating in the middle. This one takes the slack, the stack sits against the
+ * right edge after it.
+ */
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: baseline;
+  margin-left: auto;
+}
+
+/*
+ * The mark as a home link.
+ *
+ * `display: block` so the anchor wraps the image exactly: inline would leave a
+ * few pixels of line-height below it and the focus ring would sit off-centre.
+ * The ring is round because the artwork is, matching the stamp exception.
+ */
+.masthead-home {
+  display: block;
+  flex-shrink: 0;
+  line-height: 0;
+  border-radius: 50%;
+}
+
+.masthead-home:focus-visible {
+  outline: 3px solid var(--violet);
+  outline-offset: 3px;
+}
+
+.nav-link {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.nav-link:hover,
+.nav-link:focus-visible {
+  background: var(--dandelion);
+}
+
+/* The page you are on: inked block, and it is not a link. Shape plus weight,
+   not colour alone. */
+.nav-here {
+  background: var(--ink);
+  color: var(--white);
+  padding: 0.15rem 0.4rem;
+  text-decoration: none;
+}
+
+@media (max-width: 560px) {
+  /* The marks stay put; the metadata is what gives way first, because the row
+     is unusable without its controls and merely terser without its labels. */
+  .list-meta {
+    display: none;
+  }
+}

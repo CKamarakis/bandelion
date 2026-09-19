@@ -67,10 +67,19 @@ src/app/Feed.tsx    the release feed: cards, month sections, filters, pagination
 src/app/feed-filters.ts the filter predicates, month grouping and page windowing
 src/app/feed-format.ts dates at the precision we actually have, and no more
 src/app/InfoNote.tsx a note behind an icon, for text that is read once
+src/app/Masthead.tsx the shared header: wordmark, nav with counts, catalogue labels
+src/app/FlagButtons.tsx the three marks — save, listened, liked — as inline SVG
+src/app/SavedList.tsx one row per record; both list pages render it
+src/app/use-event-flags.ts optimistic flag state, reverted when a write fails
+src/app/playlist/page.tsx the playlist: what you saved from the feed to hear later
+src/app/favs/page.tsx the records you hearted after hearing them
+src/app/api/events/[id]/state/route.ts writes one flag without touching the others
 public/            the mark and its favicons; the only static assets
 tests/              standalone .mjs suites, auto-enrolled by run.mjs
 tests/liked.mjs     liked-songs paging and artist extraction, against a fixture
 tests/liked-db.mjs  the list flags, and the real schema.sql-then-migrate path
+tests/state.mjs     the event flags: migration 4, and that one never clears another
+tests/state-route.mjs the flag route in process: rejected input, and partial writes
 tests/fixtures/     recorded upstream responses — never call live APIs in tests
 tests/record-fixture.mjs  hand-run: the one script that does call live Spotify
 tests/seed.mjs      hand-run: builds data/seed.db so screens work without OAuth
@@ -165,6 +174,31 @@ would change it.**
 > A 4-month release window across thousands of artists produces a lot of items.
 > Singles are the bulk of the noise. Dismiss and sub-filters are load-bearing,
 > not conveniences.
+
+> **Save, listened and liked are three flags, not three stages.**
+> One `event_state` row per (user, event) carries `queued`, `listened` and
+> `favorited`, and every write names only the flag it changes. A state machine
+> holding one of them at a time was rejected because it cannot represent
+> "listened and did not like it", which is the ordinary outcome of working
+> through the playlist. Hearting a record therefore leaves it on the playlist:
+> the two lists overlap by design, the way `followed` and `liked` do on
+> `user_artists`. Would change if a fourth mark arrived that genuinely replaced
+> an earlier one rather than adding to it.
+
+> **The feed is for scanning; the lists are for working through.**
+> The feed is a card grid because the question there is "anything new across
+> 600 records". The playlist and favs are one row per record, because the
+> question is "what is left, and what did I think of it" — and a line per record
+> fits more of them on screen with the marks in one column the eye can run down.
+> Would change if the lists ever grew past a few hundred rows, where they would
+> need the feed's filters and pagination too.
+
+> **A row un-flagged on its own page keeps its place.**
+> Un-hearting in favs strikes the row through rather than removing it. Removing
+> it live slides every row below up, so the next press lands on whatever moved
+> under the cursor — and an accidental un-heart would have nothing left to
+> undo it with. It is gone on the next load. Would change if the lists grew long
+> enough that struck-through rows crowded out live ones.
 
 > **Links are best-effort and say so.**
 > Artist links come from MusicBrainz URL relationships, fetched in the same call
@@ -295,8 +329,15 @@ on, the way a screenprinted poster works.
 
 ### Rules
 
-- **Zero border-radius.** No rounded corners, anywhere, including avatars and
-  images. Hard edges are the whole point.
+- **Zero border-radius**, with two exceptions, both circles drawn around
+  circular artwork. No rounded corners anywhere else, including avatars and
+  images — hard edges are the whole point. The exceptions are the save stamp
+  (`.stamp`), a 24px circle carrying the bolt on a sleeve's corner, and the
+  masthead mark's focus ring (`.masthead-home`), which would otherwise box a
+  circular logo. Both are ink marks rather than interface chrome.
+  `tests/contrast.mjs` holds the allowlist and fails on a rounded corner
+  anywhere else, naming the offending selector, so these are documented
+  exceptions rather than a loosened rule.
 - **No soft shadows, no gradients, no glassmorphism.** Flat blocks and hard
   rules. If depth is needed, use a hard offset block, not a blur.
 - **Type carries the hierarchy** — weight, scale and case, not colour. Heavy

@@ -124,6 +124,21 @@ check(catalogueNumber(12345) === 'BND 12345', 'a long id is not truncated');
 
 console.log('\n# the feed query');
 
+/*
+ * Dates relative to today, not fixed strings.
+ *
+ * These were '2026-09-18' and '2026-09-11', written when the first was in the
+ * future. `isUpcoming` is now derived from the date rather than read from the
+ * stored column, so the day the 18th arrived this suite started asserting that
+ * a past release sorts as upcoming. A fixed "future" date is a time bomb in any
+ * test that cares which side of today it falls on.
+ */
+const daysFromToday = (n) =>
+  new Date(Date.now() + n * 86400000).toISOString().slice(0, 10);
+
+/** Two years out, so a year-only row is always upcoming and always sorts last. */
+const FUTURE_YEAR = String(new Date().getUTCFullYear() + 2);
+
 function seed() {
   const db = openDatabase(':memory:');
   const artist = (name) => upsertArtist(db, { name, nameNormalized: name.toLowerCase() });
@@ -133,17 +148,21 @@ function seed() {
   const c = artist('Haken');
 
   insertReleaseEvent(db, {
-    artistId: a, title: 'GET MEAN', eventDate: '2026-09-18', datePrecision: 'day',
+    artistId: a, title: 'GET MEAN', eventDate: daysFromToday(14), datePrecision: 'day',
     sourceEventId: 'rg-upcoming', sourceUrl: null, releaseType: 'album',
     isUpcoming: true, payload: null,
   });
   insertReleaseEvent(db, {
-    artistId: b, title: 'Distance in Static', eventDate: '2026-09-11', datePrecision: 'day',
+    artistId: b, title: 'Distance in Static', eventDate: daysFromToday(-7), datePrecision: 'day',
     sourceEventId: 'rg-past', sourceUrl: null, releaseType: 'album',
     isUpcoming: false, payload: null,
   });
   insertReleaseEvent(db, {
-    artistId: c, title: 'Someday', eventDate: '2027', datePrecision: 'year',
+    // A year-only date, always a year or two out so it stays upcoming and
+    // sorts after the dated one. Year precision compares as the start of the
+    // year, which is why +2 rather than +1: a bare next-year string would fall
+    // behind a date two weeks away only for part of the calendar.
+    artistId: c, title: 'Someday', eventDate: FUTURE_YEAR, datePrecision: 'year',
     sourceEventId: 'rg-year', sourceUrl: null, releaseType: 'album',
     isUpcoming: true, payload: null,
   });
@@ -164,15 +183,15 @@ function seed() {
   // Upcoming ascends (soonest first); released descends (newest first).
   const upcoming = feed.filter((f) => f.isUpcoming).map((f) => f.eventDate);
   check(
-    upcoming[0] === '2026-09-18' && upcoming[1] === '2027',
+    upcoming[0] === daysFromToday(14) && upcoming[1] === FUTURE_YEAR,
     'upcoming runs soonest-first',
     upcoming.join(' '),
   );
 
-  const yearRow = feed.find((f) => f.eventDate === '2027');
+  const yearRow = feed.find((f) => f.eventDate === FUTURE_YEAR);
   check(yearRow.datePrecision === 'year', 'precision survives the query');
   check(
-    formatEventDate(yearRow.eventDate, yearRow.datePrecision) === '2027',
+    formatEventDate(yearRow.eventDate, yearRow.datePrecision) === FUTURE_YEAR,
     'a year-only row renders as a year end to end',
   );
 

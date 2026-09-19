@@ -45,8 +45,14 @@ const VIEWPORTS = [
  * state you want to look at.
  */
 const ROUTES = [
+  // Named for what the database makes it: with no tokens this is the connect
+  // screen, and with a seeded database it is the feed. Same route either way.
   { name: 'connect', path: '/', fold: true },
   { name: 'connect-error', path: '/?auth_error=state_mismatch' },
+  // The two saved lists. Whether they show rows or an empty state depends on
+  // the database, so seed it first: tests/seed.mjs flags seven records.
+  { name: 'playlist', path: '/playlist', fold: true },
+  { name: 'favs', path: '/favs', fold: true },
 ];
 
 function findChrome() {

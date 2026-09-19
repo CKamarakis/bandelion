@@ -167,12 +167,41 @@ saveJob(db, 'roster:spotify', {
   lastError: null,
 });
 
+/*
+ * A few flagged records, so the playlist and favs pages have something on them
+ * and the feed shows both a saved card and an unsaved one.
+ *
+ * Spread across the three flag combinations that actually differ on screen: on
+ * the playlist and unheard, played but not liked, and played and liked. Without
+ * this the two list pages only ever screenshot their empty states, which is the
+ * one state that needs no layout checking.
+ */
+const toFlag = db
+  .prepare('SELECT id FROM events ORDER BY event_date DESC LIMIT 7')
+  .all()
+  .map((r) => r.id);
+
+const insertState = db.prepare(
+  `INSERT OR REPLACE INTO event_state (user_id, event_id, queued, listened, favorited)
+   VALUES (?, ?, ?, ?, ?)`,
+);
+
+let flagged = 0;
+for (const [i, eventId] of toFlag.entries()) {
+  // 0,1,2 saved and unheard · 3,4 played · 5,6 played and liked.
+  const listened = i >= 3 ? 1 : 0;
+  const favorited = i >= 5 ? 1 : 0;
+  insertState.run(SEED_USER_ID, eventId, 1, listened, favorited);
+  flagged++;
+}
+
 db.exec('COMMIT');
 db.close();
 
 const rel = target.replace(root + '\\', '').replace(root + '/', '');
 console.log(`seeded ${rel}`);
 console.log(`  ${artistCount} artists, ${eventCount} releases, ${upcomingCount} upcoming`);
+console.log(`  ${flagged} on the playlist, of which 2 hearted`);
 
 if (upcomingCount === 0) {
   console.log(
