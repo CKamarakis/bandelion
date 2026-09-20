@@ -52,7 +52,12 @@ export default async function PlaylistPage() {
       <section style={S.section}>
         <h2 style={S.heading}>{HEADING}</h2>
         <p style={S.intro}>{INTRO}</p>
-        <SavedList items={items} empty={EMPTY} listFlag="queued" />
+        <SavedList
+          items={items}
+          empty={EMPTY}
+          listFlag="queued"
+          linkTarget={cfg.spotifyLinkTarget}
+        />
       </section>
     </main>
   );

@@ -44,7 +44,12 @@ export default async function FavsPage() {
 
       <section style={S.section}>
         <h2 style={S.heading}>{HEADING}</h2>
-        <SavedList items={items} empty={EMPTY} listFlag="favorited" />
+        <SavedList
+          items={items}
+          empty={EMPTY}
+          listFlag="favorited"
+          linkTarget={cfg.spotifyLinkTarget}
+        />
       </section>
     </main>
   );
