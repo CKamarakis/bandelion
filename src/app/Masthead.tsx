@@ -15,6 +15,8 @@ import Link from 'next/link';
 const TITLE = 'Bandelion';
 /* Names the destination, since the mark itself carries no text. */
 const HOME_LABEL = 'Bandelion, home';
+/* Distinct from the feed pager's "Pages", which is a nav landmark too. */
+const NAV_LABEL = 'Sections';
 
 /*
  * The nav labels, without counts.
@@ -69,7 +71,12 @@ export function Masthead({
           <h1 style={S.title}>{TITLE}</h1>
         </Link>
 
-        <nav className="nav" aria-label="Pages">
+        {/*
+          "Sections", not "Pages": the feed's pager is also a nav and is
+          already called Pages, so two landmarks announced by the same name
+          would be indistinguishable to anyone navigating by them.
+        */}
+        <nav className="nav" aria-label={NAV_LABEL}>
           {NAV.map((item) => {
             const label = item.label;
 

@@ -30,6 +30,9 @@ const MANUAL = new Set([
   'seed.mjs',
   'next-resolve.mjs',
   'next-resolve-hooks.mjs',
+  // Needs a server and a browser, like screenshots.mjs: it measures scroll
+  // position, which has no meaning without a layout engine.
+  'pager-scroll.mjs',
 ]);
 
 const suites = readdirSync(dir)

@@ -81,6 +81,7 @@ tests/liked-db.mjs  the list flags, and the real schema.sql-then-migrate path
 tests/state.mjs     the event flags: migration 4, and that one never clears another
 tests/state-route.mjs the flag route in process: rejected input, and partial writes
 tests/fixtures/     recorded upstream responses — never call live APIs in tests
+tests/pager-scroll.mjs hand-run: proves turning a page returns you to the top
 tests/record-fixture.mjs  hand-run: the one script that does call live Spotify
 tests/seed.mjs      hand-run: builds data/seed.db so screens work without OAuth
 ```

@@ -80,6 +80,28 @@ body.striped-ground {
   );
 }
 
+/*
+ * Honour a request for less motion.
+ *
+ * This covers CSS-driven movement. It does NOT cover the pager's scroll: an
+ * explicit `behavior: 'smooth'` passed to scrollIntoView wins over the
+ * computed `scroll-behavior`, which is only consulted when the argument is
+ * 'auto'. Feed.tsx reads the preference itself for that reason.
+ */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 body {
   font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Menlo, Consolas, monospace;
   font-size: 14px;
@@ -749,6 +771,17 @@ a {
 .feed-select option {
   background: var(--white);
   color: var(--ink);
+}
+
+/*
+ * The scroll target for a page change.
+ *
+ * An empty marker above the feed heading, with margin so the heading does not
+ * land flush against the top of the viewport — a list whose title is touching
+ * the window edge reads as clipped.
+ */
+.feed-top {
+  scroll-margin-top: 24px;
 }
 
 /* --- The marks: save, listened, liked -------------------------------------
