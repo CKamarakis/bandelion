@@ -437,6 +437,91 @@ console.log('\n# category and status are independent');
     check(withUndated[0].title === 'dated', 'an undated row sorts last by month');
   }
 
+  // --- A row leaves its list the moment its flag goes -----------------------
+  /*
+   * Reported as a bug: un-hearting on the favs page left the record on screen,
+   * unselected. It had been deliberate — the row stayed struck through so that
+   * nothing moved under the cursor — and it was the wrong trade, because the
+   * page then showed records that were not favs.
+   *
+   * SavedList filters with flagOf before ordering, so this is the predicate
+   * that decides it. Tested here rather than in the component because it is
+   * the decision, and a component test would need a DOM to reach it.
+   */
+
+  const { flagOf } = await import('../src/app/use-event-flags.ts');
+  const { visibleList } = await import('../src/app/feed-filters.ts');
+
+  /*
+   * `visibleList`, not `flagOf` on its own. flagOf was already correct when the
+   * bug was reported: it said the record had been un-hearted and the page
+   * rendered it regardless, because nothing applied that answer. Testing the
+   * predicate alone reproduces exactly that gap — verified by removing the
+   * filter, which left a predicate-only test passing.
+   *
+   * So the filter and the sort are one call, and this holds that call.
+   */
+
+  const listRow = (id, date, flags) => ({ eventId: id, eventDate: date, ...flags });
+  const onList = (items, flag, overlay = {}, order = 'month') =>
+    visibleList(items, (i) => flagOf(i, overlay, flag), order);
+
+  {
+    const items = [
+      listRow(1, '2026-09-18', { favorited: true, queued: true }),
+      listRow(2, '2026-11-13', { favorited: true, queued: false }),
+    ];
+
+    check(onList(items, 'favorited').length === 2, 'both hearted records are shown');
+
+    // What a press leaves in the overlay.
+    const afterUnheart = { 1: { favorited: false } };
+    check(
+      onList(items, 'favorited', afterUnheart).length === 1,
+      'an un-hearted record leaves the favs list at once',
+      `${onList(items, 'favorited', afterUnheart).length} rows`,
+    );
+    check(
+      onList(items, 'favorited', afterUnheart)[0].eventId === 2,
+      'the record still hearted is the one that stays',
+    );
+
+    // The lists overlap: removal from one must not touch the other.
+    check(
+      onList(items, 'queued', afterUnheart).length === 1,
+      'un-hearting does not change what is on the playlist',
+    );
+
+    // Removing the last row empties the list rather than leaving a ghost.
+    check(
+      onList(items, 'favorited', { 1: { favorited: false }, 2: { favorited: false } })
+        .length === 0,
+      'removing every row empties the list',
+    );
+
+    // Toggled off and on again is back, not stuck in a removed state.
+    check(
+      onList(items, 'favorited', { 1: { favorited: true } }).length === 2,
+      'hearting it again brings the row back',
+    );
+  }
+
+  {
+    // Filtering happens before ordering, so a removed row cannot hold a place
+    // in the sort or leave a gap in a month group.
+    const items = [
+      listRow(1, '2026-11-13', { favorited: false }),
+      listRow(2, '2026-09-18', { favorited: true }),
+      listRow(3, '2026-10-30', { favorited: true }),
+    ];
+    const out = onList(items, 'favorited');
+    check(
+      out.map((i) => i.eventId).join(',') === '3,2',
+      'what is left is ordered, and the removed row is simply absent',
+      out.map((i) => i.eventId).join(','),
+    );
+  }
+
   // --- Paging whole months --------------------------------------------------
   // Mirrors the packing in Feed.tsx: months are never split across a page.
 
