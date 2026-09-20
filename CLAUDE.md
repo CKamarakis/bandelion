@@ -202,12 +202,19 @@ would change it.**
 > identity on what `getFlaggedEvents` returned — a `FeedItem` carries no
 > `updated_at`, so any re-sort would silently destroy that order.
 
-> **A row un-flagged on its own page keeps its place.**
-> Un-hearting in favs strikes the row through rather than removing it. Removing
-> it live slides every row below up, so the next press lands on whatever moved
-> under the cursor — and an accidental un-heart would have nothing left to
-> undo it with. It is gone on the next load. Would change if the lists grew long
-> enough that struck-through rows crowded out live ones.
+> **A row leaves its list the moment its flag goes.**
+> Un-hearting in favs, un-saving on the playlist and the X all remove the row
+> at once, and the count follows it. The first version kept the row in place,
+> struck through, so nothing moved under the cursor and a misclick was one
+> press from being undone. That was the wrong trade and was reported as a bug:
+> a page named after a list must not show records that are not on it. Would
+> change if removal ever became hard to reverse, which would argue for an undo
+> rather than for leaving the row behind.
+>
+> `visibleList` filters and orders in one call for this reason. The predicate
+> was already correct when the bug was reported; nothing applied it before
+> ordering, and a test of the predicate alone passed while the screen was
+> wrong.
 
 > **Links are best-effort and say so.**
 > Artist links come from MusicBrainz URL relationships, fetched in the same call

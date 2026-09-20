@@ -15,7 +15,7 @@
 import { useMemo, useState } from 'react';
 import type { FeedItem } from '../db/index.ts';
 import { formatEventDate, monthGroup, releaseTypeLabel } from './feed-format.ts';
-import { groupByMonth, orderList, type ListOrderId } from './feed-filters.ts';
+import { groupByMonth, visibleList, type ListOrderId } from './feed-filters.ts';
 import { FlagMark, RemoveMark } from './FlagButtons.tsx';
 import { flagOf, useEventFlags } from './use-event-flags.ts';
 
@@ -60,7 +60,19 @@ export function SavedList({
   const { overlay, toggle, isPending } = useEventFlags();
   const [order, setOrder] = useState<ListOrderId>('month');
 
-  const ordered = useMemo(() => orderList(items, order), [items, order]);
+  /*
+   * Rows taken off this list are gone from it at once.
+   *
+   * An earlier version kept them in place, struck through, so nothing moved
+   * under the cursor and a misclick was one press from being undone. That was
+   * the wrong trade: the page then showed records that were no longer on the
+   * list it is named after, which reads as a bug rather than as a safety net.
+   * A row is removed the moment its flag goes, and the count follows it.
+   */
+  const ordered = useMemo(
+    () => visibleList(items, (i) => flagOf(i, overlay, listFlag), order),
+    [items, overlay, listFlag, order],
+  );
   /*
    * Grouped only when the order is by month. In `added` order the sections
    * would be meaningless: consecutive rows come from wherever you happened to
@@ -74,7 +86,9 @@ export function SavedList({
     [ordered, order],
   );
 
-  if (items.length === 0) {
+  // `ordered`, not `items`: emptying the list by removing its last row has to
+  // land on the same empty state as arriving with nothing on it.
+  if (ordered.length === 0) {
     return <p className="list-empty">{empty}</p>;
   }
 
@@ -82,18 +96,11 @@ export function SavedList({
   const renderRow = (item: FeedItem) => {
     const listened = flagOf(item, overlay, 'listened');
     const favorited = flagOf(item, overlay, 'favorited');
-    /*
-     * Still on this list, per the overlay. A row toggled off keeps its place
-     * and says so by the mark's state — it does not vanish.
-     */
-    const stillHere = flagOf(item, overlay, listFlag);
 
     return (
             <li
               key={item.eventId}
-              className={`list-row${item.isUpcoming ? ' is-upcoming' : ''}${
-                stillHere ? '' : ' is-removed'
-              }`}
+              className={`list-row${item.isUpcoming ? ' is-upcoming' : ''}`}
             >
               {/* alt empty: the artist and title sit beside it, so a screen
                   reader announcing the cover would read the same thing twice. */}
@@ -169,7 +176,9 @@ export function SavedList({
   return (
     <>
       <div className="list-head">
-        <p className="cat list-count">{COUNT(items.length)}</p>
+        {/* Counts the rows shown, not the rows the server sent: removing one
+            has to move this number too. */}
+        <p className="cat list-count">{COUNT(ordered.length)}</p>
 
         {/*
           Two views of one list, as a pair of toggles rather than a dropdown.

@@ -1077,23 +1077,13 @@ a {
 }
 
 /*
- * A row un-flagged in this session.
+ * There is no "removed but still shown" state.
  *
- * It keeps its place until the next load: removing it live would slide every
- * row below it up, and the next press would land on whatever moved under the
- * cursor. Struck through and faded, so it reads as "removed, still visible"
- * rather than as an ordinary row. The strike is the signal; the fade only
- * supports it.
+ * Rows used to stay in place struck through, so nothing moved under the
+ * cursor. That meant the page showed records that were no longer on the list
+ * it is named after, which reads as a bug rather than as a safety net. A
+ * removal now takes the row out at once, everywhere, and the count follows.
  */
-.list-row.is-removed {
-  opacity: 0.55;
-}
-
-.list-row.is-removed .list-title,
-.list-row.is-removed .list-artist {
-  text-decoration: line-through;
-  text-decoration-thickness: 2px;
-}
 
 /* Type and state, in the catalogue face. Fixed-width so the marks line up in a
    column down the list rather than jittering with label length. */
@@ -1224,12 +1214,14 @@ a {
   outline-offset: 4px;
 }
 
-/* The mark takes the dandelion behind it on hover, so the whole lockup
-   registers as one target without the wordmark changing colour. */
-.masthead-home:hover img,
-.masthead-home:focus-visible img {
-  background: var(--dandelion);
-}
+/*
+ * No hover treatment on the lockup.
+ *
+ * A dandelion ground behind the mark was tried and removed: the artwork is a
+ * black circle on a transparent square, so the colour filled the corners
+ * around it rather than the shape, which looked like a rendering fault. The
+ * focus ring is what says it is reachable; the cursor says it is a link.
+ */
 
 .nav-link {
   color: var(--ink);

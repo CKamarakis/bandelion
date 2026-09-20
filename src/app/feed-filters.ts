@@ -114,6 +114,27 @@ export function orderList<T extends Filterable>(items: T[], order: ListOrderId):
   return [...items].sort(byDate('desc'));
 }
 
+/**
+ * The rows a saved list shows, in the order it shows them.
+ *
+ * Filtering and ordering together, as one call, because the bug this exists to
+ * prevent was the two coming apart: `flagOf` reported correctly that a record
+ * had been un-hearted, and the favs page rendered it anyway, because nothing
+ * applied that answer before ordering. A component that calls this gets both
+ * or neither.
+ *
+ * `isOn` is supplied by the caller rather than imported, so this file stays
+ * free of React and of the overlay type. SavedList passes `flagOf` bound to
+ * its own state and to the flag that names the list.
+ */
+export function visibleList<T extends Filterable>(
+  items: T[],
+  isOn: (item: T) => boolean,
+  order: ListOrderId,
+): T[] {
+  return orderList(items.filter(isOn), order);
+}
+
 /** A gap in the page list, where numbers were left out. */
 export const PAGE_GAP = 'gap';
 
