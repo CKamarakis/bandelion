@@ -53,6 +53,7 @@ const ROUTES = [
   // the database, so seed it first: tests/seed.mjs flags seven records.
   { name: 'playlist', path: '/playlist', fold: true },
   { name: 'favs', path: '/favs', fold: true },
+  { name: 'review', path: '/review', fold: true },
 ];
 
 function findChrome() {
@@ -273,7 +274,13 @@ writeFileSync(join(outDir, 'index.json'), JSON.stringify({ base: BASE, shots: in
 sock.close();
 browser.kill();
 
-const expected = ROUTES.length * VIEWPORTS.length;
+/*
+ * A `fold: true` route captures twice per viewport, full-page and clipped, so
+ * counting routes times viewports undercounts it. It read "14/8" and exited 1
+ * on a run where nothing was wrong, which is a check nobody can trust: a real
+ * missing shot looked exactly like the everyday output.
+ */
+const expected = ROUTES.reduce((n, r) => n + (r.fold ? 2 : 1), 0) * VIEWPORTS.length;
 console.log(`\n${made}/${expected} screenshots in tests/shots/`);
 if (overflowed) console.error(`${overflowed} view(s) scroll horizontally`);
 process.exit(made === expected && overflowed === 0 ? 0 : 1);

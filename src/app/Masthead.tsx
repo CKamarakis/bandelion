@@ -34,15 +34,29 @@ const NAV = [
   { href: '/', label: 'Feed' },
   { href: '/playlist', label: 'Playlist' },
   { href: '/favs', label: 'Favs' },
+  /*
+   * Only rendered when something is waiting. An always-present link to an
+   * empty queue is a nav item that says nothing four days out of five, and
+   * the design rule is that every element earns its line.
+   */
+  { href: '/review', label: 'Review' },
 ] as const;
 
 export function Masthead({
   city,
   /** Which page this is, so its own link renders as a position and not a link. */
   here,
+  /**
+   * How many decisions are waiting in the review queue.
+   *
+   * Absent rather than zeroed on pages that did not count: 0 and "did not ask"
+   * are different facts, and only the first should hide a link that exists.
+   */
+  reviewCount,
 }: {
   city: string;
-  here: '/' | '/playlist' | '/favs';
+  here: '/' | '/playlist' | '/favs' | '/review';
+  reviewCount?: number;
 }) {
   return (
     <header style={S.masthead}>
@@ -78,6 +92,13 @@ export function Masthead({
         */}
         <nav className="nav" aria-label={NAV_LABEL}>
           {NAV.map((item) => {
+            /*
+             * Review is the one item that comes and goes. It is hidden when
+             * the queue is empty, and hidden on other pages that did not count
+             * it, rather than rendering a link whose count we do not know.
+             */
+            if (item.href === '/review' && here !== '/review' && !reviewCount) return null;
+
             const label = item.label;
 
             /*
