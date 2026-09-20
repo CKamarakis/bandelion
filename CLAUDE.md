@@ -193,6 +193,15 @@ would change it.**
 > Would change if the lists ever grew past a few hundred rows, where they would
 > need the feed's filters and pagination too.
 
+> **A saved list is read two ways, so it offers both.**
+> By month (the default) groups by release date the way the feed does: the list
+> as a plan, what is out and what is coming. Recently added keeps the order the
+> rows were saved in, ungrouped: the list as a queue, where the thing you just
+> put there is on top. Neither is a superset of the other, which is why this is
+> a control rather than a default someone has to live with. `added` is the
+> identity on what `getFlaggedEvents` returned — a `FeedItem` carries no
+> `updated_at`, so any re-sort would silently destroy that order.
+
 > **A row un-flagged on its own page keeps its place.**
 > Un-hearting in favs strikes the row through rather than removing it. Removing
 > it live slides every row below up, so the next press lands on whatever moved
@@ -408,6 +417,19 @@ screenshot of something other than the current build:
 - **Wait for something new, not for a 200.** Poll for a string that only the
   new build contains. "The server answered" is not "the server answered with
   your change".
+
+### A fractional rem at bold can render a seam
+
+A button set at `0.8rem` (11.2px) bold in the monospace stack drew a visible
+lighter band through the middle of one word, on an inked background. It looked
+exactly like a stray `background` rule or a stuck `:hover`, and it was neither:
+the markup was plain text and no selector matched. Whole-pixel `font-size`
+fixed it, which is why `.feed-weekbtn` and `.list-orderbtn` both set px rather
+than rem.
+
+Worth knowing because the search for it went through the markup, the cascade
+and the source order first. If a "highlight" appears mid-word with no rule that
+could paint it, suspect the font size before the stylesheet.
 
 ### An inline style beats a stylesheet rule
 

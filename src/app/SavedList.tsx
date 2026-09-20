@@ -12,8 +12,10 @@
 
 'use client';
 
+import { useMemo, useState } from 'react';
 import type { FeedItem } from '../db/index.ts';
-import { formatEventDate, releaseTypeLabel } from './feed-format.ts';
+import { formatEventDate, monthGroup, releaseTypeLabel } from './feed-format.ts';
+import { groupByMonth, orderList, type ListOrderId } from './feed-filters.ts';
 import { FlagMark, RemoveMark } from './FlagButtons.tsx';
 import { flagOf, useEventFlags } from './use-event-flags.ts';
 
@@ -26,6 +28,19 @@ const UPCOMING_LABEL = 'Coming';
 const RELEASED_LABEL = 'Out now';
 /* Names what it counts, per the rule against a bare number. */
 const COUNT = (n: number) => `${n} record${n === 1 ? '' : 's'}`;
+
+/*
+ * The order control.
+ *
+ * Labels name what the order IS, not what pressing does: these are two views
+ * of one list, and `aria-pressed` carries which one you are in. "By month" and
+ * "Recently added" are the two questions the list answers.
+ */
+const ORDER_LABEL = 'Order';
+const ORDERS = [
+  { id: 'month', label: 'By month' },
+  { id: 'added', label: 'Recently added' },
+] as const;
 
 export function SavedList({
   items,
@@ -43,25 +58,37 @@ export function SavedList({
   listFlag: 'queued' | 'favorited';
 }) {
   const { overlay, toggle, isPending } = useEventFlags();
+  const [order, setOrder] = useState<ListOrderId>('month');
+
+  const ordered = useMemo(() => orderList(items, order), [items, order]);
+  /*
+   * Grouped only when the order is by month. In `added` order the sections
+   * would be meaningless: consecutive rows come from wherever you happened to
+   * save them, so a month band would open and close every row or two.
+   */
+  const groups = useMemo(
+    () =>
+      order === 'month'
+        ? groupByMonth(ordered, (i) => monthGroup(i.eventDate, i.datePrecision))
+        : [{ month: null, items: ordered }],
+    [ordered, order],
+  );
 
   if (items.length === 0) {
     return <p className="list-empty">{empty}</p>;
   }
 
-  return (
-    <>
-      <p className="cat list-count">{COUNT(items.length)}</p>
-      <ul className="list">
-        {items.map((item) => {
-          const listened = flagOf(item, overlay, 'listened');
-          const favorited = flagOf(item, overlay, 'favorited');
-          /*
-           * Still on this list, per the overlay. A row toggled off keeps its
-           * place and says so by the mark's state — it does not vanish.
-           */
-          const stillHere = flagOf(item, overlay, listFlag);
+  /* One row, rendered the same inside a month section or outside one. */
+  const renderRow = (item: FeedItem) => {
+    const listened = flagOf(item, overlay, 'listened');
+    const favorited = flagOf(item, overlay, 'favorited');
+    /*
+     * Still on this list, per the overlay. A row toggled off keeps its place
+     * and says so by the mark's state — it does not vanish.
+     */
+    const stillHere = flagOf(item, overlay, listFlag);
 
-          return (
+    return (
             <li
               key={item.eventId}
               className={`list-row${item.isUpcoming ? ' is-upcoming' : ''}${
@@ -136,9 +163,55 @@ export function SavedList({
                 />
               </div>
             </li>
-          );
-        })}
-      </ul>
+    );
+  };
+
+  return (
+    <>
+      <div className="list-head">
+        <p className="cat list-count">{COUNT(items.length)}</p>
+
+        {/*
+          Two views of one list, as a pair of toggles rather than a dropdown.
+
+          The feed uses selects for its five filters because there are five of
+          them; two mutually exclusive options read faster as buttons, and both
+          labels stay visible so the alternative is nameable without opening
+          anything. `aria-pressed` carries which one is active for a screen
+          reader; the inked block carries it for everyone else.
+        */}
+        <div className="list-orders" role="group" aria-label={ORDER_LABEL}>
+          {ORDERS.map((o) => (
+            <button
+              key={o.id}
+              type="button"
+              className={`list-orderbtn${order === o.id ? ' is-on' : ''}`}
+              aria-pressed={order === o.id}
+              onClick={() => setOrder(o.id)}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {groups.map((group) => (
+        <section key={group.month ?? 'all'} className="list-section">
+          {/*
+            A month band, only when grouping. Static rather than collapsible,
+            unlike the feed's: these lists are short by nature, so a control to
+            hide part of a seven-row list would be a control nobody presses.
+          */}
+          {group.month ? (
+            <div className="list-monthband">
+              <span>{group.month}</span>
+              <span className="list-bandcount">{COUNT(group.items.length)}</span>
+            </div>
+          ) : null}
+
+          <ul className="list">{group.items.map(renderRow)}</ul>
+        </section>
+      ))}
     </>
   );
 }

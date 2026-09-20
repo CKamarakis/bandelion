@@ -196,10 +196,14 @@ check(/border-radius:\s*0/.test(declarations), 'globals.css sets border-radius t
  * would excuse every `border-radius` in the file.
  */
 /*
- * The two rounded things, both circles drawn around circular artwork: the save
- * stamp, and the masthead mark's focus ring. Anything else must be square.
+ * The one rounded thing: the save stamp, a circle drawn around circular
+ * artwork. Anything else must be square.
+ *
+ * `.masthead-home` was briefly here too, for a ring around the round mark. The
+ * link now wraps the wordmark as well, so its ring boxes a rectangle and the
+ * radius came back off.
  */
-const ROUNDED_ALLOWED = ['.stamp', '.masthead-home'];
+const ROUNDED_ALLOWED = ['.stamp'];
 
 const roundedSelectors = [];
 for (const [, selector, body] of declarations.matchAll(/([^{}]+)\{([^}]*)\}/g)) {
@@ -215,7 +219,7 @@ for (const [, selector, body] of declarations.matchAll(/([^{}]+)\{([^}]*)\}/g)) 
 const unexpectedRounded = roundedSelectors.filter((s) => !ROUNDED_ALLOWED.includes(s));
 check(
   unexpectedRounded.length === 0,
-  'only the stamp and the masthead mark are round: hard edges everywhere else',
+  'the only rounded thing is the save stamp: hard edges everywhere else',
   `unexpected rounded selectors: ${unexpectedRounded.join(' | ') || '(none)'}`,
 );
 check(

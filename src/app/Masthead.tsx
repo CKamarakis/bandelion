@@ -53,19 +53,21 @@ export function Masthead({
       */}
       <div style={S.titleRow}>
         {/*
-          The mark links home.
+          Mark and wordmark together, as one link home.
 
-          Only the mark, not the wordmark beside it: on the feed itself the link
-          would point at the page you are already on, and a heading that is
-          sometimes a link and sometimes not is the inconsistent gesture the
-          design rules warn about. The image keeps `alt=""` and the link carries
-          the label, so a screen reader announces "Bandelion, home" once rather
-          than reading the name twice.
+          One anchor around both rather than two side by side: they read as a
+          single lockup, and two adjacent links to the same place are two tab
+          stops and two announcements for one target. The image keeps `alt=""`
+          because the wordmark inside the same link already says the name.
+
+          The h1 stays outside the anchor's own semantics — it wraps the
+          heading's text, so the page still has exactly one h1 and a screen
+          reader still finds it by heading.
         */}
         <Link href="/" className="masthead-home" aria-label={HOME_LABEL}>
           <img src="/logo.png" alt="" width={64} height={64} style={S.logo} />
+          <h1 style={S.title}>{TITLE}</h1>
         </Link>
-        <h1 style={S.title}>{TITLE}</h1>
 
         <nav className="nav" aria-label="Pages">
           {NAV.map((item) => {
