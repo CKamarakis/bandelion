@@ -14,7 +14,7 @@
 
 'use client';
 
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useMemo, useRef, useState } from 'react';
 import type { FeedItem } from '../db/index.ts';
 import {
   formatEventDate,
@@ -229,6 +229,13 @@ export function Feed({
   const [week, setWeek] = useState<WeekId | 'all'>('all');
   const [page, setPage] = useState(0);
   /*
+   * The top of the list, so a page change can bring you back to it.
+   *
+   * A ref rather than an id and `getElementById`: the element is rendered by
+   * this component, and a string id is a second thing to keep in step.
+   */
+  const topRef = useRef<HTMLDivElement>(null);
+  /*
    * Only the collapsed months are tracked, so a month that appears later (a
    * filter change, a new import) is open by default. Tracking the open ones
    * instead would hide anything this set had never heard of.
@@ -337,6 +344,37 @@ export function Feed({
     setPage(0);
   }
 
+  /**
+   * Turn to a page, and go back to the top of the list.
+   *
+   * The pager sits below 100 rows, so pressing it leaves you at the bottom of
+   * a page whose contents have entirely changed — looking at the last rows of
+   * something you have not seen the start of. Every control that changes the
+   * page goes through here so none of them can forget.
+   *
+   * `smooth` is deliberate: an instant jump after a click reads as the page
+   * having reloaded, and the movement is what tells you the list changed
+   * rather than the numbers.
+   *
+   * The preference is read here rather than left to CSS. An explicit
+   * `behavior: 'smooth'` in a scrollIntoView call wins over the element's
+   * computed `scroll-behavior`, which is only consulted when the argument is
+   * 'auto' — so the media query in globals.css cannot quietly fix this one,
+   * and a comment claiming it did would be wrong.
+   */
+  function goToPage(next: number) {
+    setPage(next);
+
+    const reduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+    topRef.current?.scrollIntoView({
+      behavior: reduced ? 'auto' : 'smooth',
+      block: 'start',
+    });
+  }
+
   function toggleMonth(name: string) {
     setCollapsed((previous) => {
       const next = new Set(previous);
@@ -369,6 +407,17 @@ export function Feed({
 
   return (
     <section style={S.section}>
+      {/*
+        The scroll target for a page change.
+
+        Above the heading rather than on the first row, so turning a page shows
+        the heading and the filters too — landing on row one alone leaves the
+        controls just off screen and it is not obvious the list restarted.
+
+        `scroll-margin-top` in globals.css keeps it off the very top edge.
+      */}
+      <div ref={topRef} className="feed-top" aria-hidden="true" />
+
       <div style={S.headRow}>
         <h2>{HEADING}</h2>
         <span className="cat" style={S.count}>
@@ -527,7 +576,7 @@ export function Feed({
               <button
                 type="button"
                 className="feed-textbtn feed-pager-step"
-                onClick={() => setPage(currentPage - 1)}
+                onClick={() => goToPage(currentPage - 1)}
                 disabled={currentPage === 0}
               >
                 {PREV_PAGE}
@@ -550,7 +599,7 @@ export function Feed({
                     key={entry}
                     type="button"
                     className={`feed-pagebtn${entry === currentPage ? ' is-on' : ''}`}
-                    onClick={() => setPage(entry)}
+                    onClick={() => goToPage(entry)}
                     aria-current={entry === currentPage ? 'page' : undefined}
                     aria-label={PAGE_LABEL(entry + 1)}
                   >
@@ -561,7 +610,7 @@ export function Feed({
               <button
                 type="button"
                 className="feed-textbtn feed-pager-step"
-                onClick={() => setPage(currentPage + 1)}
+                onClick={() => goToPage(currentPage + 1)}
                 disabled={currentPage >= pageCount - 1}
               >
                 {NEXT_PAGE}
