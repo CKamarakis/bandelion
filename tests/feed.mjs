@@ -385,6 +385,58 @@ console.log('\n# category and status are independent');
     check(groups[0].month === null, 'the undated group keeps a null month');
   }
 
+  // --- Ordering a saved list ------------------------------------------------
+  /*
+   * The playlist and favs offer two orders. `added` has to be the identity on
+   * what the query returned — getFlaggedEvents already sorts by when the flag
+   * was set, and a FeedItem carries no `updated_at` to re-sort by, so any
+   * sorting here would silently destroy that order.
+   */
+
+  const { orderList } = await import('../src/app/feed-filters.ts');
+
+  {
+    const saved = [
+      { eventDate: '2026-09-18', title: 'saved third' },
+      { eventDate: '2026-11-13', title: 'saved second' },
+      { eventDate: '2026-10-30', title: 'saved first' },
+    ];
+
+    const added = orderList(saved, 'added');
+    check(
+      added.map((i) => i.title).join(' | ') === 'saved third | saved second | saved first',
+      'recently-added order keeps the order the query returned',
+      added.map((i) => i.title).join(' | '),
+    );
+
+    const byMonth = orderList(saved, 'month');
+    check(
+      byMonth.map((i) => i.eventDate).join(' ') === '2026-11-13 2026-10-30 2026-09-18',
+      'by-month order sorts on release date, newest first',
+      byMonth.map((i) => i.eventDate).join(' '),
+    );
+
+    // Sorting a prop in place is the bug this guards: both callers pass the
+    // array they were handed.
+    check(
+      saved.map((i) => i.title).join(' | ') === 'saved third | saved second | saved first',
+      'ordering never mutates the array it was given',
+      saved.map((i) => i.title).join(' | '),
+    );
+    check(orderList(saved, 'added') !== saved, 'added order returns a copy, not the input');
+  }
+
+  {
+    // An undated row has no place on a timeline and must not rank; byDate
+    // already decides this, and the list order has to inherit it rather than
+    // invent its own answer.
+    const withUndated = orderList(
+      [{ eventDate: null, title: 'undated' }, { eventDate: '2026-09-18', title: 'dated' }],
+      'month',
+    );
+    check(withUndated[0].title === 'dated', 'an undated row sorts last by month');
+  }
+
   // --- Paging whole months --------------------------------------------------
   // Mirrors the packing in Feed.tsx: months are never split across a page.
 

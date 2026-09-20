@@ -81,6 +81,39 @@ export function inSource(item: Filterable, source: SourceId): boolean {
 
 export type WeekId = 'last' | 'this' | 'next';
 
+/**
+ * How a saved list is ordered.
+ *
+ * Two genuinely different questions, which is why this is a control rather
+ * than a default someone has to live with:
+ *
+ * - `month` groups by release date, newest first, the way the feed does. This
+ *   is what you want when the list is a plan: what is out, what is coming.
+ * - `added` is the order you saved them in, most recent first, with no
+ *   sections. This is what you want when the list is a queue: the thing you
+ *   just put there is at the top.
+ *
+ * `month` is the default because a playlist is read more often than it is
+ * added to, and because it matches the feed the rows came from.
+ */
+export type ListOrderId = 'month' | 'added';
+
+/**
+ * Sort a saved list, given the order the query returned.
+ *
+ * `getFlaggedEvents` already orders by when the flag was set, newest first, so
+ * `added` is the identity: re-sorting it would need an `updated_at` the feed
+ * row does not carry. `month` sorts by release date, newest first, which is
+ * the feed's own default.
+ *
+ * Returns a new array either way, so the caller can never mutate a prop by
+ * sorting in place.
+ */
+export function orderList<T extends Filterable>(items: T[], order: ListOrderId): T[] {
+  if (order === 'added') return [...items];
+  return [...items].sort(byDate('desc'));
+}
+
 /** A gap in the page list, where numbers were left out. */
 export const PAGE_GAP = 'gap';
 
