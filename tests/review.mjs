@@ -46,6 +46,7 @@ const USER = 1;
 
 const MBID_A = '11111111-2222-3333-4444-555555555555';
 const MBID_B = '66666666-7777-8888-9999-000000000000';
+const MBID_C = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
 const SPOTIFY_ID = '62hFQUkqSQ2LxYFBVuvjKg';
 
 /* Two acts called Steak, which is the real case this page exists for. */
@@ -136,6 +137,48 @@ check(
   (await post(queueId, { mbid: MBID_B })).status === 404,
   'a row already decided cannot be decided again',
 );
+
+// ─── a resolved artist leaves the queue behind ──────────────────────────────
+
+{
+  /*
+   * The bug this catches shipped and was invisible.
+   *
+   * Triage resolves artists an earlier run had queued. It set the MBID and
+   * left the old row `pending`, so the first real run finished with 206 rows
+   * claiming to await a decision that had already been made. Nothing on screen
+   * showed it, because both review queries join on `mbid IS NULL` — the table
+   * was simply lying, quietly, to anything that read it directly.
+   */
+  const queued = upsertArtist(db, {
+    name: 'Mount Hush',
+    nameNormalized: normalizeName('Mount Hush'),
+    externalId: { source: 'spotify', id: '13clfeXxTPsDsqzSlLIBZJ' },
+  });
+  followArtist(db, USER, queued, 'spotify');
+  const staleRow = queueForReview(db, {
+    rawName: 'Mount Hush',
+    source: 'musicbrainz',
+    candidateArtistId: queued,
+    score: 1,
+    payload: JSON.stringify({ candidates: [{ mbid: MBID_C, name: 'Mount Hush', score: 100, disambiguation: '' }] }),
+  });
+
+  check(getReviewCount(db) === 1, 'the artist is queued before it is resolved');
+
+  // What resolveOne does when triage accepts: set the id, then close the row.
+  const { closeQueueForResolved } = await import('../src/db/index.ts');
+  db.prepare('UPDATE artists SET mbid = ? WHERE id = ?').run(MBID_C, queued);
+  closeQueueForResolved(db, queued);
+
+  const row = db.prepare('SELECT status FROM match_queue WHERE id = ?').get(staleRow);
+  check(
+    row.status === 'confirmed',
+    'resolving an artist closes its pending queue row rather than leaving it',
+    `status is ${row.status}`,
+  );
+  check(getReviewCount(db) === 0, 'and the count agrees');
+}
 
 // ─── rejecting ──────────────────────────────────────────────────────────────
 

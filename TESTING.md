@@ -114,6 +114,7 @@ and that one did not.
 | **docs** **[carried]** | Prose drifts silently. Asserts docs name only files that exist and document every npm script. The inherited `SKILL.md` said "the four rules" three times while listing seven — that is the failure mode, and it happened on a project that had this test. |
 | **artist-link** **[new]** | An href carrying `spotify:` works on a machine with the desktop app and is a dead link on every other one, which is invisible to whoever wrote it. Asserts the served markup contains no `spotify:` anywhere, and that an unrecognised `SPOTIFY_LINK_TARGET` falls back to the mode that still reaches Spotify. |
 | **review** **[new]** | A well-formed MBID that was never a candidate for a row would attach a stranger's releases to an artist, with nothing in the feed showing it was wrong. Asserts the route re-reads the row rather than trusting the posted id, that confirming writes the alias, and that rejecting leaves the artist unresolved rather than guessing. |
+| **triage** **[new]** | Every rule that auto-accepts a MusicBrainz candidate, each tested against a real row from the queue with its names and disambiguation text verbatim. Half the cases assert triage does **not** decide — Steak, Spindrift, `The Evesdroppers` — because a rule that accepts too much is worse than no rule. |
 
 ---
 

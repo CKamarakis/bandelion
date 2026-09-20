@@ -51,7 +51,14 @@ export interface Resolution {
   mbName: string | null;
   method: ResolutionMethod;
   /** Populated only for name-search: the candidates a human should judge. */
-  candidates?: { mbid: string; name: string; score: number; disambiguation: string }[];
+  candidates?: {
+    mbid: string;
+    name: string;
+    score: number;
+    disambiguation: string;
+    /** MusicBrainz entity type: Group, Person, Character. May be absent. */
+    type?: string;
+  }[];
   error?: string;
 }
 
@@ -66,6 +73,7 @@ interface MbArtistSearchHit {
   score?: number;
   disambiguation?: string;
   country?: string;
+  type?: string;
 }
 
 export interface MbClientOptions {
@@ -202,7 +210,20 @@ export async function searchByName(
   opts: MbClientOptions,
   limit = 5,
 ): Promise<Resolution> {
-  const q = encodeURIComponent(`artist:"${name.replace(/"/g, '')}"`);
+  /*
+   * Aliases as well as the name.
+   *
+   * A transliterated name is not the name MusicBrainz files the band under.
+   * Τρύπες is a Greek band you follow as "Tripes", and MusicBrainz holds
+   * "Tripes" and "Trypes" as aliases of Τρύπες — searching `artist:` alone
+   * returned a French jazz trio at score 100 and the real band nowhere, which
+   * is worse than no answer because it looks like a confident one. With
+   * `alias:` the band comes back top at 100.
+   *
+   * Costs nothing: the same one request, a longer query string.
+   */
+  const bare = name.replace(/"/g, '');
+  const q = encodeURIComponent(`artist:"${bare}" OR alias:"${bare}"`);
   const json = (await get(`artist?query=${q}&fmt=json&limit=${limit}`, opts)) as
     | { artists?: MbArtistSearchHit[] }
     | null;
@@ -214,6 +235,9 @@ export async function searchByName(
       name: a.name ?? '',
       score: typeof a.score === 'number' ? a.score : 0,
       disambiguation: a.disambiguation ?? '',
+      // MusicBrainz's own entity type. Kept because it is the only structured
+      // way to tell a band from a Trolls character of the same name.
+      type: a.type ?? '',
     }));
 
   return { mbid: null, mbName: null, method: 'name-search', candidates };

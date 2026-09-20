@@ -98,19 +98,25 @@ probably be combined rather than chosen between.
 against this rule, and per CLAUDE.md a matcher change has to prove itself there
 before it ships.
 
-## L02 · Nothing auto-accepts a name search · degrades
+## L02 · Triage cannot reach a name MusicBrainz files differently · degrades
 
-The review screen exists (`/review`, decision 043), so the queue is workable.
-What is missing is the rule above: 264 rows is a long sitting when roughly 186
-of them are unambiguous by any reading.
+**Lifted, mostly.** Triage now auto-accepts a name search when one candidate
+survives every rule (decision 044, `TRIAGE.md`), and searching aliases as well
+as names fixed the transliteration class. Simulated over the 264 pending rows:
+**200 accepted, 64 left, zero MBID collisions.**
 
-**What would lift it:** implement the strict rule in `resolve.ts`, run
-`npm run eval:matcher` to confirm it does not cost accuracy, and re-run the
-resolve pass. Rows it accepts stop reaching the queue; the rest keep their page.
+What remains is narrower. Triage can only choose among the candidates the
+search returned, so a name MusicBrainz holds under neither its name nor an
+alias is unreachable by any rule. `Tripes` was rescued by the alias query;
+nothing rescues a band whose MusicBrainz entry has no alias recorded and a
+differently transliterated title.
 
-**Trigger:** before the next full resolve sweep. Deciding 264 rows by hand once
-is a bad afternoon; doing it again after the next roster import is the signal
-this was skipped.
+**What would lift it:** nothing cheap. Fuzzy matching across scripts is the
+obvious idea and is exactly the guess the whole design refuses.
+
+**Trigger:** if a Greek or Cyrillic band you follow keeps appearing in the
+review queue with no plausible candidate, it is this. Adding the alias to
+MusicBrainz upstream fixes it for everyone.
 
 ## L03 · MusicBrainz throughput is far worse than its documented rate · degrades
 

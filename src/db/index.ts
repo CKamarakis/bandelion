@@ -982,6 +982,46 @@ export function rejectReviewMatch(db: DB, queueId: number): void {
   db.prepare("UPDATE match_queue SET status = 'rejected' WHERE id = ?").run(queueId);
 }
 
+/**
+ * Close any pending queue rows for an artist that has since been resolved.
+ *
+ * Triage resolves artists that an earlier run had already queued, and without
+ * this the old row stays `pending` forever: decided in `artists`, undecided in
+ * `match_queue`. The UI hid it, because both review queries join on
+ * `mbid IS NULL`, so a first run left 206 rows claiming to await a decision
+ * that had already been made — a table lying quietly is worse than one that
+ * shows the wrong number.
+ *
+ * 'confirmed' rather than 'rejected': a candidate was accepted, just not by a
+ * human. Which rule did it is recorded on the alias.
+ */
+export function closeQueueForResolved(db: DB, artistId: number): void {
+  db.prepare(
+    `UPDATE match_queue SET status = 'confirmed'
+      WHERE candidate_artist_id = ? AND status = 'pending'`,
+  ).run(artistId);
+}
+
+/**
+ * Record that a name resolves to an artist.
+ *
+ * `source` says who decided — 'manual' for a human in the review screen,
+ * `triage:<reason>` for a rule. Kept because a rule that turns out to be wrong
+ * needs to be findable later, and "which of these did a human actually look
+ * at" is the question that would be asked first.
+ */
+export function addAlias(
+  db: DB,
+  artistId: number,
+  aliasNormalized: string,
+  source = 'manual',
+): void {
+  db.prepare(
+    `INSERT OR IGNORE INTO artist_aliases (artist_id, alias_normalized, source)
+     VALUES (?, ?, ?)`,
+  ).run(artistId, aliasNormalized, source);
+}
+
 export function getAliases(db: DB) {
   return db
     .prepare('SELECT artist_id AS artistId, alias_normalized AS aliasNormalized FROM artist_aliases')

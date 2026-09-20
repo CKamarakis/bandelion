@@ -62,6 +62,7 @@ src/jobs/releases.ts release sweep: MusicBrainz release-groups into events
 src/jobs/covers.ts  cover art pass: stamps checked, so a coverless release is asked once
 src/jobs/cli.ts     `npm run ingest`
 src/matcher/        artist-name matching, tiered and deterministic
+src/matcher/triage.ts which name-search candidates are safe to accept without a human
 src/app/            Next.js routes and UI
 src/app/Feed.tsx    the release feed: cards, month sections, filters, pagination
 src/app/feed-filters.ts the filter predicates, month grouping and page windowing
@@ -87,6 +88,7 @@ tests/state.mjs     the event flags: migration 4, and that one never clears anot
 tests/state-route.mjs the flag route in process: rejected input, and partial writes
 tests/artist-link.mjs where an artist link points, and what SPOTIFY_LINK_TARGET accepts
 tests/review.mjs the review queue, and the route that decides one row
+tests/triage.mjs the triage rules, each against a real row from the queue
 tests/fixtures/     recorded upstream responses — never call live APIs in tests
 tests/pager-scroll.mjs hand-run: proves turning a page returns you to the top
 tests/record-fixture.mjs  hand-run: the one script that does call live Spotify
@@ -234,6 +236,21 @@ would change it.**
 > what hover, copy-link and middle-click use, and a `spotify:` href is useless
 > for all three. Would change if browsers ever expose a handler check, which
 > would turn the timeout into a real branch.
+
+> **Triage accepts what it can prove; everything else is a decision.**
+> A name search auto-accepts only when one candidate survives every rule in
+> `src/matcher/triage.ts`: same word count, exact name after normalisation, and
+> exact spelling where several acts share the name. Collaboration credits
+> (`A x B`) and non-musical MusicBrainz types are removed first. Every rule
+> fails toward the human, because a wrong MBID is invisible in the feed and an
+> extra queued row costs one click. `TRIAGE.md` carries the measurements and
+> the rules that were rejected; `.claude/skills/triage/SKILL.md` is the method.
+>
+> **The invariant above every rule: two artists never share an MBID.** The
+> roster holds two WITCHes and two Pentagrams, and MusicBrainz answers both
+> spellings with the same list. Spelling is what separates them, and
+> `tests/resolve.mjs` asserts it directly. Would change only for a rule that
+> keeps that assertion true.
 
 > **An ambiguous name is a decision, and the decision is kept.**
 > `resolve` auto-accepts nothing from a name search, so every name MusicBrainz
@@ -414,9 +431,16 @@ colour of its own background, reported as "the buttons look empty".
 
 ---
 
+## Triage
+
+Changing which MusicBrainz candidates resolve without a human follows
+`.claude/skills/triage/SKILL.md`, invocable as `/triage`. Measure against the
+real queue first, write the test from a real row, and keep the anti-merge
+assertion in `tests/resolve.mjs` true. `TRIAGE.md` is the evidence log.
+
 ## Copy
 
-User-facing strings follow the seven rules in `.claude/skills/copy/SKILL.md`,
+User-facing strings follow the eight rules in `.claude/skills/copy/SKILL.md`,
 invocable as `/copy`.
 
 **The one that matters most here: copy must not assert what the product cannot

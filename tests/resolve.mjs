@@ -301,22 +301,77 @@ console.log('\n# the job is resumable and honest');
   );
 }
 
-console.log('\n# an unresolvable artist is queued, never guessed');
+console.log('\n# two bands with one name never merge');
 
 {
+  /*
+   * The case decision 034 exists for, rewritten when triage landed.
+   *
+   * This block used to assert that WITCH was queued rather than resolved,
+   * because nothing auto-accepted a name search. Triage now decides it — and
+   * this is the row where a careless rule does real damage: MusicBrainz
+   * answers "WITCH" and "Witch" with byte-identical candidate lists topped by
+   * the Zambian band, so "take the top score" gives both roster rows the same
+   * MBID and merges two bands.
+   *
+   * The spelling rule is what separates them: WITCH matches WITCH, Witch
+   * matches Witch. So the assertion is no longer "nothing was decided" but
+   * the stronger and more useful "whatever was decided, they are not the
+   * same artist".
+   */
   const db = openDatabase(':memory:');
-  // An artist whose Spotify id has no MusicBrainz url relation, but whose name
-  // does match several candidates.
   upsertArtist(db, {
     name: 'WITCH',
     nameNormalized: normalizeName('WITCH'),
+    externalId: { source: 'spotify', id: 'unknown-spotify-id' },
+  });
+  upsertArtist(db, {
+    name: 'Witch',
+    nameNormalized: normalizeName('Witch'),
+    externalId: { source: 'spotify', id: 'unknown-spotify-id-2' },
+  });
+
+  const { fetch } = fixtureFetch();
+  await resolveArtists({ db, contact: 'test', fetchImpl: fetch, sleep: noSleep });
+
+  const rows = db.prepare('SELECT name, mbid FROM artists ORDER BY name').all();
+  check(rows.length === 2, 'both bands are still two rows');
+
+  const mbids = rows.map((r) => r.mbid).filter(Boolean);
+  check(
+    new Set(mbids).size === mbids.length,
+    'no two artists share an MBID: the merge decision 034 warns about',
+    JSON.stringify(rows),
+  );
+
+  const zambian = rows.find((r) => r.name === 'WITCH');
+  const chicago = rows.find((r) => r.name === 'Witch');
+  check(
+    zambian?.mbid !== chicago?.mbid,
+    'WITCH and Witch resolve differently, on spelling alone',
+    `WITCH=${zambian?.mbid} Witch=${chicago?.mbid}`,
+  );
+}
+
+console.log('\n# a genuinely ambiguous name is queued, never guessed');
+
+{
+  /*
+   * Pentagram: three acts spelled identically. No spelling rule can separate
+   * them, so this is the row that must still reach a human — the proof that
+   * triage refuses as well as accepts.
+   */
+  const db = openDatabase(':memory:');
+  upsertArtist(db, {
+    name: 'Pentagram',
+    nameNormalized: normalizeName('Pentagram'),
     externalId: { source: 'spotify', id: 'unknown-spotify-id' },
   });
 
   const { fetch } = fixtureFetch();
   const result = await resolveArtists({ db, contact: 'test', fetchImpl: fetch, sleep: noSleep });
 
-  check(result.resolved === 0, 'no mbid is invented when the url lookup finds nothing');
+  check(result.resolved === 0, 'no mbid is invented when several acts share the spelling');
   check(result.queued === 1, 'the artist goes to the review queue instead');
 
   const row = db.prepare('SELECT * FROM match_queue').get();

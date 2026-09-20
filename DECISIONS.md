@@ -1018,3 +1018,55 @@ the screenshot harness hung on it while every other route took seconds. The
 server answered in 34ms throughout, so this is a rendering limit, not a query
 one. The count says "40 of 261" so the page never implies 40 is all there is,
 and the empty state distinguishes a finished batch from an empty queue.
+
+---
+
+## 044 · Triage accepts what it can prove, and never merges two bands
+
+**Decided:** `src/matcher/triage.ts` auto-accepts a name-search candidate when
+it survives every rule; everything else keeps its place in the review queue.
+`searchByName` now queries `alias:` as well as `artist:`.
+
+**The measurement that forced it.** A full resolve pass resolved **0 of 315**
+in 42 minutes, because name search auto-accepted nothing. Reading the 264
+queued payloads, **188 had one exact-named candidate and nothing competing** —
+the queue was recording the absence of a rule, not doubt. `TRIAGE.md` carries
+the full breakdown.
+
+**The rules, each from a real row.** Same word count (`Daisy Grenade` is not
+`GRENADE`); exact name after normalisation; exact spelling as a tiebreak
+(`The IronY` over `The Irony`); collaboration credits removed (`Giannis
+Aggelakas x Nikos Veliotis` is neither artist); non-musical MusicBrainz types
+removed (`Mr. Dinkles` the Trolls character is `type: Character`).
+
+**The spelling rule is what finally separates the two WITCHes.** Decision 034
+established that a name query for "WITCH" or "Witch" returns the same list
+topped by the Zambian band, and that taking the top score merges two roster
+artists. Case does what score cannot: WITCH matches WITCH, Witch matches Witch,
+two distinct MBIDs. `tests/resolve.mjs` was rewritten from "this is queued" to
+the stronger "these two never share an MBID", which is the property that
+actually matters. Pentagram, where three acts share one spelling, still queues.
+
+**The fix that was not a rule.** "Tripes" returned a French jazz trio at score
+100 and rule 3 would have accepted it with confidence. The real band is Τρύπες,
+absent from the candidate list entirely — MusicBrainz holds "Tripes" as an
+*alias*. Adding `alias:` to the query puts the right band top at 100, same
+single request. The general lesson is to check whether the answer is on offer
+before tuning how one is chosen, and `tests/triage.mjs` keeps the pre-fix list
+as a case so the failure mode cannot return quietly.
+
+**Rejected: stripping a leading "The".** It would fix `Evesdroppers` ->
+`The Evesdroppers`, but `Sword` and `The Sword` are different bands. The
+article carries information often enough that those rows go to a human.
+
+**A rule that changed nothing, kept anyway.** Mutation testing showed removing
+the word-count filter altered no outcome on the real queue: a different word
+count almost always implies a different normalised name, which rule 2 already
+rejects. It survives for `The Sword` vs `TheSword`, which normalise identically
+because spaces are stripped, and the test for it had to be constructed rather
+than taken from the queue. Worth recording that the mutation run is what
+revealed it — a green suite had been proving nothing about that rule.
+
+**Measured effect**, simulated over all 264 pending rows before implementation:
+200 accepted, 64 left for a human, 200 distinct MBIDs, **zero collisions**.
+`npm run eval:matcher` scored 40/40, no regression.

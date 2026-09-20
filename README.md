@@ -99,18 +99,18 @@ and resumes where it stopped.
 
 ### 5. Decide the ambiguous names
 
-Resolution never guesses. When MusicBrainz has more than one act under a name,
-the artist goes to a queue instead of being matched, and an artist without a
-MusicBrainz ID produces no releases.
+Resolution never guesses. Most artists are matched automatically, but when
+several MusicBrainz acts genuinely share a name the artist goes to a queue
+rather than being matched, and an artist without a MusicBrainz ID produces no
+releases.
 
 Open **Review** in the nav. Each row links your artist on Spotify and every
 MusicBrainz candidate with its description, so you can check before deciding.
 Picking one records it, so the same name is not asked about twice.
 
-Measured on a real library: of 1,556 artists, 1,241 resolved automatically and
-315 did not — 264 queued for a decision, 52 with no MusicBrainz entry at all,
-2 that MusicBrainz was too busy to answer for. The last group retries on the
-next run.
+Measured on a real 1,556-artist library: 264 artists reached the queue, and the
+triage rules in `TRIAGE.md` decide about 200 of them without asking. What is
+left is the real thing — two bands called Steak, five called Spindrift.
 
 An artist with no MusicBrainz entry stays unresolved and that is expected:
 small acts, one-off collaborations and DJ aliases are often genuinely not in
@@ -204,6 +204,8 @@ Honest list, because finding these yourself is worse.
 | File | What it is |
 |---|---|
 | `CLAUDE.md` | How the project is built and why. Read first. |
+| `DECISIONS.md` | A running log of what was decided while building, and why. |
+| `TRIAGE.md` | How an artist gets a MusicBrainz identity, and the measurements behind each rule. |
 | `PALETTE.md` | Every colour, what it is for, and the measured contrast. |
 | `HANDOVER.md` | Where the current branch stands, and what to pick up next. |
 | `LIMITS.md` | What is deferred, and what would lift each limit. |
@@ -211,6 +213,7 @@ Honest list, because finding these yourself is worse.
 | `TESTING.md` | Each test suite and the bug that caused it. |
 | `PLAYBOOK.md` | Decisions worth making before writing code. |
 | `.claude/skills/copy/SKILL.md` | Voice rules for user-facing text. `/copy` |
+| `.claude/skills/triage/SKILL.md` | How to change the artist-matching rules safely. `/triage` |
 
 `PLAYBOOK.md` and parts of `TESTING.md` came from an earlier, different project
 (an offline single-file prototype). The shapes transfer; the specifics do not.
