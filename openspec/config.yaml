@@ -1,0 +1,63 @@
+schema: spec-driven
+
+# Project context. Shown to AI when creating artifacts. CLAUDE.md is the full
+# version and the one that is tested; this is the subset a proposal needs.
+context: |
+  Bandelion is a self-hosted personal music radar: it takes the artists you
+  follow on Spotify and answers "anything new?" per artist into one feed.
+  Not a player, not a recommender, not a public product.
+
+  The artifact is `docker compose up` on a laptop or small VPS, working against
+  live third-party sources, still working in three months when one of those
+  sources has changed its JSON. That sentence decides most arguments.
+
+  Stack: TypeScript, Next.js, SQLite. Tests are standalone .mjs suites run
+  under `node --experimental-strip-types` — so no TypeScript that needs code
+  generation: enums, namespaces, decorators and constructor parameter
+  properties are a hard error. Run `npm run verify` (build + test) before
+  committing.
+
+  Load-bearing constraints:
+  1. No test calls a live third-party API. Record a fixture, replay it.
+  2. An adapter never throws out of `fetch` — it records the failure and
+     returns []. One failing source must never empty the feed.
+  3. Documentation is tested, not remembered. tests/docs.mjs fails the build
+     when CLAUDE.md names a file that does not exist or misses an npm script,
+     so a change that adds a file or a script updates CLAUDE.md too.
+  4. Nothing iterates the full roster inside a request handler. All ingest is
+     a checkpointed, resumable job, and the UI stays usable while it runs.
+  5. Test by rendering, not by reading. Screenshots catch what text checks
+     cannot.
+  6. The rules are executable — whatever the product refuses to promise,
+     assert it.
+
+  Copy must not assert what the product cannot do. The data is incomplete by
+  nature (missing support acts, absent on-sale dates, unresolved links), so
+  before writing a label, ask what the system actually knows. If the honest
+  answer is smaller than the copy, the copy is wrong.
+
+  Design is post-punk / Factory Records: zero border-radius, no shadows or
+  gradients, type carries the hierarchy, colour never carries meaning alone.
+  Any colour change gets measured by tests/contrast.mjs.
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing
