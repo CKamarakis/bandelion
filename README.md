@@ -50,10 +50,15 @@ Fill in:
 ```
 SPOTIFY_CLIENT_ID=...
 SPOTIFY_CLIENT_SECRET=...
+TOKEN_ENCRYPTION_KEY=...   # node -e "console.log(crypto.randomBytes(32).toString('hex'))"
+MUSICBRAINZ_CONTACT=...    # your email; MusicBrainz asks for one
 BANDELION_CITY=Berlin
 ```
 
-Everything else has a working default. The one worth knowing about:
+The key encrypts your Spotify tokens in the database, and nothing starts
+without it. MusicBrainz asks every client for a contact address, so resolving
+artists stops without one. Everything else has a working default. The one worth
+knowing about:
 
 **`SPOTIFY_LINK_TARGET`** — where an artist link goes. `app`, the default,
 hands the link to the Spotify desktop app and falls back to the web player when
@@ -67,11 +72,31 @@ desktop app and would rather skip it.
 docker compose up
 ```
 
-Open `http://127.0.0.1:3000` and connect your Spotify account.
+Open `http://127.0.0.1:3000` and connect your Spotify account. The database
+lives on a Docker volume, so `docker compose down` and rebuilds keep it.
+
+The app answers on `127.0.0.1` only, deliberately: it has no login of its own,
+so anyone who can reach the port is you. On a VPS, put it behind a reverse
+proxy with HTTPS on a real hostname, and register that `https://` redirect URI
+with Spotify instead; plain `http` is accepted only on the loopback address.
+
+Without Docker, `npm install` then `npm run dev` runs the same app on the same
+address, with the database in `./data/`.
+
+**What is verified, by what.** CI builds the image on every push, starts it,
+seeds the database inside it, checks the feed renders, and checks it survives
+`down` and `up`. What CI cannot do is sign in to Spotify, so the checklist
+below is by hand. **Not yet run through Docker:**
+
+- [ ] `docker compose up`, connect Spotify from `http://127.0.0.1:3000`
+- [ ] `docker compose exec web npm run ingest` imports the roster
+- [ ] `docker compose restart web`, and the account is still connected
 
 ### 4. Import your artists
 
-Two lists, imported separately:
+Two lists, imported separately. With Docker, prefix each command with
+`docker compose exec web` so it runs inside the container, against the database
+the app is serving:
 
 ```bash
 npm run ingest          # artists you follow

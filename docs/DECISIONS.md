@@ -1077,3 +1077,45 @@ revealed it — a green suite had been proving nothing about that rule.
 **Measured effect**, simulated over all 264 pending rows before implementation:
 200 accepted, 64 left for a human, 200 distinct MBIDs, **zero collisions**.
 `npm run eval:matcher` scored 40/40, no regression.
+
+---
+
+## 045 · The container publishes on loopback only
+
+**Decided:** `docker-compose.yml` publishes port 3000 as `127.0.0.1:3000:3000`.
+Inside the container the server listens on all interfaces, or the published
+port would reach nothing. CI fails if the compose file ever publishes anywhere
+else.
+
+**Why:** the app has no login. Single user, single instance: whoever reaches
+the port is the owner, with their Spotify grant and their flags. Publishing on
+every interface would hand that to anyone on the same network. Loopback is also
+what the default redirect URI needs, since Spotify accepts plain `http` only
+there (017).
+
+**Changes if:** the app ever gains authentication. Until then a VPS instance
+goes behind a reverse proxy with HTTPS on a real hostname, which is outside this
+repo and is how Spotify wants a non-loopback redirect URI anyway.
+
+---
+
+## 046 · A run that reached nothing is not complete
+
+**Decided:** a release sweep in which every artist failed is saved `failed`
+with its cursor cleared, not `complete`. A cover pass after a `failed` run
+starts from the beginning instead of resuming past the releases it could not
+reach.
+
+**Why:** `tests/degradation.mjs`, written for constraint 2, caught both on its
+first run. The sweep's end-of-roster rewind leaves failed artists out so the
+next run retries them, so when all of them failed it found nothing and
+reported a sweep that had read no discography at all as finished. The cover
+pass saved its cursor past the release it could not reach, and the next run
+resumed after it and reported `complete` having asked nothing — the
+forward-only cursor of 036 again, in a job written after it.
+
+A sweep with only *some* failures still completes: those artists stay
+unstamped, and the next run picks them up.
+
+**Changes if:** jobs get a scheduler that retries on its own clock (L08), which
+may want "finished, with failures" as a status of its own.

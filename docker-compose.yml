@@ -1,0 +1,23 @@
+# docker compose up          start the app on http://127.0.0.1:3000
+# docker compose exec web npm run ingest [job]   run an import in the live container
+#
+# Needs a filled-in .env next to this file; copy .env.example.
+services:
+  web:
+    build: .
+    env_file: .env
+    environment:
+      # Overrides .env: the database lives on the named volume below, so it
+      # survives `down`, rebuilds and new images.
+      DATABASE_PATH: /app/data/bandelion.db
+    ports:
+      # Loopback only. The app has no login, so whoever reaches this port is the
+      # owner. It also matches the default Spotify redirect URI, which may only
+      # use plain http on a loopback address.
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - bandelion-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  bandelion-data:

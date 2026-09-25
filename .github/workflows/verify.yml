@@ -1,0 +1,114 @@
+# CI. Two jobs: the suite, then the artifact itself — the image built, started,
+# seeded, rendered and restarted. No step calls a live third-party API
+# (constraint 1); the only network is the base image and npm packages.
+name: verify
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # The version the Dockerfile pins and the suite passes on.
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run verify
+
+  container:
+    needs: verify
+    runs-on: ubuntu-latest
+    env:
+      # Only the app serves this string. A 200 alone would also come from
+      # anything else that answered on the port.
+      TAGLINE: Releases and gigs from the artists you follow and like.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write a throwaway .env
+        run: |
+          cp .env.example .env
+          key=$(node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))")
+          sed -i "s/^TOKEN_ENCRYPTION_KEY=.*/TOKEN_ENCRYPTION_KEY=$key/" .env
+          # Placeholders: nothing here talks to Spotify, but the page shows the
+          # connect screen rather than the feed without them.
+          sed -i "s/^SPOTIFY_CLIENT_ID=.*/SPOTIFY_CLIENT_ID=ci-placeholder/" .env
+          sed -i "s/^SPOTIFY_CLIENT_SECRET=.*/SPOTIFY_CLIENT_SECRET=ci-placeholder/" .env
+
+      - name: The port is published on loopback only
+        run: |
+          docker compose config --format json | node -e '
+            let s = ""; process.stdin.on("data", (d) => (s += d)).on("end", () => {
+              const ports = JSON.parse(s).services.web.ports ?? [];
+              const open = ports.filter((p) => p.host_ip !== "127.0.0.1");
+              if (ports.length === 0 || open.length > 0) {
+                console.error("web must publish on 127.0.0.1 only:", JSON.stringify(ports));
+                process.exit(1);
+              }
+              console.log("published on", ports.map((p) => `${p.host_ip}:${p.published}`).join(", "));
+            });'
+
+      - name: Build and start
+        run: docker compose up -d --build
+
+      - name: Wait for the app
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3000/ | grep -qF "$TAGLINE"; then exit 0; fi
+            sleep 2
+          done
+          echo "the app never served its tagline"; exit 1
+
+      - name: Seed inside the container
+        run: docker compose exec -T web npm run seed -- --force
+
+      - name: Pick a release title to look for
+        run: |
+          # The newest release, so it sits on the first page in the first month.
+          # Plain characters only, so HTML escaping cannot make it unmatchable.
+          title=$(docker compose exec -T web node -e '
+            const { DatabaseSync } = require("node:sqlite");
+            const db = new DatabaseSync(process.env.DATABASE_PATH);
+            const rows = db.prepare(`SELECT e.title FROM events e
+              JOIN release_details rd ON rd.event_id = e.id
+              WHERE e.type = ?
+              ORDER BY rd.is_upcoming DESC, e.event_date DESC`).all("release");
+            const t = rows.map((r) => r.title).find((t) => /^[A-Za-z0-9 ]+$/.test(t));
+            if (!t) { console.error("no plain-text title in the seed"); process.exit(1); }
+            console.log(t);')
+          echo "picked: $title"
+          echo "TITLE=$title" >> "$GITHUB_ENV"
+
+      - name: The feed renders from the seeded database
+        run: |
+          # seed --force replaces the database file; the running server still
+          # holds the old one open, so restart before reading the page.
+          docker compose restart web
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3000/ | grep -qF "$TITLE"; then exit 0; fi
+            sleep 2
+          done
+          echo "\"$TITLE\" never appeared in the feed"; exit 1
+
+      - name: The database survives down and up
+        run: |
+          docker compose down
+          docker compose up -d
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3000/ | grep -qF "$TITLE"; then exit 0; fi
+            sleep 2
+          done
+          echo "\"$TITLE\" was lost across down and up"; exit 1
+
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs --no-color
+
+      - name: Clean up
+        if: always()
+        run: docker compose down -v
