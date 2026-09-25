@@ -62,15 +62,21 @@ src/jobs/releases.ts release sweep: MusicBrainz release-groups into events
 src/jobs/covers.ts  cover art pass: stamps checked, so a coverless release is asked once
 src/jobs/cli.ts     `npm run ingest`
 src/matcher/        artist-name matching, tiered and deterministic
+src/matcher/triage.ts which name-search candidates are safe to accept without a human
 src/app/            Next.js routes and UI
 src/app/Feed.tsx    the release feed: cards, month sections, filters, pagination
 src/app/feed-filters.ts the filter predicates, month grouping and page windowing
 src/app/feed-format.ts dates at the precision we actually have, and no more
+src/app/ArtistLink.tsx the artist name as a link: desktop app first, web as fallback
+src/app/artist-link-url.ts the two URLs that link can point at, importable by tests
 src/app/InfoNote.tsx a note behind an icon, for text that is read once
 src/app/Masthead.tsx the shared header: wordmark, nav with counts, catalogue labels
 src/app/FlagButtons.tsx the three marks — save, listened, liked — as inline SVG
 src/app/SavedList.tsx one row per record; both list pages render it
 src/app/use-event-flags.ts optimistic flag state, reverted when a write fails
+src/app/ReviewList.tsx the review queue: one artist per block, one button per candidate
+src/app/review/page.tsx the names MusicBrainz could read more than one way
+src/app/api/review/[id]/route.ts one decision: accept a candidate, or none of them
 src/app/playlist/page.tsx the playlist: what you saved from the feed to hear later
 src/app/favs/page.tsx the records you hearted after hearing them
 src/app/api/events/[id]/state/route.ts writes one flag without touching the others
@@ -80,6 +86,9 @@ tests/liked.mjs     liked-songs paging and artist extraction, against a fixture
 tests/liked-db.mjs  the list flags, and the real schema.sql-then-migrate path
 tests/state.mjs     the event flags: migration 4, and that one never clears another
 tests/state-route.mjs the flag route in process: rejected input, and partial writes
+tests/artist-link.mjs where an artist link points, and what SPOTIFY_LINK_TARGET accepts
+tests/review.mjs the review queue, and the route that decides one row
+tests/triage.mjs the triage rules, each against a real row from the queue
 tests/fixtures/     recorded upstream responses — never call live APIs in tests
 tests/pager-scroll.mjs hand-run: proves turning a page returns you to the top
 tests/record-fixture.mjs  hand-run: the one script that does call live Spotify
@@ -216,6 +225,50 @@ would change it.**
 > was already correct when the bug was reported; nothing applied it before
 > ordering, and a test of the predicate alone passed while the screen was
 > wrong.
+
+> **An artist link tries the desktop app and falls back to the web.**
+> `SPOTIFY_LINK_TARGET` defaults to `app`: the click navigates to
+> `spotify:artist:<id>`, watches for the page losing focus, and opens the web
+> player in a new tab if nothing took it within 600ms. A browser cannot ask
+> whether a URI scheme has a handler — that is a deliberate fingerprinting
+> guard — so this is an inference, not a detection, and the copy must never
+> claim otherwise. The href stays the **web** URL in both modes, because it is
+> what hover, copy-link and middle-click use, and a `spotify:` href is useless
+> for all three. Would change if browsers ever expose a handler check, which
+> would turn the timeout into a real branch.
+
+> **Triage accepts what it can prove; everything else is a decision.**
+> A name search auto-accepts only when one candidate survives every rule in
+> `src/matcher/triage.ts`: same word count, exact name after normalisation, and
+> exact spelling where several acts share the name. Collaboration credits
+> (`A x B`) and non-musical MusicBrainz types are removed first. Every rule
+> fails toward the human, because a wrong MBID is invisible in the feed and an
+> extra queued row costs one click. `TRIAGE.md` carries the measurements and
+> the rules that were rejected; `.claude/skills/triage/SKILL.md` is the method.
+>
+> **The invariant above every rule: two artists never share an MBID.** The
+> roster holds two WITCHes and two Pentagrams, and MusicBrainz answers both
+> spellings with the same list. Spelling is what separates them, and
+> `tests/resolve.mjs` asserts it directly. Would change only for a rule that
+> keeps that assertion true.
+
+> **An ambiguous name is a decision, and the decision is kept.**
+> `resolve` auto-accepts nothing from a name search, so every name MusicBrainz
+> could read two ways lands in `match_queue`. Measured on the real roster:
+> 315 unresolved artists were **264 queued, 52 with no MusicBrainz record, 2
+> unreachable** — and of the 264, **188 had exactly one candidate at score 100
+> whose name was the only exact match**. So the queue was mostly not ambiguous;
+> it was the absence of a rule. The review page exists for the genuinely
+> ambiguous remainder, and every confirmation writes `artist_aliases`, so a
+> name is decided once and the queue does not refill with it. Rejecting marks
+> the row `rejected` rather than deleting it, because a deleted row is re-asked
+> on the next sweep. Would change if an auto-accept rule lands and shrinks the
+> queue to the point where a page is more furniture than help.
+>
+> Every row links **both sides**: your artist on Spotify and each candidate on
+> MusicBrainz. "Which of these two bands called Steak is yours" cannot be
+> answered from the row itself, and a question you cannot check is answered by
+> coin toss.
 
 > **Links are best-effort and say so.**
 > Artist links come from MusicBrainz URL relationships, fetched in the same call
@@ -378,9 +431,16 @@ colour of its own background, reported as "the buttons look empty".
 
 ---
 
+## Triage
+
+Changing which MusicBrainz candidates resolve without a human follows
+`.claude/skills/triage/SKILL.md`, invocable as `/triage`. Measure against the
+real queue first, write the test from a real row, and keep the anti-merge
+assertion in `tests/resolve.mjs` true. `TRIAGE.md` is the evidence log.
+
 ## Copy
 
-User-facing strings follow the seven rules in `.claude/skills/copy/SKILL.md`,
+User-facing strings follow the eight rules in `.claude/skills/copy/SKILL.md`,
 invocable as `/copy`.
 
 **The one that matters most here: copy must not assert what the product cannot

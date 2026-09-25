@@ -39,8 +39,12 @@ import {
   queueForReview,
   setArtistMbid,
   addArtistLinks,
+  addAlias,
+  closeQueueForResolved,
   type DB,
 } from '../db/index.ts';
+import { triage } from '../matcher/triage.ts';
+import { normalizeName } from '../matcher/normalize.ts';
 
 export const JOB_NAME = 'resolve:musicbrainz';
 
@@ -290,6 +294,10 @@ async function resolveOne(
     if (byUrl.mbid) {
       setArtistMbid(db, artist.id, byUrl.mbid);
       method = byUrl.method;
+      // Same reason as the triage path below: an artist queued by an earlier
+      // run, whose Spotify URL relation has since been added upstream, must
+      // not keep a row claiming to await a decision that is now made.
+      closeQueueForResolved(db, artist.id);
 
       // Links come from the same identity, so fetch them while we have it.
       // Best-effort: a failure here must not lose the MBID we just proved.
@@ -312,6 +320,41 @@ async function resolveOne(
   // No URL relation. Offer candidates for review rather than guessing.
   const byName = await searchByName(artist.name, client);
   const candidates = byName.candidates ?? [];
+
+  /*
+   * Triage before queueing.
+   *
+   * Measured on the real roster, 264 artists reached the queue and 188 of them
+   * had one exact-named candidate and nothing competing — the queue was
+   * recording the absence of a rule rather than doubt. `triage` accepts only
+   * what it can decide and returns null for everything else, so a row it
+   * cannot call still reaches a human untouched.
+   *
+   * The alias written here is what stops the same name being asked about
+   * again, exactly as a manual confirmation does.
+   */
+  const verdict = triage(artist.name, candidates);
+  if (verdict.accept) {
+    setArtistMbid(db, artist.id, verdict.accept.mbid);
+    addAlias(db, artist.id, normalizeName(artist.name), `triage:${verdict.reason}`);
+    // An earlier run may already have queued this artist. Decided is decided.
+    closeQueueForResolved(db, artist.id);
+
+    try {
+      const links = await fetchArtistLinks(verdict.accept.mbid, client);
+      addArtistLinks(
+        db,
+        artist.id,
+        links.filter((l) => KEPT_LINK_KINDS.has(l.kind)),
+        'musicbrainz',
+      );
+    } catch {
+      /* links are best-effort by design; the MBID is what mattered */
+    }
+
+    return 'resolved';
+  }
+
   if (candidates.length > 0) {
     queueForReview(db, {
       rawName: artist.name,

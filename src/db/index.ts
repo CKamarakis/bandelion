@@ -838,6 +838,190 @@ export function queueForReview(
   return Number(r.lastInsertRowid);
 }
 
+/** One MusicBrainz act we might mean, as recorded in the queue payload. */
+export interface ReviewCandidate {
+  mbid: string;
+  name: string;
+  /** MusicBrainz's own search score, 0-100. Theirs, not ours. */
+  score: number;
+  /** MusicBrainz's one-line "which one is this" — often the deciding fact. */
+  disambiguation: string;
+}
+
+export interface ReviewRow {
+  queueId: number;
+  artistId: number;
+  /** The name as Spotify gave it, which is what you would recognise. */
+  rawName: string;
+  /** For the link out: both sides of the comparison must be checkable. */
+  spotifyId: string | null;
+  followed: boolean;
+  liked: boolean;
+  candidates: ReviewCandidate[];
+}
+
+/**
+ * The review queue: artists MusicBrainz found more than one way to read.
+ *
+ * Joined to the Spotify id on purpose. A row asking "which of these two bands
+ * called Steak is yours?" is unanswerable without a way to hear both, so the
+ * page links the Spotify artist AND every MusicBrainz candidate. Without the
+ * id the question is a guess with extra steps.
+ *
+ * Oldest first: the queue is worked through, and a stable order means a row
+ * does not move under the cursor when another is decided.
+ */
+export function getReviewQueue(db: DB, userId: number, limit = 500): ReviewRow[] {
+  const rows = db
+    .prepare(
+      `SELECT q.id AS queueId, q.raw_name AS rawName, q.payload_json AS payloadJson,
+              q.candidate_artist_id AS artistId,
+              e.external_id AS spotifyId,
+              ua.followed, ua.liked
+         FROM match_queue q
+         JOIN artists a ON a.id = q.candidate_artist_id
+         LEFT JOIN artist_external_ids e
+                ON e.artist_id = q.candidate_artist_id AND e.source = 'spotify'
+         LEFT JOIN user_artists ua
+                ON ua.artist_id = q.candidate_artist_id AND ua.user_id = ?
+        WHERE q.status = 'pending'
+          AND a.mbid IS NULL
+        ORDER BY q.id
+        LIMIT ?`,
+    )
+    .all(userId, limit) as unknown as {
+    queueId: number;
+    rawName: string;
+    payloadJson: string | null;
+    artistId: number;
+    spotifyId: string | null;
+    followed: number | null;
+    liked: number | null;
+  }[];
+
+  return rows.map((r) => {
+    /*
+     * A payload that will not parse is a row with no candidates, not a crash.
+     * It still renders: "none of these" is a valid answer and the only one
+     * available when we cannot show what was found.
+     */
+    let candidates: ReviewCandidate[] = [];
+    try {
+      const parsed = JSON.parse(r.payloadJson ?? '{}') as { candidates?: ReviewCandidate[] };
+      if (Array.isArray(parsed.candidates)) candidates = parsed.candidates;
+    } catch {
+      candidates = [];
+    }
+
+    return {
+      queueId: r.queueId,
+      artistId: r.artistId,
+      rawName: r.rawName,
+      spotifyId: r.spotifyId,
+      followed: r.followed === 1,
+      liked: r.liked === 1,
+      candidates,
+    };
+  });
+}
+
+/** How many decisions are waiting. Counts what getReviewQueue would return. */
+export function getReviewCount(db: DB): number {
+  const r = db
+    .prepare(
+      `SELECT COUNT(*) AS n
+         FROM match_queue q
+         JOIN artists a ON a.id = q.candidate_artist_id
+        WHERE q.status = 'pending' AND a.mbid IS NULL`,
+    )
+    .get() as { n: number };
+  return r.n;
+}
+
+/**
+ * Accept one candidate: the artist gets the MBID and the queue row is closed.
+ *
+ * In a transaction because the three writes are one decision. A confirmed row
+ * with no MBID set would ask again next sweep; an MBID set against a still
+ * pending row would show a decided artist in the queue forever.
+ *
+ * The alias is the point of the exercise. `artist_aliases` exists so a name is
+ * decided once — the next source that reports "Steak" matches this artist
+ * without asking, which is what stops the queue refilling with the same names.
+ */
+export function confirmReviewMatch(
+  db: DB,
+  queueId: number,
+  artistId: number,
+  mbid: string,
+  aliasNormalized: string,
+): void {
+  db.prepare('BEGIN').run();
+  try {
+    db.prepare('UPDATE artists SET mbid = ? WHERE id = ?').run(mbid, artistId);
+    db.prepare("UPDATE match_queue SET status = 'confirmed' WHERE id = ?").run(queueId);
+    db.prepare(
+      `INSERT OR IGNORE INTO artist_aliases (artist_id, alias_normalized, source)
+       VALUES (?, ?, 'manual')`,
+    ).run(artistId, aliasNormalized);
+    db.prepare('COMMIT').run();
+  } catch (err) {
+    db.prepare('ROLLBACK').run();
+    throw err;
+  }
+}
+
+/**
+ * "None of these." The artist keeps mbid NULL and the row stops coming back.
+ *
+ * Deliberately not a deletion: a rejected row is the record that someone
+ * looked and said no. Deleting it would let the next sweep re-queue the same
+ * name and ask the same question again.
+ */
+export function rejectReviewMatch(db: DB, queueId: number): void {
+  db.prepare("UPDATE match_queue SET status = 'rejected' WHERE id = ?").run(queueId);
+}
+
+/**
+ * Close any pending queue rows for an artist that has since been resolved.
+ *
+ * Triage resolves artists that an earlier run had already queued, and without
+ * this the old row stays `pending` forever: decided in `artists`, undecided in
+ * `match_queue`. The UI hid it, because both review queries join on
+ * `mbid IS NULL`, so a first run left 206 rows claiming to await a decision
+ * that had already been made — a table lying quietly is worse than one that
+ * shows the wrong number.
+ *
+ * 'confirmed' rather than 'rejected': a candidate was accepted, just not by a
+ * human. Which rule did it is recorded on the alias.
+ */
+export function closeQueueForResolved(db: DB, artistId: number): void {
+  db.prepare(
+    `UPDATE match_queue SET status = 'confirmed'
+      WHERE candidate_artist_id = ? AND status = 'pending'`,
+  ).run(artistId);
+}
+
+/**
+ * Record that a name resolves to an artist.
+ *
+ * `source` says who decided — 'manual' for a human in the review screen,
+ * `triage:<reason>` for a rule. Kept because a rule that turns out to be wrong
+ * needs to be findable later, and "which of these did a human actually look
+ * at" is the question that would be asked first.
+ */
+export function addAlias(
+  db: DB,
+  artistId: number,
+  aliasNormalized: string,
+  source = 'manual',
+): void {
+  db.prepare(
+    `INSERT OR IGNORE INTO artist_aliases (artist_id, alias_normalized, source)
+     VALUES (?, ?, ?)`,
+  ).run(artistId, aliasNormalized, source);
+}
+
 export function getAliases(db: DB) {
   return db
     .prepare('SELECT artist_id AS artistId, alias_normalized AS aliasNormalized FROM artist_aliases')

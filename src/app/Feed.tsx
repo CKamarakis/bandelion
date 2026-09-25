@@ -16,6 +16,8 @@
 
 import { Fragment, useMemo, useRef, useState } from 'react';
 import type { FeedItem } from '../db/index.ts';
+import type { LinkTarget } from '../config.ts';
+import { ArtistLink } from './ArtistLink.tsx';
 import {
   formatEventDate,
   monthFilterLabel,
@@ -215,11 +217,14 @@ export function Feed({
   items,
   today,
   total,
+  linkTarget,
 }: {
   items: FeedItem[];
   today: string;
   /** Rows in the database, which may exceed the rows fetched. */
   total: number;
+  /** Where an artist link goes. Read from config by the page. */
+  linkTarget: LinkTarget;
 }) {
   const [category, setCategory] = useState<CategoryId>('all');
   const [status, setStatus] = useState<StatusId>('all');
@@ -558,6 +563,7 @@ export function Feed({
                         key={item.eventId}
                         item={item}
                         today={today}
+                        linkTarget={linkTarget}
                         queued={flagOf(item, overlay, 'queued')}
                         pending={isPending(item.eventId, 'queued')}
                         onQueue={() =>
@@ -626,12 +632,14 @@ export function Feed({
 function FeedRow({
   item,
   today,
+  linkTarget,
   queued,
   pending,
   onQueue,
 }: {
   item: FeedItem;
   today: string;
+  linkTarget: LinkTarget;
   queued: boolean;
   pending: boolean;
   onQueue: () => void;
@@ -678,15 +686,13 @@ function FeedRow({
           we can actually resolve beats linking both and being wrong about one.
         */}
         {item.spotifyArtistId ? (
-          <a
+          <ArtistLink
             className="feed-artistlink"
-            href={`https://open.spotify.com/artist/${item.spotifyArtistId}`}
-            target="_blank"
-            rel="noreferrer noopener"
+            artistId={item.spotifyArtistId}
+            name={item.artist}
+            linkTarget={linkTarget}
             style={S.artist}
-          >
-            {item.artist}
-          </a>
+          />
         ) : (
           <span style={S.artist}>{item.artist}</span>
         )}

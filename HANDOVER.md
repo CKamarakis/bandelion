@@ -11,10 +11,16 @@ what is half-done, and what to do next.
 
 ## Where things stand
 
+> **Superseded in part.** This file describes the state at the end of the
+> `liked-songs-list` session, which is since merged. The counts below were
+> true when written; a full resolve pass has run since and the review screen
+> now exists. `LIMITS.md` and `DECISIONS.md` 042-043 carry the current
+> numbers. Kept because the reasoning and the traps below still hold.
+
 Branch `liked-songs-list`, 16 commits, pushed, `npm run verify` green.
 **Not merged to `main`.**
 
-The database on this machine holds:
+The database on this machine held, at that point:
 
 | | |
 |---|---|
@@ -24,6 +30,9 @@ The database on this machine holds:
 | No MusicBrainz record at all | 89 |
 | Releases | 600 |
 | Releases with cover art | 491 of 552 checked (89%) |
+
+After the full resolve pass of 2026-09-20, the queue reads 264 pending and 52
+with no MusicBrainz record. The earlier 392/89 counted rows from partial runs.
 
 ---
 

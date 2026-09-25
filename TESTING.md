@@ -112,6 +112,9 @@ and that one did not.
 | **copy** **[carried]** | The eight voice rules, mechanically. See the caveats below. |
 | **contrast** **[carried]** | Parses declared colour values out of the stylesheets and computes ratios, so it tests what ships. Three separate contrast bugs on the old project, worst at 1:1. Matters here: `#F7D000` on white is ≈1.6:1. |
 | **docs** **[carried]** | Prose drifts silently. Asserts docs name only files that exist and document every npm script. The inherited `SKILL.md` said "the four rules" three times while listing seven — that is the failure mode, and it happened on a project that had this test. |
+| **artist-link** **[new]** | An href carrying `spotify:` works on a machine with the desktop app and is a dead link on every other one, which is invisible to whoever wrote it. Asserts the served markup contains no `spotify:` anywhere, and that an unrecognised `SPOTIFY_LINK_TARGET` falls back to the mode that still reaches Spotify. |
+| **review** **[new]** | A well-formed MBID that was never a candidate for a row would attach a stranger's releases to an artist, with nothing in the feed showing it was wrong. Asserts the route re-reads the row rather than trusting the posted id, that confirming writes the alias, and that rejecting leaves the artist unresolved rather than guessing. |
+| **triage** **[new]** | Every rule that auto-accepts a MusicBrainz candidate, each tested against a real row from the queue with its names and disambiguation text verbatim. Half the cases assert triage does **not** decide — Steak, Spindrift, `The Evesdroppers` — because a rule that accepts too much is worse than no rule. |
 
 ---
 
@@ -137,6 +140,14 @@ least four times in the last project, and it caught:
   string, while missing an entire card no marker named
 
 A green suite proves the checks ran, not that they looked at the right thing.
+
+**And a red one can prove nothing at all.** `screenshots.mjs` computed its
+expected count as routes × viewports, ignoring that a `fold: true` route
+captures twice per viewport. It had been printing `14/8` and exiting 1 on runs
+where every shot was taken and nothing overflowed. That failure looked exactly
+like the everyday output, so a genuinely missing screenshot would have read as
+normal. A check that always fails is off, and it takes longer to notice than
+one that never runs.
 
 ### Screenshots find what text checks cannot
 

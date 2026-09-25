@@ -64,18 +64,59 @@ not a measurement.
 **Trigger:** do this before the release pass matters, since an unresolved artist
 contributes nothing to the feed. Not before the flow works end to end.
 
-## L02 · The review queue has no UI · blocks-flow (eventually)
+### Re-measured on the full roster, 2026-09-20
 
-117 artists sit in `match_queue` with `status = 'pending'` and no
-screen to decide them on. The rows are correct and carry their candidates; there
-is simply nowhere to look at them.
+A complete resolve pass over 1,556 artists (both lists) **resolved 0 of the 315
+it attempted** in 42 minutes: 264 queued, 52 with no MusicBrainz record, 2 that
+MusicBrainz was too busy to answer for.
 
-**What would lift it:** a list screen with accept/reject per row, writing the
-chosen MBID through `setArtistMbid`. Small, but it is UI work with a design pass
-attached, so it is not a ten-minute job.
+Reading the queue's own payloads rather than a sample of 55:
 
-**Trigger:** when L01's auto-accept lands, whatever remains queued is genuinely
-ambiguous and needs a human. That is the moment this stops being optional.
+| Of the 264 pending | n |
+|---|---|
+| exactly one candidate at score 100, and its name is the only exact match | 188 |
+| one at 100, but other candidates share that exact name | 56 |
+| one at 100, whose name is not an exact match | 14 |
+| several candidates tied at 100 | 6 |
+| best candidate below 100 | 0 |
+
+So the queue is not mostly recording doubt. **188 of 264 have one exact-named
+candidate and nothing competing** — the rule's absence, not ambiguity.
+
+**A stricter rule, tested against the real queue.** Auto-accept when there is
+exactly one candidate at score 100, its normalised name is the only exact match
+in the candidate list, **and** no other candidate scores ≥90. That accepts
+**186** and leaves **78** for a human.
+
+Checked for the merge this section warns about: across those 186 acceptances
+there are **186 distinct MBIDs and zero collisions**, so it does not reproduce
+the WITCH failure on this roster. That is one roster, not a proof — the
+no-Spotify-URL condition above is still the stronger signal and the two should
+probably be combined rather than chosen between.
+
+**Still untested against the eval set.** `npm run eval:matcher` has not been run
+against this rule, and per CLAUDE.md a matcher change has to prove itself there
+before it ships.
+
+## L02 · Triage cannot reach a name MusicBrainz files differently · degrades
+
+**Lifted, mostly.** Triage now auto-accepts a name search when one candidate
+survives every rule (decision 044, `TRIAGE.md`), and searching aliases as well
+as names fixed the transliteration class. Simulated over the 264 pending rows:
+**200 accepted, 64 left, zero MBID collisions.**
+
+What remains is narrower. Triage can only choose among the candidates the
+search returned, so a name MusicBrainz holds under neither its name nor an
+alias is unreachable by any rule. `Tripes` was rescued by the alias query;
+nothing rescues a band whose MusicBrainz entry has no alias recorded and a
+differently transliterated title.
+
+**What would lift it:** nothing cheap. Fuzzy matching across scripts is the
+obvious idea and is exactly the guess the whole design refuses.
+
+**Trigger:** if a Greek or Cyrillic band you follow keeps appearing in the
+review queue with no plausible candidate, it is this. Adding the alias to
+MusicBrainz upstream fixes it for everyone.
 
 ## L03 · MusicBrainz throughput is far worse than its documented rate · degrades
 

@@ -938,3 +938,135 @@ straight out of the fixture and push one through the whole pipeline; the
 mutation now fails five checks. The lesson is narrower than "test more": a
 fixture can contain the case you need and still never exercise it, if the code
 path filters it out before it is reached.
+
+---
+
+## 042 · An artist link tries the desktop app, and the href stays the web URL
+
+**Decided:** `SPOTIFY_LINK_TARGET` defaults to `app`. A click navigates to
+`spotify:artist:<id>`, watches for the page losing focus, and opens the web
+player in a new tab if nothing took the link within 600ms.
+
+**It is an inference, not a detection.** A browser has no API for "does this
+URI scheme have a handler", deliberately, because it would be a fingerprinting
+surface. The only available signal is the tab blurring when the OS hands the
+URI to an application. That inference is one-directional: a blur proves
+something took the link, but no blur does not prove the app is missing — a cold
+launch, a slow machine, or a browser that prompts first can all miss it. The
+timeout therefore errs toward opening the web player, because a stray tab is
+recoverable and a dead link is not.
+
+**The href stays the web URL in both modes.** It is what hover shows, what
+"copy link address" yields and where a middle-click goes, and a `spotify:` URI
+is useless for all three. The app handoff lives in a click handler that
+explicitly passes modified clicks through: hijacking ctrl-click, which is the
+reader asking for a tab, is the kind of surprise that makes people stop
+trusting links. Asserted in `tests/artist-link.mjs`, which checks the served
+markup contains no `spotify:` anywhere.
+
+**600ms was measured, not chosen.** Below ~400ms a cold app launch on Windows
+had not blurred the tab yet and the fallback fired over a handoff that was
+working, leaving a stray web tab every time. Much above a second and the delay
+reads as a broken link on the machines that genuinely have no app.
+
+**What is not tested.** The fallback itself waits on a real blur from a real
+window manager, and there is no OS in a test to hand a URI to. A mock there
+would assert the mock. The URL builders live in their own `.ts` module so the
+suite can import them at all — `--experimental-strip-types` erases types
+without transforming JSX, so a `.tsx` file cannot be imported by a test.
+
+---
+
+## 043 · Ambiguous names are a queue, and the queue needed a page
+
+**Decided:** `/review` renders the pending `match_queue`, 40 rows at a time,
+linking both sides of every comparison. Confirming writes `artist_aliases`;
+rejecting marks the row `rejected` rather than deleting it.
+
+**The measurement that prompted it.** A full resolve run on the real roster
+resolved **0 of 315** and took 42 minutes. The breakdown: 264 queued, 52 with
+no MusicBrainz record, 2 unreachable. An artist without an MBID produces no
+releases, so a fifth of the roster was invisible in the feed with nothing on
+screen saying so.
+
+**The queue was mostly not ambiguous.** Of the 264, **188 had exactly one
+candidate at score 100 whose name was the only exact match** in the candidate
+list. Six were genuine ties, 14 had no exact match. So the queue was not
+recording doubt; it was recording the absence of an auto-accept rule. That rule
+is not built yet — see `LIMITS.md` — and the page exists for the genuinely
+ambiguous remainder either way.
+
+**Both sides link out.** "Which of these two bands called Steak is yours" is
+unanswerable from the row itself: one is a UK stoner band and one is German
+melodic hard rock, and the only way to know is to listen. So the row links the
+artist on Spotify and every candidate on MusicBrainz, and carries each
+candidate's disambiguation text, which is usually the deciding fact and is
+already in the payload. A question you cannot check is answered by coin toss.
+
+**The route re-reads the row rather than trusting the posted MBID.** A
+well-formed UUID that was never a candidate for that row would attach a
+stranger's releases to the artist, and nothing in the feed would show it was
+wrong. The accepted id must be one the row actually recorded.
+
+**Rejection is a status, not a delete.** A deleted row is re-queued by the next
+sweep and asks the same question again. `rejected` is the record that someone
+looked and said no, and it leaves the artist unresolved rather than guessing.
+
+**40 rows, because 261 would not render.** The full queue was 624KB of HTML
+carrying about a thousand links; a real browser took minutes to lay it out and
+the screenshot harness hung on it while every other route took seconds. The
+server answered in 34ms throughout, so this is a rendering limit, not a query
+one. The count says "40 of 261" so the page never implies 40 is all there is,
+and the empty state distinguishes a finished batch from an empty queue.
+
+---
+
+## 044 · Triage accepts what it can prove, and never merges two bands
+
+**Decided:** `src/matcher/triage.ts` auto-accepts a name-search candidate when
+it survives every rule; everything else keeps its place in the review queue.
+`searchByName` now queries `alias:` as well as `artist:`.
+
+**The measurement that forced it.** A full resolve pass resolved **0 of 315**
+in 42 minutes, because name search auto-accepted nothing. Reading the 264
+queued payloads, **188 had one exact-named candidate and nothing competing** —
+the queue was recording the absence of a rule, not doubt. `TRIAGE.md` carries
+the full breakdown.
+
+**The rules, each from a real row.** Same word count (`Daisy Grenade` is not
+`GRENADE`); exact name after normalisation; exact spelling as a tiebreak
+(`The IronY` over `The Irony`); collaboration credits removed (`Giannis
+Aggelakas x Nikos Veliotis` is neither artist); non-musical MusicBrainz types
+removed (`Mr. Dinkles` the Trolls character is `type: Character`).
+
+**The spelling rule is what finally separates the two WITCHes.** Decision 034
+established that a name query for "WITCH" or "Witch" returns the same list
+topped by the Zambian band, and that taking the top score merges two roster
+artists. Case does what score cannot: WITCH matches WITCH, Witch matches Witch,
+two distinct MBIDs. `tests/resolve.mjs` was rewritten from "this is queued" to
+the stronger "these two never share an MBID", which is the property that
+actually matters. Pentagram, where three acts share one spelling, still queues.
+
+**The fix that was not a rule.** "Tripes" returned a French jazz trio at score
+100 and rule 3 would have accepted it with confidence. The real band is Τρύπες,
+absent from the candidate list entirely — MusicBrainz holds "Tripes" as an
+*alias*. Adding `alias:` to the query puts the right band top at 100, same
+single request. The general lesson is to check whether the answer is on offer
+before tuning how one is chosen, and `tests/triage.mjs` keeps the pre-fix list
+as a case so the failure mode cannot return quietly.
+
+**Rejected: stripping a leading "The".** It would fix `Evesdroppers` ->
+`The Evesdroppers`, but `Sword` and `The Sword` are different bands. The
+article carries information often enough that those rows go to a human.
+
+**A rule that changed nothing, kept anyway.** Mutation testing showed removing
+the word-count filter altered no outcome on the real queue: a different word
+count almost always implies a different normalised name, which rule 2 already
+rejects. It survives for `The Sword` vs `TheSword`, which normalise identically
+because spaces are stripped, and the test for it had to be constructed rather
+than taken from the queue. Worth recording that the mutation run is what
+revealed it — a green suite had been proving nothing about that rule.
+
+**Measured effect**, simulated over all 264 pending rows before implementation:
+200 accepted, 64 left for a human, 200 distinct MBIDs, **zero collisions**.
+`npm run eval:matcher` scored 40/40, no regression.

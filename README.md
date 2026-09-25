@@ -53,6 +53,14 @@ SPOTIFY_CLIENT_SECRET=...
 BANDELION_CITY=Berlin
 ```
 
+Everything else has a working default. The one worth knowing about:
+
+**`SPOTIFY_LINK_TARGET`** — where an artist link goes. `app`, the default,
+hands the link to the Spotify desktop app and falls back to the web player when
+nothing takes it. A browser cannot ask whether an app is installed, so that
+fallback is a short wait rather than a check; set this to `web` if you have no
+desktop app and would rather skip it.
+
 ### 3. Run
 
 ```bash
@@ -88,6 +96,25 @@ want to see the hit rate before committing.
 You do not have to wait for any of it. The feed works as soon as the first
 releases land and fills in behind you. Stopping is safe: every job checkpoints
 and resumes where it stopped.
+
+### 5. Decide the ambiguous names
+
+Resolution never guesses. Most artists are matched automatically, but when
+several MusicBrainz acts genuinely share a name the artist goes to a queue
+rather than being matched, and an artist without a MusicBrainz ID produces no
+releases.
+
+Open **Review** in the nav. Each row links your artist on Spotify and every
+MusicBrainz candidate with its description, so you can check before deciding.
+Picking one records it, so the same name is not asked about twice.
+
+Measured on a real 1,556-artist library: 264 artists reached the queue, and the
+triage rules in `TRIAGE.md` decide about 200 of them without asking. What is
+left is the real thing — two bands called Steak, five called Spindrift.
+
+An artist with no MusicBrainz entry stays unresolved and that is expected:
+small acts, one-off collaborations and DJ aliases are often genuinely not in
+the database.
 
 ---
 
@@ -157,11 +184,12 @@ on, rather than the whole feed emptying.
 Honest list, because finding these yourself is worse.
 
 - **No gigs.** Releases only. The gig sources in the table above are planned.
-- **No review screen.** When MusicBrainz has several acts under one name, the
-  artist is queued for a human decision instead of being guessed at — a wrong ID
-  attaches another band's records to your feed. There is nowhere to make that
-  decision yet, so queued artists stay unresolved and produce no releases. On a
-  real 1,556-artist library this was 392 artists, roughly a quarter.
+- **Ambiguous names are decided by hand.** Resolution never guesses, so when
+  MusicBrainz has several acts under one name the artist waits in the Review
+  screen until you pick. On a real 1,556-artist library that was 264 artists.
+  Nothing auto-accepts a name search yet, which is why the queue is larger than
+  the genuinely ambiguous part of it: 188 of those 264 had exactly one candidate
+  whose name matched exactly and nothing competing.
 - **No unfollow or unlike.** Nothing is ever removed. Neither is observable from
   a partial import, so an interrupted run would look identical to unfollowing
   everything after the point it stopped.
@@ -176,6 +204,8 @@ Honest list, because finding these yourself is worse.
 | File | What it is |
 |---|---|
 | `CLAUDE.md` | How the project is built and why. Read first. |
+| `DECISIONS.md` | A running log of what was decided while building, and why. |
+| `TRIAGE.md` | How an artist gets a MusicBrainz identity, and the measurements behind each rule. |
 | `PALETTE.md` | Every colour, what it is for, and the measured contrast. |
 | `HANDOVER.md` | Where the current branch stands, and what to pick up next. |
 | `LIMITS.md` | What is deferred, and what would lift each limit. |
@@ -183,6 +213,7 @@ Honest list, because finding these yourself is worse.
 | `TESTING.md` | Each test suite and the bug that caused it. |
 | `PLAYBOOK.md` | Decisions worth making before writing code. |
 | `.claude/skills/copy/SKILL.md` | Voice rules for user-facing text. `/copy` |
+| `.claude/skills/triage/SKILL.md` | How to change the artist-matching rules safely. `/triage` |
 
 `PLAYBOOK.md` and parts of `TESTING.md` came from an earlier, different project
 (an offline single-file prototype). The shapes transfer; the specifics do not.

@@ -14,6 +14,8 @@
 
 import { useMemo, useState } from 'react';
 import type { FeedItem } from '../db/index.ts';
+import type { LinkTarget } from '../config.ts';
+import { ArtistLink } from './ArtistLink.tsx';
 import { formatEventDate, monthGroup, releaseTypeLabel } from './feed-format.ts';
 import { groupByMonth, visibleList, type ListOrderId } from './feed-filters.ts';
 import { FlagMark, RemoveMark } from './FlagButtons.tsx';
@@ -52,10 +54,13 @@ export function SavedList({
    * below up, and the next press lands on whatever slid into place.
    */
   listFlag,
+  linkTarget,
 }: {
   items: FeedItem[];
   empty: string;
   listFlag: 'queued' | 'favorited';
+  /** Where an artist link goes. Read from config by the page. */
+  linkTarget: LinkTarget;
 }) {
   const { overlay, toggle, isPending } = useEventFlags();
   const [order, setOrder] = useState<ListOrderId>('month');
@@ -119,14 +124,12 @@ export function SavedList({
                   would have to guess an album id we never fetched.
                 */}
                 {item.spotifyArtistId ? (
-                  <a
+                  <ArtistLink
                     className="list-artist"
-                    href={`https://open.spotify.com/artist/${item.spotifyArtistId}`}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                  >
-                    {item.artist}
-                  </a>
+                    artistId={item.spotifyArtistId}
+                    name={item.artist}
+                    linkTarget={linkTarget}
+                  />
                 ) : (
                   <span className="list-artist">{item.artist}</span>
                 )}

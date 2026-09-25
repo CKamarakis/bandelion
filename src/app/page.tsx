@@ -12,6 +12,7 @@ import {
   loadTokens,
   getFeed,
   getFeedCounts,
+  getReviewCount,
   type FeedItem,
 } from '../db/index.ts';
 import { LOCAL_USER_ID, db } from '../auth/session.ts';
@@ -89,6 +90,9 @@ export default async function Home({
   // mount. An unreadable database degrades to an empty feed, not a blank page.
   let feed: FeedItem[] = [];
   let feedTotal = 0;
+  /* 0 until counted: the nav link is hidden either way, so an unreadable
+     database cannot announce a queue it never looked at. */
+  let reviewCount = 0;
   const today = new Date().toISOString().slice(0, 10);
   // A zeroed status is the honest default: it claims nothing, and the panel
   // renders even when the database cannot be read.
@@ -119,6 +123,7 @@ export default async function Home({
     // rather than fetched per card on mount.
     feed = getFeed(database, { type: 'release', limit: 5000, userId: LOCAL_USER_ID });
     feedTotal = getFeedCounts(database).total;
+    reviewCount = getReviewCount(database);
     liked = likedStatus(database, LOCAL_USER_ID);
   } catch (err) {
     // The page must render even with no database yet. Constraint 2's spirit:
@@ -135,7 +140,7 @@ export default async function Home({
       {/* The masthead is shared by all three pages, so the catalogue number and
           the nav cannot drift between them. The tagline stays here: it
           introduces the app, and the list pages are past the introduction. */}
-      <Masthead city={cfg.city} here="/" />
+      <Masthead city={cfg.city} here="/" reviewCount={reviewCount} />
       <p style={S.tagline}>{TAGLINE}</p>
 
       {/* The heavy rule that separates masthead from content. Its own element
@@ -193,7 +198,12 @@ export default async function Home({
 
       {/* The feed only makes sense once an account is connected: before that
           there is no roster, so an empty list would be an empty promise. */}
-      {connected ? <Feed items={feed} today={today} total={feedTotal} /> : null}
+      {connected ? <Feed
+          items={feed}
+          today={today}
+          total={feedTotal}
+          linkTarget={cfg.spotifyLinkTarget}
+        /> : null}
     </main>
   );
 }

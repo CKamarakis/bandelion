@@ -7,12 +7,22 @@
  * the same build.
  */
 
+/**
+ * Where an artist link goes.
+ *
+ * 'app' tries the desktop app first and falls back to the web player; 'web'
+ * always goes to the web player. See ArtistLink for why "try" is the honest
+ * verb here and "detect" would not be.
+ */
+export type LinkTarget = 'app' | 'web';
+
 export interface Config {
   city: string;
   timezone: string;
   releaseWindowMonthsBack: number;
   releaseWindowMonthsForward: number;
   databasePath: string;
+  spotifyLinkTarget: LinkTarget;
   musicbrainzContact: string | null;
   spotify: { clientId?: string; clientSecret?: string; redirectUri: string };
   ticketmaster: { apiKey?: string };
@@ -35,6 +45,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     releaseWindowMonthsBack: num(env.RELEASE_WINDOW_MONTHS_BACK, 4),
     releaseWindowMonthsForward: num(env.RELEASE_WINDOW_MONTHS_FORWARD, 2),
     databasePath: env.DATABASE_PATH?.trim() || './data/bandelion.db',
+    /*
+     * Defaults to 'app'. The fallback means a reader without the desktop app
+     * waits one extra beat before the web player opens, where the reverse
+     * default would cost a reader who has it the app on every click. Only an
+     * exact 'web' turns it off, so a typo fails toward the mode that still
+     * reaches Spotify either way.
+     */
+    spotifyLinkTarget: env.SPOTIFY_LINK_TARGET?.trim().toLowerCase() === 'web' ? 'web' : 'app',
     musicbrainzContact: env.MUSICBRAINZ_CONTACT?.trim() || null,
     spotify: {
       clientId: env.SPOTIFY_CLIENT_ID?.trim() || undefined,
