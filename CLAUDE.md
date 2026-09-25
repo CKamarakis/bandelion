@@ -33,7 +33,8 @@ npm run seed           # build a seeded database, so screens work without OAuth
 npm run eval:matcher   # artist-name matcher eval set, prints a score
 npm run fixtures:record # capture a live upstream response into tests/fixtures/
 npm run shots          # screenshots via real browser
-docker compose up      # the actual artifact — not written yet (docker-and-ci)
+docker compose up      # the actual artifact, on http://127.0.0.1:3000
+docker compose exec web npm run ingest   # any ingest job, inside the running container
 ```
 
 ## Architecture
@@ -81,6 +82,10 @@ src/app/playlist/page.tsx the playlist: what you saved from the feed to hear lat
 src/app/favs/page.tsx the records you hearted after hearing them
 src/app/api/events/[id]/state/route.ts writes one flag without touching the others
 public/            the mark and its favicons; the only static assets
+Dockerfile          node:24-slim, runs as `node`, keeps src/ and tests/ for ingest and seed
+docker-compose.yml  one service, loopback-only port, the database on a named volume
+.dockerignore       keeps .env and data/ out of every image layer
+.github/workflows/verify.yml CI: the suite, then the container built, seeded and rendered
 tests/              standalone .mjs suites, auto-enrolled by run.mjs
 tests/liked.mjs     liked-songs paging and artist extraction, against a fixture
 tests/liked-db.mjs  the list flags, and the real schema.sql-then-migrate path
@@ -89,6 +94,7 @@ tests/state-route.mjs the flag route in process: rejected input, and partial wri
 tests/artist-link.mjs where an artist link points, and what SPOTIFY_LINK_TARGET accepts
 tests/review.mjs the review queue, and the route that decides one row
 tests/triage.mjs the triage rules, each against a real row from the queue
+tests/degradation.mjs constraint 2: a source down for a whole run empties nothing
 tests/fixtures/     recorded upstream responses — never call live APIs in tests
 tests/pager-scroll.mjs hand-run: proves turning a page returns you to the top
 tests/record-fixture.mjs  hand-run: the one script that does call live Spotify
@@ -125,10 +131,10 @@ These are load-bearing. Breaking one silently defeats the purpose.
    a source changes its JSON, the fixture diff names what broke.
 2. **An adapter never throws out of `fetch`.** It records the failure and
    returns `[]`. One failing source must never empty the feed or block the
-   others. A test that disables an adapter and asserts the feed still renders
-   and `adapter_health` shows degraded is **owed, not written** — the
-   `docker-and-ci` change adds it. That promise is the whole architecture, and
-   untested it is a wish.
+   others. `tests/degradation.mjs` takes a source down for a whole run and
+   asserts every stored release survives and `adapter_health` shows degraded;
+   the CI container job renders the feed. That promise is the whole
+   architecture, and untested it is a wish.
 3. **Documentation is tested, not remembered.** A test asserts this file names
    only files that exist and documents every npm script. Prose drifts silently;
    this fails the build instead. (The docs this project inherited said "the four

@@ -198,8 +198,20 @@ export async function importReleases(opts: {
       }
 
       if (batch.length === 0) {
-        saveJob(db, JOB_NAME, { cursor: null, status: 'complete', lastError: null });
         recordHealth(db, progress, lastTransientError);
+        /*
+         * Running out of artists is not the same as finishing them. When every
+         * one failed, the rewind above finds nothing because failures are left
+         * out on purpose, and "complete" would claim a sweep that read no
+         * discography at all. Failed, with the cursor cleared, so the next run
+         * starts over and retries every artist still unstamped.
+         */
+        if (progress.artistsChecked > 0 && progress.transientFailures === progress.artistsChecked) {
+          const message = lastTransientError ?? 'every artist failed';
+          saveJob(db, JOB_NAME, { cursor: null, status: 'failed', lastError: message });
+          return { ...progress, error: message };
+        }
+        saveJob(db, JOB_NAME, { cursor: null, status: 'complete', lastError: null });
         return { ...progress, complete: true, error: lastTransientError ?? undefined };
       }
 
