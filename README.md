@@ -85,7 +85,7 @@ address, with the database in `./data/`.
 
 **What is verified, by what.** CI builds the image on every push, starts it,
 seeds the database inside it, checks the feed renders, and checks it survives
-`down` and `up`. What CI cannot do is sign in to Spotify, so the checklist
+`down` and `up` — first green on 2026-09-25. What CI cannot do is sign in to Spotify, so the checklist
 below is by hand. **Not yet run through Docker:**
 
 - [ ] `docker compose up`, connect Spotify from `http://127.0.0.1:3000`

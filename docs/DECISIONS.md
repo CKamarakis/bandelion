@@ -232,6 +232,13 @@ must not be described as working. `npm run dev` is the verified path today.
 the decision above was not carried out. The `docker-and-ci` change writes them
 and verifies them in CI.
 
+**Closed, 2026-09-25:** CI built and ran the container for the first time on
+that date, green on the first attempt: image built, seeded inside the
+container, a seeded release rendered in the served HTML, and survived `down`
+and `up` (run 36183054062). A deliberately wrong title turned that step red
+(run 36183348355), so the check is known to look. Signing in to Spotify
+through the container is still a hand check; README says so.
+
 ---
 
 ## 016 · The repo is public from the first commit

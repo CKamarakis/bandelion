@@ -11,24 +11,24 @@
 ## 2. Container
 
 - [x] 2.1 Add `.dockerignore` excluding `node_modules`, `.next`, `data`, `.env*` (keeping `.env.example`), `tests/shots` and `.git`; verify by listing the build context size is small and `.env` is absent from it
-- [ ] 2.2 Add `Dockerfile`: `node:24-slim`, `npm ci`, `npm run build`, `/app/data` created and owned by `node`, runs as `node`, `CMD` is `next start -H 0.0.0.0 -p 3000`; verified by the CI container job in group 3
-- [ ] 2.3 Add `docker-compose.yml`: service `web`, `env_file: .env`, `DATABASE_PATH=/app/data/bandelion.db`, named volume at `/app/data`, port `127.0.0.1:3000:3000`; verified by the CI container job in group 3
+- [x] 2.2 Add `Dockerfile`: `node:24-slim`, `npm ci`, `npm run build`, `/app/data` created and owned by `node`, runs as `node`, `CMD` is `next start -H 0.0.0.0 -p 3000`; verified by the CI container job in group 3
+- [x] 2.3 Add `docker-compose.yml`: service `web`, `env_file: .env`, `DATABASE_PATH=/app/data/bandelion.db`, named volume at `/app/data`, port `127.0.0.1:3000:3000`; verified by the CI container job in group 3
 - [x] 2.4 Update CLAUDE.md commands (drop "not written yet"; add `docker compose exec web npm run ingest`) and the architecture listing for the three files; verify `node tests/docs.mjs` passes
 
 ## 3. CI
 
-- [ ] 3.1 Add `.github/workflows/verify.yml` job `verify`: Node 24, `npm ci`, `npm run verify` on push and pull request; verify it goes green on the PR
-- [ ] 3.2 Add job `container` after `verify`: write `.env` from `.env.example` with a generated key; assert `docker compose config` publishes on `127.0.0.1` only; `up -d --build`; poll `/` for the tagline; on failure print `docker compose logs`; verify it goes green on the PR
-- [ ] 3.3 In `container`, `exec` the seed, assert a seeded release title is in `/`, then `down` without `-v`, `up`, and assert the title survives; verify green on the PR, then break it once (assert a title that is not seeded), confirm red, restore
+- [x] 3.1 Add `.github/workflows/verify.yml` job `verify`: Node 24, `npm ci`, `npm run verify` on push and pull request; verify it goes green on the PR
+- [x] 3.2 Add job `container` after `verify`: write `.env` from `.env.example` with a generated key; assert `docker compose config` publishes on `127.0.0.1` only; `up -d --build`; poll `/` for the tagline; on failure print `docker compose logs`; verify it goes green on the PR
+- [x] 3.3 In `container`, `exec` the seed, assert a seeded release title is in `/`, then `down` without `-v`, `up`, and assert the title survives; verify green on the PR, then break it once (assert a title that is not seeded), confirm red, restore
 - [x] 3.4 Grep the workflow for any host other than the npm registry, GitHub and Docker Hub; verify none
 
 ## 4. Docs
 
 - [x] 4.1 README setup: a Docker path next to `npm run dev`, with `.env`, `docker compose up`, `docker compose exec web npm run ingest`, and a note that the app is loopback-only and a VPS needs https on a real hostname for Spotify; verify `node tests/docs.mjs` passes
-- [ ] 4.2 README manual checklist for what CI cannot hold a Spotify app for: connect through the container, run `ingest`, restart, confirm still connected; mark the Docker path "verified in CI" and the checklist "not yet run" until someone runs it
-- [ ] 4.3 Append to `docs/DECISIONS.md` 015 the date CI first ran the container job, and a new decision for loopback-only publishing; verify the LIMITS→DECISIONS citation check still passes
+- [x] 4.2 README manual checklist for what CI cannot hold a Spotify app for: connect through the container, run `ingest`, restart, confirm still connected; mark the Docker path "verified in CI" and the checklist "not yet run" until someone runs it
+- [x] 4.3 Append to `docs/DECISIONS.md` 015 the date CI first ran the container job, and a new decision for loopback-only publishing; verify the LIMITS→DECISIONS citation check still passes
 
 ## 5. Integration
 
 - [x] 5.1 Run `npm run verify` once locally and capture the output; green
-- [ ] 5.2 Push, and confirm both CI jobs are green on the PR with the run URL in the report
+- [x] 5.2 Push, and confirm both CI jobs are green on the PR with the run URL in the report
