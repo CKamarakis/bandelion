@@ -83,6 +83,7 @@ jobs:
             console.log(t);')
           echo "picked: $title"
           echo "TITLE=$title" >> "$GITHUB_ENV"
+          echo "TITLE=Zz Not A Seeded Title" >> "$GITHUB_ENV"
 
       - name: The feed renders from the seeded database
         run: |
