@@ -9,12 +9,12 @@ pass has a work queue instead of a memory test.
 
 ## How this differs from the other docs
 
-- `DECISIONS.md` — what was decided and why. Closed questions.
-- `LIMITS.md` (this file) — what the decision costs, and what would lift it.
+- `docs/DECISIONS.md` — what was decided and why. Closed questions.
+- `docs/LIMITS.md` (this file) — what the decision costs, and what would lift it.
   Open questions, deliberately parked.
 - `CLAUDE.md` — the rules. Not negotiable per-phase.
 
-A limit graduates out of this file when it is fixed, or into `DECISIONS.md`
+A limit graduates out of this file when it is fixed, or into `docs/DECISIONS.md`
 when we decide to live with it permanently.
 
 ## Format
@@ -101,7 +101,7 @@ before it ships.
 ## L02 · Triage cannot reach a name MusicBrainz files differently · degrades
 
 **Lifted, mostly.** Triage now auto-accepts a name search when one candidate
-survives every rule (decision 044, `TRIAGE.md`), and searching aliases as well
+survives every rule (decision 044, `docs/TRIAGE.md`), and searching aliases as well
 as names fixed the transliteration class. Simulated over the 264 pending rows:
 **200 accepted, 64 left, zero MBID collisions.**
 
@@ -217,7 +217,7 @@ before rows are written, or the feed shows one record six times.
 
 ## L07 · The gig sources are unbuilt and largely unmeasured · blocks-flow
 
-Half the product. `VENUES.md` lists 58 Berlin venues as targets, and three of
+Half the product. `docs/VENUES.md` lists 58 Berlin venues as targets, and three of
 those domains were already wrong when the list was written.
 
 What is known: Resident Advisor's GraphQL endpoint answers 200 while its HTML
@@ -239,19 +239,6 @@ Every job runs by hand from the CLI. The artifact is `docker compose up` doing
 this on its own; today it does nothing on its own.
 
 **Trigger:** once releases land, because a radar nobody triggers is not a radar.
-
-## L09 · The feed does not exist · blocks-flow
-
-46 seeded releases and 302 resolved artists render nowhere. There is a connect
-screen and a roster import screen, and that is the whole UI.
-
-This is the largest single gap and the reason everything above is sequenced
-before it: a feed built on incomplete ingest would be designed around the wrong
-shape of data.
-
-**Trigger:** once the release pass writes real rows. Not before — the seeded
-database exists precisely so the screen can be designed against real recorded
-shapes rather than invented ones.
 
 ## L11 · MusicBrainz itself sometimes holds a record twice · cosmetic
 
@@ -354,6 +341,26 @@ a wrong album link could be trusted on a page. Then the iframe, with
 **Trigger:** when the playlist is in daily use and the artist link is the thing
 that slows a listen down. Deliberately after the lists, so the matching risk
 lands on a screen that already works.
+
+---
+
+## L13 · Liked artists have no picture, and the one free source is discarded · cosmetic
+
+**Measured.** Of 1,408 liked artists, 935 have no Spotify image: `/me/tracks`
+nests only id and name, and the batch artist endpoint is gone (see
+`docs/SPOTIFY.md`). MusicBrainz carries an `image` URL relation pointing at
+Wikimedia Commons, which has a free thumbnail API — verified end to end with
+Pink Floyd. `src/jobs/resolve.ts` drops it: `KEPT_LINK_KINDS` does not include
+`image`. Counts are from the `liked-songs-list` handover, before the full
+resolve pass of 2026-09-20; not re-measured since.
+
+**What would lift it:** keep the `image` relation in resolve, then a checkpointed
+thumbnail pass against Commons, stamped per artist like the cover pass so a
+missing image is asked once. Needs a resolve re-run to backfill.
+
+**Trigger:** when artist pictures appear anywhere in the UI. Today type carries
+the hierarchy and no screen shows an artist image, which is why this is
+cosmetic.
 
 ---
 

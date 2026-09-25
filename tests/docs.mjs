@@ -14,6 +14,8 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 const root = join(import.meta.dirname, '..');
+// Reference docs live here; README.md and CLAUDE.md stay at the root.
+const DOCS_DIR = join(root, 'docs');
 
 let failed = 0;
 const check = (ok, msg, detail) => {
@@ -115,7 +117,7 @@ for (const p of referenced) {
 // What it can check is that the file keeps the shape that makes it useful, and
 // that every decision it cites actually exists.
 
-const limits = readFileSync(join(root, 'LIMITS.md'), 'utf8');
+const limits = readFileSync(join(DOCS_DIR, 'LIMITS.md'), 'utf8');
 
 {
   const entries = [...limits.matchAll(/^## (L\d+) · (.+?) · (blocks-flow|degrades|cosmetic)$/gm)];
@@ -141,7 +143,7 @@ const limits = readFileSync(join(root, 'LIMITS.md'), 'utf8');
 
   // Decisions cited by number must exist, so a renumbering does not leave
   // dangling references.
-  const decisions = readFileSync(join(root, 'DECISIONS.md'), 'utf8');
+  const decisions = readFileSync(join(DOCS_DIR, 'DECISIONS.md'), 'utf8');
   const cited = new Set([...limits.matchAll(/decision (\d{3})/g)].map(([, n]) => n));
   for (const n of cited) {
     check(
@@ -159,6 +161,24 @@ for (const [, script] of readme.matchAll(/npm run ([\w:]+)/g)) {
     Object.hasOwn(pkg.scripts ?? {}, script),
     `README references an existing script: ${script}`,
   );
+}
+
+/*
+ * Every file README's documentation table points at exists.
+ *
+ * The table is the index a newcomer reads first, and it rotted exactly the way
+ * CLAUDE.md's listing would have without its check: it named HANDOVER.md and
+ * PALETTE.md at the root after both had moved or gone.
+ */
+const docsTable = readme.match(/## Documentation[\s\S]*?\n((?:\|.*\n)+)/);
+check(Boolean(docsTable), 'README has a Documentation table');
+
+if (docsTable) {
+  const rows = [...docsTable[1].matchAll(/^\| `([^`]+)` \|/gm)].map(([, p]) => p);
+  check(rows.length > 0, 'the Documentation table names at least one file');
+  for (const p of rows) {
+    check(existsSync(join(root, p)), `README's Documentation table names an existing path: ${p}`);
+  }
 }
 
 /*

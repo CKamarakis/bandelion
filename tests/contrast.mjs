@@ -271,7 +271,7 @@ for (const pattern of repeating) {
 }
 check(!/backdrop-filter/.test(declarations), 'no glassmorphism');
 
-// --- PALETTE.md names the colours that actually exist ------------------------
+// --- docs/DESIGN.md names the colours that actually exist ------------------------
 //
 // The file documents the palette; globals.css defines it. A hex listed there
 // and absent from the stylesheet is documentation of a colour nobody ships,
@@ -279,7 +279,7 @@ check(!/backdrop-filter/.test(declarations), 'no glassmorphism');
 // not checked: --rule is an alias, not a new colour.
 
 {
-  const paletteDoc = readFileSync(join(import.meta.dirname, '..', 'PALETTE.md'), 'utf8');
+  const paletteDoc = readFileSync(join(import.meta.dirname, '..', 'docs', 'DESIGN.md'), 'utf8');
   const declared = new Set(
     Object.values(vars).map((v) => v.toLowerCase().trim()),
   );
@@ -291,11 +291,11 @@ check(!/backdrop-filter/.test(declarations), 'no glassmorphism');
     m[1].toLowerCase(),
   );
 
-  check(documented.length > 0, 'PALETTE.md lists at least one hex');
+  check(documented.length > 0, 'docs/DESIGN.md lists at least one hex');
   for (const hex of new Set(documented)) {
     check(
       declared.has(hex),
-      `PALETTE.md documents a colour that ships: ${hex}`,
+      `docs/DESIGN.md documents a colour that ships: ${hex}`,
       `not found in globals.css (declared: ${[...declared].join(', ')})`,
     );
   }

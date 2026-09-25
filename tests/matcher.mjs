@@ -4,7 +4,7 @@
  * Cases live in fixtures/matcher-cases.json and were written before the
  * matcher, so it cannot be tuned to pass its own test.
  *
- * The trap this suite avoids, from PLAYBOOK: a test that reimplements the logic
+ * The trap this suite avoids, from docs/TESTING.md: a test that reimplements the logic
  * it is testing will happily assert the buggy behaviour. So expectations here
  * are written as literal artist names, and the only normalisation applied to
  * them is the lookup from name to roster index — never the matcher's own

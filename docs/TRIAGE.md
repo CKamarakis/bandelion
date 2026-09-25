@@ -9,8 +9,8 @@ for changing them. This file is the evidence.
 
 ## How this differs from the other docs
 
-- `DECISIONS.md` — what was decided and why, across the whole project.
-- `LIMITS.md` — what is deferred, and what would lift it.
+- `docs/DECISIONS.md` — what was decided and why, across the whole project.
+- `docs/LIMITS.md` — what is deferred, and what would lift it.
 - **This file** — the queue itself: what was in it, what each rule does to it,
   and which rules were considered and rejected.
 

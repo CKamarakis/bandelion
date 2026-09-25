@@ -1,17 +1,83 @@
-# Palette
+# Design
 
-The colours, what each one is for, and the measured contrast between them.
+The look, the rules that hold it, and the colours with their measured contrast.
 
-**The values live in `src/app/globals.css` as custom properties.** This file
-documents them; it does not define them, and `tests/contrast.mjs` parses the
-stylesheet rather than any hex restated here. Three contrast bugs shipped on a
-previous project because a test knew a different hex than the stylesheet did,
-the worst at 1:1 — text exactly the colour of its own background, reported as
-"the buttons look empty".
+**Post-punk and late-80s/90s indie.** DIY show flyer, xerox and screenprint,
+fanzine cut-and-paste. Factory Records, Fugazi sleeves, a photocopied poster
+stapled to a pole. Underground, rough, groovy, fun — built for people who take
+music seriously and design that does not take itself seriously.
+
+**Not:** friendly SaaS, soft cards, pastel anything.
 
 ---
 
-## The colours
+## The Factory idea, and why it fits
+
+Peter Saville's Factory sleeves were **information design pretending to be
+art**: Unknown Pleasures is a pulsar plot, FAC numbers catalogued everything
+including the office cat, and the sleeve often carried less band-name than a
+specimen chart would.
+
+That is the right model for Bandelion, because Bandelion **is** a list of dates,
+venues and catalogue numbers. So:
+
+- **The data is the ornament.** Do not decorate the feed. Set the dates, venue
+  names and metadata in heavy type at real scale and let density carry the look.
+- **Catalogue numbering, but not on every row.** The FAC-number idea is right
+  for the page as an object (the header carries `BND 0001`), and wrong repeated
+  down a 200-row feed: `BND 0504` beside every release is a number nobody reads,
+  competing with the date and the artist for the same glance. `catalogueNumber`
+  still exists and still has its tests. Would change if an event ID ever became
+  something you need to quote.
+- **Information as texture.** Dense condensed or monospaced metadata blocks,
+  hard rules between them.
+- **The grid is visible.** Hard rules, boxes, obvious columns. Not hidden.
+- **Restraint against the palette.** Saville used flat colour sparingly on a lot
+  of white. Magenta and violet are allowed on real surfaces, but the default is
+  still a lot of white with colour placed where it means something.
+
+---
+
+## Rules
+
+- **Zero border-radius**, with two exceptions, both circles drawn around
+  circular artwork. No rounded corners anywhere else, including avatars and
+  images — hard edges are the whole point. The exceptions are the save stamp
+  (`.stamp`), a 24px circle carrying the bolt on a sleeve's corner, and the
+  masthead mark's focus ring (`.masthead-home`), which would otherwise box a
+  circular logo. Both are ink marks rather than interface chrome.
+  `tests/contrast.mjs` holds the allowlist and fails on a rounded corner
+  anywhere else, naming the offending selector, so these are documented
+  exceptions rather than a loosened rule.
+- **No soft shadows, no gradients, no glassmorphism.** Flat blocks and hard
+  rules. If depth is needed, use a hard offset block, not a blur.
+- **Type carries the hierarchy** — weight, scale and case, not colour. Heavy
+  condensed display faces, tight tracking, big jumps between levels. Colour is
+  emphasis, never the only signal.
+- **Colour never carries meaning alone.** State is border plus shape plus
+  label. A hover that only changes hue is not a state change.
+- **Rough on purpose, not sloppy.** Texture, hard rules, slight rotation on
+  accents is welcome. Misaligned grids and unreadable text are not.
+- **Every element earns its line.** A label repeating identically on every
+  instance carries no information. Counters name what they count: never
+  "1 left".
+- **Anything that expands in place scrolls itself into view.**
+- **Consistency of gesture beats economy of controls.** If one row confirms by
+  tap, they all do.
+
+---
+
+## Palette
+
+**The values live in `src/app/globals.css` as custom properties.** This file
+documents them; it does not define them, and `tests/contrast.mjs` parses the
+stylesheet rather than any hex restated here. It does read this file for one
+thing: every hex written here in backticks must be a colour that ships. Three
+contrast bugs shipped on a previous project because a test knew a different hex
+than the stylesheet did, the worst at 1:1 — text exactly the colour of its own
+background, reported as "the buttons look empty".
+
+### The colours
 
 | Swatch | Hex | Token | What it is |
 |---|---|---|---|
@@ -26,6 +92,11 @@ the worst at 1:1 — text exactly the colour of its own background, reported as
 `--rule` is `--ink` and `--rule-width` is `2px`, so the visible grid is one
 decision rather than a number repeated in forty places.
 
+Magenta and violet are **usable on surfaces, not only as hairlines**. An earlier
+rule confined them to accents; what actually matters is the measurement, not
+the area, and the tables below record which pairings pass. Restraint is still
+the intent, but it is a design judgement rather than a hard limit.
+
 ### Two blacks, on purpose
 
 `--ink` (`#333129`) is a warm near-black with olive in it, and it is what every
@@ -33,9 +104,7 @@ rule, border and body string uses. `#000000` is true black and appears only as
 the striped page ground. They are close but not interchangeable: ink on true
 black measures **1.61:1**, which is why nothing sets type on the stripes.
 
----
-
-## Measured pairings
+### Measured pairings
 
 Computed from the declared values, not eyeballed.
 
@@ -89,17 +158,13 @@ text.** Black on `--spotify-green` is 10.94:1, which is how Spotify ships it
 and how the connect button already uses it. The dandelion is the same story for
 the same reason: both are surfaces you set black type on, not inks.
 
----
-
-## Rules that come with them
+### Rules that come with the palette
 
 - **Any colour change gets measured.** `tests/contrast.mjs` reads the declared
   values out of the stylesheet and computes the ratios, so it tests what ships.
-  Never restate a hex in the test.
-- **Colour never carries meaning alone.** State is border plus shape plus
-  label. A hover that only changes hue is not a state change.
-- **The yellow is stock, not ink.** `#F7D000` is a surface for black type. At
-  1.6:1 on white it is invisible as text.
+  Never restate a hex in the test — read it from the source.
+- **The yellow is stock, not ink.** `#F7D000` is a surface for black type, the
+  way a screenprinted poster works. At 1.6:1 on white it is invisible as text.
 - **Two colours that collide are a bug.** The test asserts no two declared
   palette values are visually identical, because a colour equal to its own
   ground renders as nothing and passes every other check.

@@ -227,6 +227,11 @@ annoying.
 **Consequence:** the Docker path is **untested** until Docker is available. It
 must not be described as working. `npm run dev` is the verified path today.
 
+**Correction, 2026-09-25:** the files were never committed. Neither
+`Dockerfile` nor `docker-compose.yml` exists in the repo or in its history, so
+the decision above was not carried out. The `docker-and-ci` change writes them
+and verifies them in CI.
+
 ---
 
 ## 016 · The repo is public from the first commit
@@ -569,6 +574,8 @@ Exactly the failure mode PLAYBOOK warns about under "tests that mirror the
 implementation": a suite that appears to assert something and does not. Caught
 only because appending a third block made the pattern visible.
 
+[PLAYBOOK has since been folded into `docs/TESTING.md`, under Traps.]
+
 ---
 
 ## 032 · Spotify's album endpoint is quota-limited, and the penalty is a day
@@ -833,7 +840,7 @@ resolution completes at all.
 
 **Still open:** each artist costs two calls (identity, then links). Skipping the
 links call for artists that already have links would cut a re-run roughly in
-half. Tracked in `LIMITS.md` L03.
+half. Tracked in `docs/LIMITS.md` L03.
 
 ---
 
@@ -993,7 +1000,7 @@ screen saying so.
 candidate at score 100 whose name was the only exact match** in the candidate
 list. Six were genuine ties, 14 had no exact match. So the queue was not
 recording doubt; it was recording the absence of an auto-accept rule. That rule
-is not built yet — see `LIMITS.md` — and the page exists for the genuinely
+is not built yet — see `docs/LIMITS.md` — and the page exists for the genuinely
 ambiguous remainder either way.
 
 **Both sides link out.** "Which of these two bands called Steak is yours" is
@@ -1030,7 +1037,7 @@ it survives every rule; everything else keeps its place in the review queue.
 **The measurement that forced it.** A full resolve pass resolved **0 of 315**
 in 42 minutes, because name search auto-accepted nothing. Reading the 264
 queued payloads, **188 had one exact-named candidate and nothing competing** —
-the queue was recording the absence of a rule, not doubt. `TRIAGE.md` carries
+the queue was recording the absence of a rule, not doubt. `docs/TRIAGE.md` carries
 the full breakdown.
 
 **The rules, each from a real row.** Same word count (`Daisy Grenade` is not
