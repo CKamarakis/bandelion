@@ -802,7 +802,7 @@ a {
  * 24px of ground carrying a 16px glyph, per spec.
  *
  * The ground is `--ink`, not true black. True black is the striped page ground
- * and nothing else (PALETTE.md), and ink is what every other mark, rule and
+ * and nothing else (docs/DESIGN.md), and ink is what every other mark, rule and
  * border in the project is drawn in — a stamp is ink by definition. The two
  * read identically at 24px anyway, and magenta on ink is the pairing
  * tests/contrast.mjs actually measures.

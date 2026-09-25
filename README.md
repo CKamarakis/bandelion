@@ -109,7 +109,7 @@ MusicBrainz candidate with its description, so you can check before deciding.
 Picking one records it, so the same name is not asked about twice.
 
 Measured on a real 1,556-artist library: 264 artists reached the queue, and the
-triage rules in `TRIAGE.md` decide about 200 of them without asking. What is
+triage rules in `docs/TRIAGE.md` decide about 200 of them without asking. What is
 left is the real thing — two bands called Steak, five called Spindrift.
 
 An artist with no MusicBrainz entry stays unresolved and that is expected:
@@ -186,16 +186,15 @@ Honest list, because finding these yourself is worse.
 - **No gigs.** Releases only. The gig sources in the table above are planned.
 - **Ambiguous names are decided by hand.** Resolution never guesses, so when
   MusicBrainz has several acts under one name the artist waits in the Review
-  screen until you pick. On a real 1,556-artist library that was 264 artists.
-  Nothing auto-accepts a name search yet, which is why the queue is larger than
-  the genuinely ambiguous part of it: 188 of those 264 had exactly one candidate
-  whose name matched exactly and nothing competing.
+  screen until you pick. Triage accepts only the names it can prove: on a real
+  1,556-artist library, 264 artists had reached the queue, and a re-run with
+  triage resolved 203 and left 71 for you (`docs/TRIAGE.md`).
 - **No unfollow or unlike.** Nothing is ever removed. Neither is observable from
   a partial import, so an interrupted run would look identical to unfollowing
   everything after the point it stopped.
 - **Liked artists have no images**, as above.
 
-`LIMITS.md` tracks the full list and what would lift each one.
+`docs/LIMITS.md` tracks the full list and what would lift each one.
 
 ---
 
@@ -203,18 +202,20 @@ Honest list, because finding these yourself is worse.
 
 | File | What it is |
 |---|---|
-| `CLAUDE.md` | How the project is built and why. Read first. |
-| `DECISIONS.md` | A running log of what was decided while building, and why. |
-| `TRIAGE.md` | How an artist gets a MusicBrainz identity, and the measurements behind each rule. |
-| `PALETTE.md` | Every colour, what it is for, and the measured contrast. |
-| `HANDOVER.md` | Where the current branch stands, and what to pick up next. |
-| `LIMITS.md` | What is deferred, and what would lift each limit. |
-| `VENUES.md` | The Berlin venues the gig sources will target. |
-| `TESTING.md` | Each test suite and the bug that caused it. |
-| `PLAYBOOK.md` | Decisions worth making before writing code. |
+| `CLAUDE.md` | How the project is built: commands, architecture, constraints. Read first. |
+| `openspec/specs/` | What the system does, one spec per capability. The source of truth for behaviour. |
+| `openspec/changes/` | Work in flight. The roadmap is whatever is in here. |
+| `docs/PRODUCT.md` | The product rules, each with why and what would change it. |
+| `docs/DECISIONS.md` | A running log of what was decided while building, and why. History. |
+| `docs/LIMITS.md` | What is deferred, and what would lift each limit. |
+| `docs/DESIGN.md` | The look, the rules, and every colour with its measured contrast. |
+| `docs/SPOTIFY.md` | What the Spotify API allows, measured, with sources. |
+| `docs/TESTING.md` | Each test suite, the bug that caused it, and the traps. |
+| `docs/TRIAGE.md` | How an artist gets a MusicBrainz identity, and the measurements behind each rule. |
+| `docs/VENUES.md` | The Berlin venues the gig sources will target. |
 | `.claude/skills/copy/SKILL.md` | Voice rules for user-facing text. `/copy` |
 | `.claude/skills/triage/SKILL.md` | How to change the artist-matching rules safely. `/triage` |
 
-`PLAYBOOK.md` and parts of `TESTING.md` came from an earlier, different project
-(an offline single-file prototype). The shapes transfer; the specifics do not.
-Where they conflict with `CLAUDE.md`, `CLAUDE.md` wins.
+Parts of `docs/TESTING.md` came from an earlier, different project (an offline
+single-file prototype). The shapes transfer; the specifics do not. Where they
+conflict with `CLAUDE.md` or a spec, those win.

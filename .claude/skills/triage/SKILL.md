@@ -9,7 +9,7 @@ Deciding which MusicBrainz candidate is the artist you follow, without asking a
 human every time and without ever merging two bands.
 
 The rules live in `src/matcher/triage.ts`. `tests/triage.mjs` holds a real
-queue row for each one. `TRIAGE.md` is the log of what was measured, what was
+queue row for each one. `docs/TRIAGE.md` is the log of what was measured, what was
 ruled out, and why.
 
 ## The invariant, above every rule
@@ -39,7 +39,7 @@ records under the other's name with nothing on screen saying so.
 5. **Run `npm run eval:matcher`.** CLAUDE.md requires a matcher change to
    prove itself there. It covers the listing matcher rather than triage, so
    the expectation is *no regression*, not improvement.
-6. **Record it in `TRIAGE.md`**, including rules that were considered and
+6. **Record it in `docs/TRIAGE.md`**, including rules that were considered and
    rejected. The rejections are the part that saves the next person time.
 
 ## Rules of thumb, learned from the queue

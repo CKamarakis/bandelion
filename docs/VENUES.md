@@ -1,8 +1,9 @@
 # Berlin venues
 
 Tracking targets for the gig sources. **Nothing here is wired up yet** — this is
-the shortlist to crawl or match against once stage 5 lands, not a description of
-what the app currently does.
+the shortlist to crawl or match against once the gig sources are built (a
+future OpenSpec change; see `docs/LIMITS.md` L07), not a description of what
+the app currently does.
 
 Grouped by capacity, because size predicts which source carries a venue:
 arenas and large halls are well covered by Ticketmaster and Eventim, while the
@@ -108,7 +109,7 @@ before building for them.
 
 ---
 
-## Needs a decision before stage 5
+## Needs a decision before the gig sources are built
 
 - **RSO Berlin** — no working domain found. It may have closed or rebranded;
   worth confirming rather than dropping silently.

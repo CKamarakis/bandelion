@@ -33,7 +33,7 @@ npm run seed           # build a seeded database, so screens work without OAuth
 npm run eval:matcher   # artist-name matcher eval set, prints a score
 npm run fixtures:record # capture a live upstream response into tests/fixtures/
 npm run shots          # screenshots via real browser
-docker compose up      # the actual artifact
+docker compose up      # the actual artifact — not written yet (docker-and-ci)
 ```
 
 ## Architecture
@@ -93,14 +93,25 @@ tests/fixtures/     recorded upstream responses — never call live APIs in test
 tests/pager-scroll.mjs hand-run: proves turning a page returns you to the top
 tests/record-fixture.mjs  hand-run: the one script that does call live Spotify
 tests/seed.mjs      hand-run: builds data/seed.db so screens work without OAuth
+openspec/specs/     what the system does, one spec per capability — the source of truth
+openspec/changes/   work in flight: the roadmap, one change per piece
+docs/               reference and evidence; README.md indexes it
+docs/PRODUCT.md     the product rules, each with why and what would change it
+docs/DECISIONS.md   what was decided while building, and why — history
+docs/LIMITS.md      what is deferred, and what would lift each limit
+docs/DESIGN.md      the look, the rules and the palette with measured contrast
+docs/SPOTIFY.md     what the Spotify API allows, measured
+docs/TESTING.md     each suite, the bug it exists for, and the traps
+docs/TRIAGE.md      the evidence behind every triage rule
+docs/VENUES.md      the Berlin venues the gig sources will target
 ```
 
 Not built yet: gigs, and every source adapter other than Spotify and
-MusicBrainz. `LIMITS.md` tracks what is deferred and
+MusicBrainz. `docs/LIMITS.md` tracks what is deferred and
 what would lift each limit — the improvement queue for after the happy path
 works; `tests/docs.mjs` keeps its shape honest. Releases come from MusicBrainz rather than
 Spotify (decisions 032/033/039) — see
-`VENUES.md` for the Berlin venues the gig sources will target.
+`docs/VENUES.md` for the Berlin venues the gig sources will target.
 
 ---
 
@@ -114,9 +125,10 @@ These are load-bearing. Breaking one silently defeats the purpose.
    a source changes its JSON, the fixture diff names what broke.
 2. **An adapter never throws out of `fetch`.** It records the failure and
    returns `[]`. One failing source must never empty the feed or block the
-   others. There is a test that disables an adapter and asserts the feed still
-   renders and `adapter_health` shows degraded — that promise is the whole
-   architecture, and untested it is a wish.
+   others. A test that disables an adapter and asserts the feed still renders
+   and `adapter_health` shows degraded is **owed, not written** — the
+   `docker-and-ci` change adds it. That promise is the whole architecture, and
+   untested it is a wish.
 3. **Documentation is tested, not remembered.** A test asserts this file names
    only files that exist and documents every npm script. Prose drifts silently;
    this fails the build instead. (The docs this project inherited said "the four
@@ -135,183 +147,34 @@ These are load-bearing. Breaking one silently defeats the purpose.
 
 ## Domain rules
 
-Product decisions with reasons. Format: **a bolded claim, then why, then what
-would change it.**
+The reasoning lives in `docs/PRODUCT.md`; the behaviour in `openspec/specs/`.
 
-> **The feed is the product; releases and gigs are event types.**
-> Both are rows in `events`, discriminated by `type`. The alternative — parallel
-> release and gig systems — was rejected because every requirement that arrived
-> during planning ("show the latest release on a gig card") crossed the
-> boundary. Would change if the two types stopped sharing a timeline.
-
-> **Sort by urgency, not by date.**
-> Berlin shows are announced anywhere from 14 months to 2 weeks ahead. Pure
-> chronological order buries an urgent thing under distant festival dates. For
-> gigs the urgent moment is usually the **ticket on-sale date**, not the show
-> date: a show 8 months out with tickets dropping Friday is the thing you must
-> not miss. Would change if on-sale dates prove too unreliable to sort on.
-
-> **Fetch gigs by city, match locally.**
-> With thousands of followed artists, per-artist event queries are thousands of
-> calls per poll. Pulling all city events in the window is hundreds of calls
-> total. Consequence: even official sources need name matching, so the matcher
-> is not only for crawled sources.
-
-> **Deterministic matching before any LLM.**
-> An LLM resolves messy lineup strings better than fuzzy matching, but it is a
-> per-instance API key, a cost, and a dependency in an app whose selling point
-> is that you run it yourself. The eval set exists so that when an LLM adapter
-> is added, it has to *prove* it beats the deterministic tiers. Would change if
-> the eval score plateaus somewhere useless.
-
-> **Artists are artists; the list is provenance.**
-> Followed artists and liked-song artists are one `artists` table and one
-> `user_artists` row per artist, carrying a `followed` and a `liked` flag. Not
-> one row per source: measured on a real library, **477 of 1,408 liked artists
-> are also followed**, so the overlap is the normal case, and a row per source
-> would make every feed query need `DISTINCT` to avoid showing those twice.
-> A third list (Trias) is a third flag. Would change past four or five lists,
-> where a join table starts earning its keep.
-
-> **Liked artists arrive without images, and that is not worth fixing.**
-> `/me/tracks` nests only artist id and name. The batch `GET /artists?ids=` that
-> would have filled in images for 1,400 artists in 28 calls is **gone** —
-> measured 403 on an allowlisted token — so the alternative is one call per
-> artist. Type carries the hierarchy here anyway. Would change if Spotify
-> restores a batch artist endpoint.
-
-> **Volume is the risk, not sparsity.**
-> A 4-month release window across thousands of artists produces a lot of items.
-> Singles are the bulk of the noise. Dismiss and sub-filters are load-bearing,
-> not conveniences.
-
-> **Save, listened and liked are three flags, not three stages.**
-> One `event_state` row per (user, event) carries `queued`, `listened` and
-> `favorited`, and every write names only the flag it changes. A state machine
-> holding one of them at a time was rejected because it cannot represent
-> "listened and did not like it", which is the ordinary outcome of working
-> through the playlist. Hearting a record therefore leaves it on the playlist:
-> the two lists overlap by design, the way `followed` and `liked` do on
-> `user_artists`. Would change if a fourth mark arrived that genuinely replaced
-> an earlier one rather than adding to it.
-
-> **The feed is for scanning; the lists are for working through.**
-> The feed is a card grid because the question there is "anything new across
-> 600 records". The playlist and favs are one row per record, because the
-> question is "what is left, and what did I think of it" — and a line per record
-> fits more of them on screen with the marks in one column the eye can run down.
-> Would change if the lists ever grew past a few hundred rows, where they would
-> need the feed's filters and pagination too.
-
-> **A saved list is read two ways, so it offers both.**
-> By month (the default) groups by release date the way the feed does: the list
-> as a plan, what is out and what is coming. Recently added keeps the order the
-> rows were saved in, ungrouped: the list as a queue, where the thing you just
-> put there is on top. Neither is a superset of the other, which is why this is
-> a control rather than a default someone has to live with. `added` is the
-> identity on what `getFlaggedEvents` returned — a `FeedItem` carries no
-> `updated_at`, so any re-sort would silently destroy that order.
-
-> **A row leaves its list the moment its flag goes.**
-> Un-hearting in favs, un-saving on the playlist and the X all remove the row
-> at once, and the count follows it. The first version kept the row in place,
-> struck through, so nothing moved under the cursor and a misclick was one
-> press from being undone. That was the wrong trade and was reported as a bug:
-> a page named after a list must not show records that are not on it. Would
-> change if removal ever became hard to reverse, which would argue for an undo
-> rather than for leaving the row behind.
->
-> `visibleList` filters and orders in one call for this reason. The predicate
-> was already correct when the bug was reported; nothing applied it before
-> ordering, and a test of the predicate alone passed while the screen was
-> wrong.
-
-> **An artist link tries the desktop app and falls back to the web.**
-> `SPOTIFY_LINK_TARGET` defaults to `app`: the click navigates to
-> `spotify:artist:<id>`, watches for the page losing focus, and opens the web
-> player in a new tab if nothing took it within 600ms. A browser cannot ask
-> whether a URI scheme has a handler — that is a deliberate fingerprinting
-> guard — so this is an inference, not a detection, and the copy must never
-> claim otherwise. The href stays the **web** URL in both modes, because it is
-> what hover, copy-link and middle-click use, and a `spotify:` href is useless
-> for all three. Would change if browsers ever expose a handler check, which
-> would turn the timeout into a real branch.
-
-> **Triage accepts what it can prove; everything else is a decision.**
-> A name search auto-accepts only when one candidate survives every rule in
-> `src/matcher/triage.ts`: same word count, exact name after normalisation, and
-> exact spelling where several acts share the name. Collaboration credits
-> (`A x B`) and non-musical MusicBrainz types are removed first. Every rule
-> fails toward the human, because a wrong MBID is invisible in the feed and an
-> extra queued row costs one click. `TRIAGE.md` carries the measurements and
-> the rules that were rejected; `.claude/skills/triage/SKILL.md` is the method.
->
-> **The invariant above every rule: two artists never share an MBID.** The
-> roster holds two WITCHes and two Pentagrams, and MusicBrainz answers both
-> spellings with the same list. Spelling is what separates them, and
-> `tests/resolve.mjs` asserts it directly. Would change only for a rule that
-> keeps that assertion true.
-
-> **An ambiguous name is a decision, and the decision is kept.**
-> `resolve` auto-accepts nothing from a name search, so every name MusicBrainz
-> could read two ways lands in `match_queue`. Measured on the real roster:
-> 315 unresolved artists were **264 queued, 52 with no MusicBrainz record, 2
-> unreachable** — and of the 264, **188 had exactly one candidate at score 100
-> whose name was the only exact match**. So the queue was mostly not ambiguous;
-> it was the absence of a rule. The review page exists for the genuinely
-> ambiguous remainder, and every confirmation writes `artist_aliases`, so a
-> name is decided once and the queue does not refill with it. Rejecting marks
-> the row `rejected` rather than deleting it, because a deleted row is re-asked
-> on the next sweep. Would change if an auto-accept rule lands and shrinks the
-> queue to the point where a page is more furniture than help.
->
-> Every row links **both sides**: your artist on Spotify and each candidate on
-> MusicBrainz. "Which of these two bands called Steak is yours" cannot be
-> answered from the row itself, and a question you cannot check is answered by
-> coin toss.
-
-> **Links are best-effort and say so.**
-> Artist links come from MusicBrainz URL relationships, fetched in the same call
-> as MBID resolution. TikTok is poorly covered and will often be missing. The UI
-> must not imply a complete profile.
+| Rule | Spec |
+|---|---|
+| The feed is the product; releases and gigs are event types | `release-feed` |
+| Sort by urgency, not by date | gigs, not built |
+| Fetch gigs by city, match locally | gigs, not built |
+| Deterministic matching before any LLM | `identity-resolution` |
+| Artists are artists; the list is provenance | `roster-import` |
+| Liked artists arrive without images | `roster-import`, `docs/LIMITS.md` L13 |
+| Volume is the risk, not sparsity | `release-feed` |
+| Save, listened and liked are three flags, not three stages | `event-flags` |
+| The feed is for scanning; the lists are for working through | `release-feed`, `event-flags` |
+| A saved list is read two ways, so it offers both | `event-flags` |
+| A row leaves its list the moment its flag goes | `event-flags` |
+| An artist link tries the desktop app and falls back to the web | `artist-links` |
+| Triage accepts what it can prove; two artists never share an MBID | `identity-resolution` |
+| An ambiguous name is a decision, and the decision is kept | `review-queue` |
+| Links are best-effort and say so | `identity-resolution` |
 
 ---
 
 ## The Spotify ceiling
 
-**Verified during planning. Do not spend effort working around it.**
-
-- Development mode allows **5 allowlisted users per app**. The allowlist is on
-  *your app*, not on their accounts: a non-allowlisted user can complete OAuth,
-  then every API call returns **403**.
-- The app owner must hold **Spotify Premium** or the app stops working.
-- Extended quota mode — the only tier above 5 users — requires a registered
-  business, a launched service, and **250,000+ MAU**. Individuals are not
-  eligible. There is no intermediate tier and no self-serve upgrade.
-- `GET /artists` (batch) was **removed** in Feb 2026. Fetch individually via
-  `GET /artists/{id}`. The local cache is therefore load-bearing, not an
-  optimisation. `/me/following` and `/me/top/artists` survived.
-
-  Re-verified 2026-09-17 with a live call on an allowlisted token: `/me` 200,
-  `GET /artists/{id}` 200, `GET /artists?ids=` **403**. The [reference page for
-  Get Several Artists](https://developer.spotify.com/documentation/web-api/reference/get-multiple-artists)
-  is still published and its "Deprecated" labels sit on *fields*, not on the
-  endpoint — so the docs read as though batch still works. It does not. Trust
-  the 403 over the page.
-
-- Separately, `genres`, `popularity` and `followers` are **deprecated fields**
-  and already return empty/null on live responses (measured the same day:
-  Pitbull came back with `genres: []` and `popularity: null`). `images` is
-  unaffected. `RosterEntry` still carries genres and popularity; nothing reads
-  them, and nothing should start.
-
-**Self-hosting is the answer to this**, not a workaround for it: each person
-runs their own instance with their own Spotify app, is their own owner, and is
-allowlisted by default.
-
-Sources: [quota modes](https://developer.spotify.com/documentation/web-api/concepts/quota-modes),
-[Feb 2026 migration](https://developer.spotify.com/documentation/web-api/tutorials/february-2026-migration-guide),
-[extended access criteria](https://developer.spotify.com/blog/2025-04-15-updating-the-criteria-for-web-api-extended-access).
+Five allowlisted users per app, Premium required for the owner, no tier an
+individual can reach, and no batch artist endpoint (`GET /artists?ids=` is
+403). **Do not spend effort working around it**: self-hosting is the answer.
+The measurements and their sources are in `docs/SPOTIFY.md`.
 
 ---
 
@@ -342,92 +205,13 @@ exists so that when one breaks, it is a degraded row rather than an outage.
 
 ## Design
 
-**Post-punk and late-80s/90s indie.** DIY show flyer, xerox and screenprint,
-fanzine cut-and-paste. Factory Records, Fugazi sleeves, a photocopied poster
-stapled to a pole. Underground, rough, groovy, fun — built for people who take
-music seriously and design that does not take itself seriously.
-
-**Not:** friendly SaaS, soft cards, pastel anything.
-
-### The Factory idea, and why it fits
-
-Peter Saville's Factory sleeves were **information design pretending to be
-art**: Unknown Pleasures is a pulsar plot, FAC numbers catalogued everything
-including the office cat, and the sleeve often carried less band-name than a
-specimen chart would.
-
-That is the right model for Bandelion, because Bandelion **is** a list of dates,
-venues and catalogue numbers. So:
-
-- **The data is the ornament.** Do not decorate the feed. Set the dates, venue
-  names and metadata in heavy type at real scale and let density carry the look.
-- **Catalogue numbering, but not on every row.** The FAC-number idea is right
-  for the page as an object (the header carries `BND 0001`), and wrong repeated
-  down a 200-row feed: `BND 0504` beside every release is a number nobody reads,
-  competing with the date and the artist for the same glance. `catalogueNumber`
-  still exists and still has its tests. Would change if an event ID ever became
-  something you need to quote.
-- **Information as texture.** Dense condensed or monospaced metadata blocks,
-  hard rules between them.
-- **The grid is visible.** Hard rules, boxes, obvious columns. Not hidden.
-- **Restraint against the palette.** Saville used flat colour sparingly on a lot
-  of white. Magenta and violet are allowed on real surfaces, but the default is
-  still a lot of white with colour placed where it means something.
-
-### Palette
-
-**`PALETTE.md` is the reference**: every colour, what it is for, and the
-measured ratio of every pairing worth knowing. The values themselves live in
-`src/app/globals.css`, and `tests/contrast.mjs` parses that file, so a hex is
-declared exactly once in the codebase.
-
-The short version:
-
-- `#FFFFFF` white, `#333129` near-black olive, `#F7D000` dandelion yellow carry
-  the interface.
-- `#F700A8` magenta and `#9C00F7` violet are **usable on surfaces, not only as
-  hairlines**. The earlier rule confined them to accents; what actually matters
-  is the measurement, not the area, and `PALETTE.md` records which pairings
-  pass. Restraint is still the intent — a lot of white with colour placed
-  deliberately — but it is a design judgement now rather than a hard limit.
-- `#000000` true black is the striped ground and nothing else. It is NOT
-  `--ink`: the two differ, and ink on true black is 1.61:1, so no type is ever
-  set on the stripes.
-
-The yellow is **flyer stock**, not a text colour: a surface you set black type
-on, the way a screenprinted poster works.
-
-### Rules
-
-- **Zero border-radius**, with two exceptions, both circles drawn around
-  circular artwork. No rounded corners anywhere else, including avatars and
-  images — hard edges are the whole point. The exceptions are the save stamp
-  (`.stamp`), a 24px circle carrying the bolt on a sleeve's corner, and the
-  masthead mark's focus ring (`.masthead-home`), which would otherwise box a
-  circular logo. Both are ink marks rather than interface chrome.
-  `tests/contrast.mjs` holds the allowlist and fails on a rounded corner
-  anywhere else, naming the offending selector, so these are documented
-  exceptions rather than a loosened rule.
-- **No soft shadows, no gradients, no glassmorphism.** Flat blocks and hard
-  rules. If depth is needed, use a hard offset block, not a blur.
-- **Type carries the hierarchy** — weight, scale and case, not colour. Heavy
-  condensed display faces, tight tracking, big jumps between levels. Colour is
-  emphasis, never the only signal.
-- **Colour never carries meaning alone.** State is border plus shape plus label.
-- **Rough on purpose, not sloppy.** Texture, hard rules, slight rotation on
-  accents is welcome. Misaligned grids and unreadable text are not.
-- **Every element earns its line.** A label repeating identically on every
-  instance carries no information. Counters name what they count: never
-  "1 left".
-- **Anything that expands in place scrolls itself into view.**
-- **Consistency of gesture beats economy of controls.** If one row confirms by
-  tap, they all do.
-
-**Any colour change gets measured.** `tests/contrast.mjs` parses declared values
-out of the stylesheets and computes ratios, so it tests what ships. Never
-restate a hex in the test — read it from the source. Three separate contrast
-bugs shipped on the previous project this way, worst at 1:1: text exactly the
-colour of its own background, reported as "the buttons look empty".
+Post-punk and Factory Records: DIY flyer, xerox, screenprint. `docs/DESIGN.md`
+holds the look, the rules and the palette with measured contrast. The rules
+that fail the build: zero border-radius (two documented exceptions), no
+shadows, gradients or glassmorphism, and every hex in `docs/DESIGN.md` must
+ship in `src/app/globals.css` — all asserted by `tests/contrast.mjs`. Type
+carries the hierarchy; colour never carries meaning alone. **Any colour change
+gets measured.**
 
 ---
 
@@ -436,7 +220,7 @@ colour of its own background, reported as "the buttons look empty".
 Changing which MusicBrainz candidates resolve without a human follows
 `.claude/skills/triage/SKILL.md`, invocable as `/triage`. Measure against the
 real queue first, write the test from a real row, and keep the anti-merge
-assertion in `tests/resolve.mjs` true. `TRIAGE.md` is the evidence log.
+assertion in `tests/resolve.mjs` true. `docs/TRIAGE.md` is the evidence log.
 
 ## Copy
 
@@ -473,39 +257,9 @@ Every line came from something that went wrong or right in a real session.
 - **Do not trust a passing suite over my screenshot.**
 - **One test run, not two.** Capture once.
 
-### Taking a screenshot without fooling yourself
-
-Three separate times this went wrong in one session, each time producing a
-screenshot of something other than the current build:
-
-- **Stop the server before `npm run build`.** Building over a running server
-  corrupts `.next` and the page renders with no CSS at all.
-- **Kill by port, not by task.** A dead server can keep port 3000, so the next
-  one silently takes 3001 and the screenshot captures the old build.
-- **Wait for something new, not for a 200.** Poll for a string that only the
-  new build contains. "The server answered" is not "the server answered with
-  your change".
-
-### A fractional rem at bold can render a seam
-
-A button set at `0.8rem` (11.2px) bold in the monospace stack drew a visible
-lighter band through the middle of one word, on an inked background. It looked
-exactly like a stray `background` rule or a stuck `:hover`, and it was neither:
-the markup was plain text and no selector matched. Whole-pixel `font-size`
-fixed it, which is why `.feed-weekbtn` and `.list-orderbtn` both set px rather
-than rem.
-
-Worth knowing because the search for it went through the markup, the cascade
-and the source order first. If a "highlight" appears mid-word with no rule that
-could paint it, suspect the font size before the stylesheet.
-
-### An inline style beats a stylesheet rule
-
-Regardless of order or specificity. A `margin: 0` in a component silently
-cancelled a `margin-top` in `globals.css` and the gap measured 0px while both
-files looked right. The same thing happened earlier with `display: block`
-beating a media query. When a CSS change does not take, look for an inline
-style on the same element before doubting the selector.
+**Before a screenshot or a CSS fix, read the Traps in `docs/TESTING.md`**:
+building over a running server, a stale port, inline styles beating the
+stylesheet, and a fractional rem that paints a seam have each cost a session.
 
 ### How a round of changes should go
 

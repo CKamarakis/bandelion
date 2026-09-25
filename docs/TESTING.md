@@ -170,6 +170,88 @@ Two habits, do both:
 
 ---
 
+## Traps
+
+Each one cost real time, most more than once. Collected from the session
+handovers and the working notes that used to live in `CLAUDE.md`.
+
+### Taking a screenshot without fooling yourself
+
+Three separate times this went wrong in one session, each time producing a
+screenshot of something other than the current build:
+
+- **Stop the server before `npm run build`.** Building over a running server
+  corrupts `.next` and the page renders with no CSS at all.
+- **Kill by port, not by task.** A dead server can keep port 3000, so the next
+  one silently takes 3001 and the screenshot captures the old build.
+- **Wait for something new, not for a 200.** Poll for a string that only the
+  new build contains. "The server answered" is not "the server answered with
+  your change".
+
+The suite will pass while the screen is broken: one session found a
+`1556 of 625` counter, missing CSS and a lost SQL join only in screenshots.
+
+### An inline style beats a stylesheet rule
+
+Regardless of order or specificity. A `margin: 0` in a component silently
+cancelled a `margin-top` in `globals.css` and the gap measured 0px while both
+files looked right. The same thing happened earlier with `display: block`
+beating a media query. When a CSS change does not take, look for an inline
+style on the same element before doubting the selector.
+
+### A fractional rem at bold can render a seam
+
+A button set at `0.8rem` (11.2px) bold in the monospace stack drew a visible
+lighter band through the middle of one word, on an inked background. It looked
+exactly like a stray `background` rule or a stuck `:hover`, and it was neither:
+the markup was plain text and no selector matched. Whole-pixel `font-size`
+fixed it, which is why `.feed-weekbtn` and `.list-orderbtn` both set px rather
+than rem. If a "highlight" appears mid-word with no rule that could paint it,
+suspect the font size before the stylesheet.
+
+### Tests that mirror the implementation instead of running it
+
+A suite that reimplements the logic it tests will happily assert the buggy
+behaviour. It did once, on the earlier project: a progress count asserted as
+correct while it told users they had completed five things they had not done.
+The Bandelion equivalent: a matcher eval that reuses the matcher's own
+normalisation function will score 100% and prove nothing.
+
+### Trusting a source's silence
+
+An adapter returning `[]` means "this source told us nothing", never "there is
+nothing". Conflating the two is the defining bug class of this project: it
+produces a confidently empty feed while Berlin is full of shows. Every empty
+state must name its source, and `adapter_health` must be checked before drawing
+any conclusion from absence. The `source-health` spec states the contract.
+
+### Shell heredocs eat code
+
+Backticks, `${}`, apostrophes and backslashes get mangled silently. A template
+literal once shipped as `return also.length ?  : base;`. Use file-writing tools
+for anything containing them.
+
+### Bulk find-and-replace on colours
+
+A stylesheet-wide substitution cannot know which ground a value sits on. It
+broke three surfaces on the earlier project, each caught weeks apart. Change a
+colour, then run `tests/contrast.mjs`.
+
+### Copy that flatters
+
+The model writes the impressive version by default: "Tickets on sale Friday"
+from a field that is often wrong, or "No gigs coming up" when a source is
+simply down. Rule 8 in the copy skill, and the highest-value thing a reviewer
+catches.
+
+### A known flake: two jobs on one SQLite file
+
+`releases.mjs` failed once mid-run while the covers job was writing to the same
+database, then passed alone and on re-run. Probably WAL contention rather than
+a logic bug — a guess, not a finding. It has not recurred.
+
+---
+
 ## If the app ever has more than one language
 
 **Dormant.** Bandelion is English-only today. Kept because the project is
