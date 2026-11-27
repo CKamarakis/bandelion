@@ -102,7 +102,7 @@ and that one did not.
 | Suite | Why it exists |
 |---|---|
 | **offline** **[new]** | Inverted from the old `integrity` suite. Asserts no test makes a live network request, and that every adapter has a recorded fixture. The old project banned external requests *at runtime*; here they are the point, so the ban moves to the test suite. |
-| **degradation** **[new]** | Constraint 2, as an assertion. Disables each adapter in turn and asserts the feed still renders and `adapter_health` shows degraded. The architecture's central promise; untested it is a wish. |
+| **degradation** **[new]** | Constraint 2, as an assertion. Takes MusicBrainz and then the Cover Art Archive down for a whole run and asserts every stored release survives unchanged, `adapter_health` shows degraded, the run is not reported complete, and an unreached release is retried next run. Written late: CLAUDE.md claimed it before it existed, and on its first run it caught two jobs reporting `complete` after reaching nothing. The rendering half is the CI container job. |
 | **matcher** **[new]** | The artist-name eval set. Real listing strings to expected artist IDs, scored. Run on every matcher change. Covers: support acts in free text, umlauts and transliteration, generic names, multi-act bills, DJ set vs live. |
 | **ingest** **[new]** | Jobs must checkpoint and resume. Kills a job mid-run and asserts it continues rather than restarts, and that nothing iterates the full roster in a request handler. |
 | **render** **[carried]** | A missing side-effect import disabled every click in the app while every static check passed. Drives the real flow against a seeded database. |

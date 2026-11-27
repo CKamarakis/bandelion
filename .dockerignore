@@ -1,0 +1,16 @@
+# Keep secrets and per-instance state out of the image. `.env` reaches the
+# container through compose's env_file at run time, never through a layer.
+.env
+.env.*
+!.env.example
+data/
+
+# Rebuilt inside the image, or not needed there.
+node_modules/
+.next/
+tests/shots/
+.git/
+.claude/
+*.log
+
+# tests/ itself stays: `npm run seed` and its fixtures run inside the container.

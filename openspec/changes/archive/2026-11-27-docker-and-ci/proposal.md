@@ -27,10 +27,14 @@ test. The promise is the whole architecture, and untested it is a wish.
 - **GitHub Actions workflow** running `npm run verify` on push and pull
   request, plus a job that builds the image and brings up compose until the
   home page answers with a string only the app serves.
-- **The missing constraint-2 test**: disable one adapter, render the feed,
-  assert it is non-empty and `getHealth` reports that source degraded.
-- **`DECISIONS.md` 015 corrected**, and `README.md` setup gains the Docker
-  path, marked verified only once CI has run it.
+- **The missing constraint-2 test**, in two halves because the home page reads
+  stored events and never reads `adapter_health`: a suite that fails
+  MusicBrainz for a whole release sweep and asserts the stored feed is intact
+  and the source is marked degraded; and the container smoke job, which renders
+  the feed from a seeded database and checks a release title in the HTML.
+- **`docs/DECISIONS.md` 015 closed out** (its correction already says the files
+  were never written; it gains the date CI first ran them), and `README.md`
+  setup gains the Docker path, marked verified only once CI has run it.
 
 ## Non-goals
 
@@ -49,9 +53,9 @@ test. The promise is the whole architecture, and untested it is a wish.
 
 ### Modified Capabilities
 
-- `source-health`: gains the scenario that one disabled adapter leaves the
-  feed rendering. It is written by `docs-to-specs`, so this change lands after
-  that one. If it lands first, the scenario moves into a new spec here.
+- `source-health`: gains a requirement that a source failing for a whole run
+  leaves the stored feed intact. The spec exists since `docs-to-specs` was
+  archived; this change is built on that branch.
 
 ## Impact
 

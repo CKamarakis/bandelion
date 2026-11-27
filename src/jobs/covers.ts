@@ -108,7 +108,14 @@ export async function importCovers(opts: {
   };
 
   const job = loadJob(db, JOB_NAME);
-  const resuming = job?.status !== 'complete' && job?.cursor;
+  /*
+   * Resume only a run that was stopped: a budget, an abort, a killed process.
+   * A failed run left its cursor past the releases it could not reach, and
+   * resuming from there would report "complete" having asked nothing — the
+   * forward-only cursor of decision 036. After a failure, start over; checked
+   * releases are filtered out anyway, so only the unreached ones are asked.
+   */
+  const resuming = job?.status !== 'complete' && job?.status !== 'failed' && job?.cursor;
   let cursor = resuming ? Number(job?.cursor ?? 0) : 0;
 
   let checked = 0;
