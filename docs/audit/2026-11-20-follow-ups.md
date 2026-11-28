@@ -22,5 +22,5 @@ From the tech-debt audit and the docs-alignment audit next to this file (audited
 - [ ] `.env.example` timezone setting is read by nothing; weeks are UTC (.env.example:19).
 
 ## Smaller
-- [ ] `tests/docs.mjs:173` fails on Windows line endings (F22): `\r?\n` or a `.gitattributes`.
+- [x] `tests/docs.mjs:173` fails on Windows line endings (F22): `\r?\n` or a `.gitattributes`.
 - [ ] Test gaps: `jobs/liked.ts`, the cover-art success path, the token-refresh path.

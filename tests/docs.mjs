@@ -170,7 +170,8 @@ for (const [, script] of readme.matchAll(/npm run ([\w:]+)/g)) {
  * CLAUDE.md's listing would have without its check: it named HANDOVER.md and
  * PALETTE.md at the root after both had moved or gone.
  */
-const docsTable = readme.match(/## Documentation[\s\S]*?\n((?:\|.*\n)+)/);
+// \r?\n: a Windows checkout has CRLF line endings.
+const docsTable = readme.match(/## Documentation[\s\S]*?\r?\n((?:\|.*\r?\n)+)/);
 check(Boolean(docsTable), 'README has a Documentation table');
 
 if (docsTable) {
